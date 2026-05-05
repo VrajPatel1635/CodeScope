@@ -1,0 +1,111 @@
+### Test 1: for-loop trace (expect `trace.events` populated, `trace.errors` empty)
+POST http://localhost:5000/api/execute
+Content-Type: application/json
+
+{
+  "code": "class Solution {\n    public int solve(int[] arr) {\n        int sum = 0;\n        for(int i=0;i<3;i++){\n            sum += i;\n        }\n        return sum;\n    }\n}",
+  "input": "[1,2,3]"
+}
+
+### Test 2: simple vars + return
+POST http://localhost:5000/api/execute
+Content-Type: application/json
+
+{
+  "code": "class Solution {\n    public int solve(int[] arr) {\n        int a = 2;\n        int b = 3;\n        int c = a + b;\n        return c;\n    }\n}",
+  "input": "[]"
+}
+
+### Test 3: State Engine test (expect array of state snapshots)
+POST http://localhost:5000/api/execute
+Content-Type: application/json
+
+{
+  "code": "class Solution {\n    public int solve(int[] arr) {\n        int sum = 0;\n        for(int i = 0; i < 3; i++) {\n            sum += i;\n        }\n        return sum;\n    }\n}",
+  "input": "[]"
+}
+
+
+
+### Test 4 : Array operations
+POST http://localhost:5000/api/execute
+Content-Type: application/json
+
+{
+  "code": "class Solution {\n    public int solve(int[] arr) {\n        for(int i = 0; i < arr.length; i++) {\n            arr[i] = arr[i] * 2;\n        }\n        return arr[0];\n    }\n}",
+  "input": "[1,2,3]"
+}
+
+### Test 5 : Array operations parser
+POST http://localhost:5000/api/execute
+Content-Type: application/json
+
+{
+  "code": "class Solution {\n    public int solve(int[] arr) {\n        for(int i = 0; i < arr.length; i++) {\n            arr[i] = arr[i] * 2;\n        }\n        return arr[0];\n    }\n}",
+  "input": "[1,2,3]"
+}
+
+### Test 6 : 
+POST http://localhost:5000/api/execute
+Content-Type: application/json
+
+{
+  "code": "class Solution {\n    public int solve(int[] arr) {\n        for(int i = 0; i < arr.length; i++) {\n            arr[i] = arr[i] * 2;\n        }\n        return arr[0];\n    }\n}",
+  "input": "[1,2,3]"
+}
+
+### Test 7 : Stack Test
+POST http://localhost:5000/api/execute
+Content-Type: application/json
+
+{
+  "code": "class Solution {\n    public int solve(int n) {\n        if(n == 0) return 1;\n        return n * solve(n - 1);\n    }\n}",
+  "input": "3"
+}
+
+### Test 8 : Stack Test
+POST http://localhost:5000/api/execute
+Content-Type: application/json
+
+{
+  "code": "class Solution {\n    public int solve(int n) {\n        if(n == 0) return 1;\n        return n * solve(n - 1);\n    }\n}",
+  "input": "3"
+}
+
+### Test 9 : 
+POST http://localhost:5000/api/execute
+Content-Type: application/json
+
+{
+  "code": "class Solution {\n    public int solve(int[] arr) {\n        int sum = 0;\n        for(int i = 0; i < arr.length; i++) {\n            sum += arr[i];\n        }\n        return sum;\n    }\n}",
+  "input": "[1,2,3]"
+}
+
+### Test 10 : 2D array
+POST http://localhost:5000/api/execute
+Content-Type: application/json
+
+{
+  "code": "class Solution {\n    public int solve(int[][] grid) {\n        int sum = 0;\n        for(int i = 0; i < grid.length; i++) {\n            for(int j = 0; j < grid[0].length; j++) {\n                sum += grid[i][j];\n            }\n        }\n        return sum;\n    }\n}",
+  "input": "[[1,2],[3,4]]"
+}
+
+### Test 11 : Normal Linked List
+
+POST http://localhost:5000/execute
+Content-Type: application/json
+
+{
+  "code": "class Solution { public int solve(ListNode head) { head = head.next; return 0; } }",
+  "input": "[1,2,3]"
+}
+
+### TEST 12 — Single Node
+
+POST http://localhost:5000/execute
+Content-Type: application/json
+
+{
+"code": "class Solution { public int solve(ListNode head) { ListNode a = head; ListNode b = head; a = a.next; b = b.next; return 0; } }",
+"input": "[1,2,3]"
+}

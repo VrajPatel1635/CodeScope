@@ -1,0 +1,281 @@
+function parseValue(value) {
+    if (typeof value === "number") return value;
+    if (value === "null") return null;
+    if (value === "true") return true;
+    if (value === "false") return false;
+    if (typeof value === "string" && value.trim() !== "" && !isNaN(value)) {
+        return Number(value);
+    }
+    return value;
+}
+
+/**
+ * Helper: return a shallow copy of the variables from the top stack frame,
+ * or an empty object if the stack is empty.
+ */
+function topVars(stack) {
+    return stack.length > 0 ? { ...stack[stack.length - 1].variables } : {};
+}
+
+function buildState(traceEvents, initialArray) {
+    const states = [];
+    let currentLine = null;
+    let step = 1;
+    
+    // Evaluate if input is 1D or 2D Array
+    let isMatrix = Array.isArray(initialArray) && Array.isArray(initialArray[0]);
+    let currentArrayState = (!isMatrix && Array.isArray(initialArray)) ? [...initialArray] : null;
+    let currentMatrixState = isMatrix ? initialArray.map(row => [...row]) : null;
+    let currentLinkedListState = null;
+
+    if (initialArray && !Array.isArray(initialArray) && initialArray.type === "LinkedList") {
+       currentLinkedListState = {
+           head: initialArray.head,
+           nodes: JSON.parse(JSON.stringify(initialArray.nodes))
+       };
+    }
+
+    // ── Stack-based scoping ──────────────────────────────────────────
+    // Each entry: { function: "<name>", variables: { ... } }
+    // Initialised with a "global" frame so the stack is never empty.
+    let stack = [{ function: "global", variables: {} }];
+
+    // ── Expression tracking ──────────────────────────────────────────
+    // EXPR events fire BEFORE `var trace_return = n * solve(n-1)`.
+    // The recursive call inside that expression generates its own
+    // CALL/VAR/RETURN/EXPR events in between, so a single buffer would
+    // be clobbered before the outer RETURN fires.
+    //
+    // Fix: key each pending expression by the STACK DEPTH at which it
+    // was emitted. The RETURN at that same depth consumes and removes it.
+    const pendingExprByDepth = new Map(); // depth → expr metadata
+
+    // Tracks the most-recent child RETURN value. Because recursion is
+    // depth-first, the last RETURN before a parent fires its own RETURN
+    // is always that parent's direct child. Used to populate rightValue.
+    let lastChildReturnValue = null;
+
+    // Tracks loops we are currently in
+    let currentLoops = {};
+
+    for (const event of traceEvents) {
+        let currentStep = null;
+
+        // ── CALL ─────────────────────────────────────────────────────
+        if (event.type === "CALL") {
+            stack.push({
+                function: event.function,
+                variables: {},
+            });
+
+            currentStep = {
+                step: step++,
+                line: currentLine,
+                callEvent: { type: "CALL", function: event.function },
+            };
+
+        // ── LINE ─────────────────────────────────────────────────────
+        } else if (event.type === "LINE") {
+            currentLine = event.line;
+            currentStep = {
+                step: step++,
+                line: currentLine,
+            };
+
+        // ── VAR ──────────────────────────────────────────────────────
+        } else if (event.type === "VAR") {
+            // __return__ is an injected marker only; skip it.
+            if (event.name === "__return__") {
+                continue;
+            }
+            stack[stack.length - 1].variables[event.name] = parseValue(event.value);
+            currentStep = {
+                step: step++,
+                line: currentLine,
+            };
+
+        // ── EXPR ──────────────────────────────────────────────────────
+        } else if (event.type === "EXPR") {
+            // Store expr info at current depth. The RETURN at this depth
+            // will read and remove it.
+            pendingExprByDepth.set(stack.length, {
+                left:      event.left,
+                operator:  event.operator,
+                rightFn:   event.rightFn,
+                leftValue: event.leftValue,
+            });
+            // No step emitted — this is metadata only.
+
+        // ── RETURN ───────────────────────────────────────────────────
+        } else if (event.type === "RETURN") {
+            const returnValue = parseValue(event.value);
+
+            // Capture returning frame name BEFORE popping.
+            const returningFunction = stack.length > 0
+                ? stack[stack.length - 1].function
+                : "unknown";
+
+            currentStep = {
+                step: step++,
+                line: currentLine,
+                return: returnValue,
+                callEvent: { type: "RETURN", value: returnValue },
+            };
+
+            // Consume the EXPR entry stored at THIS depth (if any).
+            const depth = stack.length;
+            const pendingExpr = pendingExprByDepth.get(depth);
+            if (pendingExpr) {
+                // rightValue = what the child call returned (last RETURN seen)
+                // result     = final value this frame computes (leftValue OP rightValue)
+                const rightValue = lastChildReturnValue;
+                currentStep.expressionEvaluation = {
+                    left:       pendingExpr.left,
+                    operator:   pendingExpr.operator,
+                    rightFn:    pendingExpr.rightFn,
+                    leftValue:  pendingExpr.leftValue,
+                    rightValue: rightValue,
+                    result:     returnValue,
+                };
+                pendingExprByDepth.delete(depth);
+            }
+
+            // Pop the completed frame.
+            stack.pop();
+
+            // Safety: stack must never be empty.
+            if (stack.length === 0) {
+                stack.push({ function: "global", variables: {} });
+            }
+
+            // returnFlow: who returned, to whom, with what value.
+            const parentFrame = stack[stack.length - 1];
+            currentStep.returnFlow = {
+                fromFunction: returningFunction,
+                toFunction:   parentFrame.function,
+                value:        returnValue,
+            };
+
+            // Record this RETURN's value so the parent frame can use it
+            // as the rightValue of its own expressionEvaluation.
+            lastChildReturnValue = returnValue;
+
+        // ── ARRAY ─────────────────────────────────────────────────────
+        } else if (event.type === "ARRAY") {
+            currentStep = {
+                step: step++,
+                line: currentLine,
+                arrayEvent: {
+                    name:  event.name,
+                    index: event.index,
+                    value: event.value,
+                },
+            };
+
+        // ── LOOP ──────────────────────────────────────────────────────
+        } else if (event.type === "LOOP") {
+            currentLoops[event.loopId] = event.iteration;
+            currentStep = {
+                step: step++,
+                line: currentLine,
+                loopEvent: {
+                    loopId: event.loopId,
+                    iteration: event.iteration,
+                },
+            };
+
+        // ── NODE LINK ─────────────────────────────────────────────────
+        } else if (event.type === "NODE_LINK") {
+            currentStep = {
+                step: step++,
+                line: currentLine,
+                nodeLinkEvent: {
+                    from: event.from,
+                    to: event.to
+                }
+            };
+
+        // ── PTR MOVE ──────────────────────────────────────────────────
+        } else if (event.type === "PTR_MOVE") {
+            const nodeId = event.nodeId === "null" ? null : event.nodeId;
+
+            // ── Step N: announce event with OLD (pre-mutation) state ──
+            // Push manually so the bottom state-attachment block does NOT
+            // run for this step (it only runs for whatever currentStep is
+            // at the end of this if-else chain).
+            const announceStep = {
+                step: step++,
+                line: currentLine,
+                ptrMoveEvent: { variable: event.variable, nodeId: nodeId },
+                // Snapshot OLD variables (pointer not yet moved)
+                currentFrameVariables: topVars(stack),
+                stack: stack.map(f => ({
+                    function:  f.function,
+                    variables: { ...f.variables },
+                })),
+                loopContext: { ...currentLoops },
+            };
+            // Attach linked-list snapshot with OLD pointer positions
+            if (currentLinkedListState) {
+                announceStep.linkedList = {
+                    head: currentLinkedListState.head,
+                    nodes: JSON.parse(JSON.stringify(currentLinkedListState.nodes)),
+                };
+            }
+            states.push(announceStep);
+
+            // ── Apply mutation ────────────────────────────────────────
+            stack[stack.length - 1].variables[event.variable] = nodeId;
+
+            // ── Step N+1: plain step — bottom block attaches NEW state ─
+            currentStep = {
+                step: step++,
+                line: currentLine,
+            };
+        }
+
+        if (currentStep) {
+            // Array/List tracking updates
+            if (currentStep.arrayEvent && currentArrayState) {
+                const index = parseInt(currentStep.arrayEvent.index);
+                const value = parseInt(currentStep.arrayEvent.value);
+                currentArrayState[index] = value;
+            } else if (currentStep.nodeLinkEvent && currentLinkedListState) {
+                const { from, to } = currentStep.nodeLinkEvent;
+                if (currentLinkedListState.nodes[from]) {
+                    currentLinkedListState.nodes[from].next = to;
+                }
+            }
+
+            // Attach array/matrix/linked list tracker dynamically
+            if (currentArrayState) {
+                currentStep.array = [...currentArrayState];
+            } else if (currentMatrixState) {
+                currentStep.matrix = currentMatrixState.map(r => [...r]);
+            } else if (currentLinkedListState) {
+                currentStep.linkedList = {
+                    head: currentLinkedListState.head,
+                    nodes: JSON.parse(JSON.stringify(currentLinkedListState.nodes))
+                };
+            }
+
+            // Top-frame variables — single source of truth
+            currentStep.currentFrameVariables = topVars(stack);
+
+            // Full stack snapshot (each frame with its own variables)
+            currentStep.stack = stack.map((f) => ({
+                function:  f.function,
+                variables: { ...f.variables },
+            }));
+
+            // Attach loop context
+            currentStep.loopContext = { ...currentLoops };
+
+            states.push(currentStep);
+        }
+    }
+
+    return states;
+}
+
+module.exports = { buildState };
