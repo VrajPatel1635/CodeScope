@@ -184,6 +184,22 @@ function buildState(traceEvents, initialArray) {
                 },
             };
 
+        // ── LOOP_ITER & LOOP_END ──────────────────────────────────────
+        } else if (event.type === "LOOP_ITER") {
+            currentLoops[event.loopId] = (currentLoops[event.loopId] || 0) + 1;
+            currentStep = {
+                step: step++,
+                line: currentLine,
+                loopEvent: {
+                    loopId: event.loopId,
+                    iteration: currentLoops[event.loopId],
+                },
+            };
+        } else if (event.type === "LOOP_END") {
+            delete currentLoops[event.loopId];
+            // Don't emit a separate step just for loop cleanup unless needed,
+            // but we can just update the context silently for the next step.
+
         // ── NODE LINK ─────────────────────────────────────────────────
         } else if (event.type === "NODE_LINK") {
             currentStep = {
@@ -226,6 +242,44 @@ function buildState(traceEvents, initialArray) {
 
             // ── Apply mutation ────────────────────────────────────────
             stack[stack.length - 1].variables[event.variable] = nodeId;
+
+            // ── Step N+1: plain step — bottom block attaches NEW state ─
+            currentStep = {
+                step: step++,
+                line: currentLine,
+            };
+
+        // ── NODE MUTATE ───────────────────────────────────────────────
+        } else if (event.type === "NODE_MUTATE") {
+            const fromNodeId = event.fromNodeId === "null" ? null : event.fromNodeId;
+            const toNodeId = event.toNodeId === "null" ? null : event.toNodeId;
+
+            // ── Step N: announce event with OLD (pre-mutation) state ──
+            const announceStep = {
+                step: step++,
+                line: currentLine,
+                nodeMutateEvent: { fromNodeId, toNodeId },
+                currentFrameVariables: topVars(stack),
+                stack: stack.map(f => ({
+                    function:  f.function,
+                    variables: { ...f.variables },
+                })),
+                loopContext: { ...currentLoops },
+            };
+            if (currentLinkedListState) {
+                announceStep.linkedList = {
+                    head: currentLinkedListState.head,
+                    nodes: JSON.parse(JSON.stringify(currentLinkedListState.nodes)),
+                };
+            }
+            if (currentArrayState) announceStep.array = [...currentArrayState];
+            if (currentMatrixState) announceStep.matrix = currentMatrixState.map(r => [...r]);
+            states.push(announceStep);
+
+            // ── Apply mutation ────────────────────────────────────────
+            if (currentLinkedListState && currentLinkedListState.nodes[fromNodeId]) {
+                currentLinkedListState.nodes[fromNodeId].next = toNodeId;
+            }
 
             // ── Step N+1: plain step — bottom block attaches NEW state ─
             currentStep = {

@@ -16,7 +16,7 @@ import { useEffect, useRef, useState } from "react";
 const SKIP_VARS = new Set(["__return__"]);
 
 // ── Return bubble (floats upward on a RETURN step) ───────────────────────────
-function ReturnBubble({ value, toFunction }) {
+function ReturnBubble({ value, toFunction, resolveNodeValue }) {
   const [visible, setVisible] = useState(true);
 
   useEffect(() => {
@@ -55,7 +55,7 @@ function ReturnBubble({ value, toFunction }) {
           whiteSpace: "nowrap",
         }}
       >
-        ↑ {value}
+        ↑ {resolveNodeValue ? resolveNodeValue(value) : value}
         {toFunction && (
           <span style={{ fontWeight: 400, fontSize: "0.7rem", opacity: 0.85 }}>
             → {toFunction}()
@@ -67,9 +67,17 @@ function ReturnBubble({ value, toFunction }) {
 }
 
 // ── Single stack frame card ───────────────────────────────────────────────────
-function StackFrame({ frame, isTop, depth, returnFlow, stepReturn }) {
+function StackFrame({ frame, isTop, depth, returnFlow, stepReturn, resolveNodeValue, frameSemantics = [] }) {
   const { function: fnName, variables = {} } = frame;
   const entries = Object.entries(variables).filter(([k]) => !SKIP_VARS.has(k));
+
+  const hasSemantic = (type) => frameSemantics.some((s) => s.type === type);
+  const isRecursiveDescent = hasSemantic("RECURSIVE_DESCENT");
+  const isBaseCase = hasSemantic("BASE_CASE_REACHED");
+  const isUnwinding = hasSemantic("UNWIND_PHASE");
+  const isSuspended = hasSemantic("FRAME_SUSPENSION");
+  const isResuming = hasSemantic("FRAME_RESUMPTION");
+  const isReturnPropagating = hasSemantic("RETURN_PROPAGATION");
 
   // Show return bubble on the frame that is RETURNING (the child that just ran)
   const isReturning =
@@ -89,6 +97,7 @@ function StackFrame({ frame, isTop, depth, returnFlow, stepReturn }) {
           key={`${returnFlow.value}-${returnFlow.toFunction}`}
           value={returnFlow.value}
           toFunction={returnFlow.toFunction !== fnName ? returnFlow.toFunction : null}
+          resolveNodeValue={resolveNodeValue}
         />
       )}
 
@@ -96,16 +105,19 @@ function StackFrame({ frame, isTop, depth, returnFlow, stepReturn }) {
         style={{
           borderRadius: "0.5rem",
           border: `1.5px solid ${
-            isReturning ? "#f97316" : isTop ? "#3b82f6" : "#e5e7eb"
+            isBaseCase ? "#10b981" : isReturning ? "#f97316" : isTop ? "#3b82f6" : isSuspended ? "#8b5cf6" : "#e5e7eb"
           }`,
-          background: "#fff",
-          boxShadow: isReturning
+          background: isSuspended ? "#f8fafc" : "#fff",
+          opacity: isSuspended ? 0.8 : 1,
+          boxShadow: isBaseCase
+            ? "0 0 0 3px rgba(16, 185, 129, 0.15), 0 1px 4px rgba(0,0,0,0.06)"
+            : isReturning
             ? "0 0 0 3px rgba(249,115,22,0.15), 0 1px 4px rgba(0,0,0,0.06)"
             : isTop
             ? "0 0 0 3px rgba(59,130,246,0.12), 0 1px 4px rgba(0,0,0,0.06)"
             : "0 1px 3px rgba(0,0,0,0.05)",
           overflow: "hidden",
-          transition: "border-color 0.2s, box-shadow 0.2s",
+          transition: "border-color 0.2s, box-shadow 0.2s, background 0.2s, opacity 0.2s",
         }}
       >
         {/* ── Header ── */}
@@ -115,16 +127,24 @@ function StackFrame({ frame, isTop, depth, returnFlow, stepReturn }) {
             alignItems: "center",
             gap: "8px",
             padding: "8px 12px",
-            background: isReturning
+            background: isBaseCase
+              ? "#ecfdf5"
+              : isReturning
               ? "#fff7ed"
               : isTop
               ? "#eff6ff"
+              : isSuspended
+              ? "#f5f3ff"
               : "#f9fafb",
             borderBottom: "1px solid",
-            borderColor: isReturning
+            borderColor: isBaseCase
+              ? "#a7f3d0"
+              : isReturning
               ? "#fed7aa"
               : isTop
               ? "#bfdbfe"
+              : isSuspended
+              ? "#ede9fe"
               : "#f3f4f6",
           }}
         >
@@ -135,10 +155,14 @@ function StackFrame({ frame, isTop, depth, returnFlow, stepReturn }) {
               width: "8px",
               height: "8px",
               borderRadius: "50%",
-              background: isReturning
+              background: isBaseCase
+                ? "#10b981"
+                : isReturning
                 ? "#f97316"
                 : isTop
                 ? "#3b82f6"
+                : isSuspended
+                ? "#8b5cf6"
                 : "#9ca3af",
               flexShrink: 0,
               transition: "background 0.2s",
@@ -151,10 +175,14 @@ function StackFrame({ frame, isTop, depth, returnFlow, stepReturn }) {
               fontFamily: "monospace",
               fontWeight: 600,
               fontSize: "0.8125rem",
-              color: isReturning
+              color: isBaseCase
+                ? "#047857"
+                : isReturning
                 ? "#c2410c"
                 : isTop
                 ? "#1e40af"
+                : isSuspended
+                ? "#6d28d9"
                 : "#374151",
               flex: 1,
             }}
@@ -168,25 +196,44 @@ function StackFrame({ frame, isTop, depth, returnFlow, stepReturn }) {
               fontSize: "0.6875rem",
               padding: "1px 7px",
               borderRadius: "9999px",
-              background: isReturning
+              background: isBaseCase
+                ? "#d1fae5"
+                : isReturning
                 ? "#ffedd5"
+                : isUnwinding
+                ? "#fce7f3"
+                : isSuspended
+                ? "#ede9fe"
                 : isTop
                 ? "#dbeafe"
                 : "#f3f4f6",
-              color: isReturning
+              color: isBaseCase
+                ? "#047857"
+                : isReturning
                 ? "#c2410c"
+                : isUnwinding
+                ? "#be185d"
+                : isSuspended
+                ? "#6d28d9"
                 : isTop
                 ? "#1d4ed8"
                 : "#6b7280",
               border: `1px solid ${
-                isReturning ? "#fed7aa" : isTop ? "#bfdbfe" : "#e5e7eb"
+                isBaseCase ? "#a7f3d0" : isReturning ? "#fed7aa" : isUnwinding ? "#fbcfe8" : isSuspended ? "#ddd6fe" : isTop ? "#bfdbfe" : "#e5e7eb"
               }`,
               fontWeight: 500,
               whiteSpace: "nowrap",
             }}
           >
+            {isRecursiveDescent && !isBaseCase && <span style={{ marginRight: '4px' }}>↓</span>}
             {isReturning
-              ? `↩ ${returnFlow.value}`
+              ? `↩ ${resolveNodeValue(returnFlow.value)}`
+              : isBaseCase
+              ? "base case"
+              : isUnwinding
+              ? "unwinding"
+              : isSuspended
+              ? "suspended"
               : isTop
               ? "active"
               : `depth −${depth}`}
@@ -269,7 +316,7 @@ function StackFrame({ frame, isTop, depth, returnFlow, stepReturn }) {
                 borderRadius: "4px",
               }}
             >
-              {returnFlow.value}
+              {resolveNodeValue(returnFlow.value)}
             </span>
             {returnFlow.toFunction && (
               <span style={{ color: "#c2410c" }}>
@@ -284,10 +331,20 @@ function StackFrame({ frame, isTop, depth, returnFlow, stepReturn }) {
 }
 
 // ── CallStackPanel ────────────────────────────────────────────────────────────
-export default function CallStackPanel({ stack = [], returnFlow = null, stepReturn }) {
+export default function CallStackPanel({ stack = [], returnFlow = null, stepReturn, linkedList, callStackSemantics = [] }) {
   // Backend: index 0 = bottom, last = top. Reverse so active call is first visually.
   const displayFrames = [...stack].reverse();
   const isEmpty = displayFrames.length === 0;
+
+  const resolveNodeValue = (val) => {
+    if (typeof val === "string" && val.startsWith("node_")) {
+      const nodeLabel = linkedList?.nodes?.[val]?.val;
+      if (nodeLabel !== undefined) {
+        return `${val} → ${nodeLabel}`;
+      }
+    }
+    return val;
+  };
 
   return (
     <div style={{ width: "100%" }}>
@@ -341,7 +398,7 @@ export default function CallStackPanel({ stack = [], returnFlow = null, stepRetu
               whiteSpace: "nowrap",
             }}
           >
-            ↩ {returnFlow.fromFunction}() → {returnFlow.value}
+            ↩ {returnFlow.fromFunction}() → {resolveNodeValue(returnFlow.value)}
           </span>
         )}
       </div>
@@ -378,6 +435,8 @@ export default function CallStackPanel({ stack = [], returnFlow = null, stepRetu
               depth={idx}
               returnFlow={returnFlow}
               stepReturn={stepReturn}
+              resolveNodeValue={resolveNodeValue}
+              frameSemantics={callStackSemantics.filter(s => (s.frameId === frame.function && s.depth === (stack.length - 1 - idx)))}
             />
           ))}
         </div>

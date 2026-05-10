@@ -66,16 +66,6 @@ export default function Controls({
         </button>
 
         <span className="step-counter flex items-center gap-3">
-          {Object.entries(loopContext).length > 0 && (
-            <span style={{ color: "#d97706", fontWeight: 600, fontSize: "0.8rem", background: "#fef3c7", padding: "2px 8px", borderRadius: "12px", border: "1px solid #fde68a" }}>
-              {Object.entries(loopContext).map(([id, iter], idx) => (
-                <span key={id}>
-                  {idx > 0 && " | "}
-                  Loop {idx} — Iteration {iter}
-                </span>
-              ))}
-            </span>
-          )}
           <span>
             Step <strong>{currentStep + 1}</strong> / <strong>{totalSteps}</strong>
           </span>

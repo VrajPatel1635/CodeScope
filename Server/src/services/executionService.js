@@ -2,6 +2,9 @@ const fs = require("fs");
 const path = require("path");
 const { spawn } = require("child_process");
 const { buildState } = require("../utils/stateEngine");
+const { analyzePointerSemantics } = require("../semantic/PointerRelationshipAnalyzer");
+const { analyzeLoopSemantics } = require("../semantic/LoopSemanticAnalyzer");
+const { analyzeCallStackSemantics } = require("../semantic/CallStackSemanticAnalyzer");
 const { buildJavaInputsFromSignature, splitJavaPreamble, normalizeType } = require("../utils/inputBuilders");
 
 const EXECUTIONS_DIR = path.join(__dirname, "../../executions");
@@ -16,7 +19,7 @@ function createExecutionFolder(executionId) {
   return dirPath;
 }
 
-function wrapJavaCode(userCode, input, methodName = "solve", methodParams = []) {
+function wrapJavaCode(userCode, input, methodName = "solve", methodParams = [], returnType = "int") {
   const { preamble, rest } = splitJavaPreamble(userCode);
 
   const normalizedParams = (methodParams || []).map((p) => ({
@@ -31,15 +34,74 @@ function wrapJavaCode(userCode, input, methodName = "solve", methodParams = []) 
     inputRaw: input,
   });
 
+  let declarationPart = "";
+  if (returnType !== "void") {
+    declarationPart = `${returnType} result = sol.${methodName}(${built.argsList});`;
+  } else {
+    declarationPart = `sol.${methodName}(${built.argsList});`;
+  }
+
   const invocation = `${built.declarations}
-        int result = sol.${methodName}(${built.argsList});`;
+        ${declarationPart}`;
 
   const helperBlock = built.helperCode ? `\n${built.helperCode}\n` : "";
+
+  const outputSerializer = `
+class OutputSerializer {
+    public static String serialize(Object obj) {
+        if (obj == null) return "[]"; // or "null"? The spec asks for [] for Empty list
+        if (obj instanceof int[]) {
+            return java.util.Arrays.toString((int[]) obj);
+        }
+        if (obj instanceof int[][]) {
+            return java.util.Arrays.deepToString((int[][]) obj);
+        }
+        if (obj.getClass().getSimpleName().equals("ListNode")) {
+            return serializeLinkedList(obj);
+        }
+        return String.valueOf(obj);
+    }
+
+    private static String serializeLinkedList(Object headObj) {
+        if (headObj == null) return "[]";
+        StringBuilder sb = new StringBuilder();
+        sb.append("[");
+        java.util.Set<Object> visited = java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<>());
+        Object curr = headObj;
+        try {
+            while (curr != null) {
+                if (visited.contains(curr)) {
+                    sb.append("\\"CYCLE\\"");
+                    break;
+                }
+                visited.add(curr);
+                
+                java.lang.reflect.Field valField = curr.getClass().getDeclaredField("val");
+                valField.setAccessible(true);
+                sb.append(valField.get(curr));
+                
+                java.lang.reflect.Field nextField = curr.getClass().getDeclaredField("next");
+                nextField.setAccessible(true);
+                curr = nextField.get(curr);
+                
+                if (curr != null) {
+                    sb.append(",");
+                }
+            }
+        } catch (Exception e) {
+            return "Error serializing ListNode";
+        }
+        sb.append("]");
+        return sb.toString();
+    }
+}
+`;
 
   return {
     javaCode: `
 ${preamble}
 ${helperBlock}
+${outputSerializer}
 ${rest}
 
 public class Main {
@@ -47,7 +109,7 @@ public class Main {
         Solution sol = new Solution();
         
         ${invocation}
-        System.out.println(result);
+        ${returnType !== "void" ? 'System.out.println(OutputSerializer.serialize(result));' : ''}
     }
 }
 `,
@@ -110,35 +172,20 @@ async function executeJavaCode(userCode, input) {
   const dirPath = createExecutionFolder(executionId);
 
   try {
-    // 🔥 STEP 1: Extract method parts
-    const { before, body, after, methodName, methodParams } = extractMethodParts(userCode);
-
-    console.log("===== BEFORE =====");
-    console.log(before);
-
-    console.log("===== BODY =====");
-    console.log(body);
-
-    console.log("===== AFTER =====");
-    console.log(after);
-
-    console.log("===== METHOD NAME =====");
-    console.log(methodName);
-
-    console.log("===== METHOD PARAMS =====");
-    console.log(methodParams);
-
-    // 🔥 STEP 2: Inject TRACE into body (including CALL trace at entry)
-    const tracedBody = injectTraceIntoBody(body, methodName, methodParams);
-
-    // 🔥 STEP 3: Rebuild full user code
-    const finalUserCode = before + "\n" + tracedBody + "\n" + after;
+    // 🔥 STEP 1 & 2: Extract all methods and Instrument them!
+    const { finalUserCode, methodName, methodParams, returnType } = extractAllMethodsAndInstrument(userCode);
 
     console.log("===== FINAL USER CODE =====");
     console.log(finalUserCode);
 
-    // 🔥 STEP 4: Wrap and execute
-    const wrapped = wrapJavaCode(finalUserCode, input, methodName, methodParams);
+    console.log("===== MAIN METHOD NAME =====");
+    console.log(methodName);
+
+    console.log("===== MAIN METHOD PARAMS =====");
+    console.log(methodParams);
+
+    // 🔥 STEP 3: Wrap and execute
+    const wrapped = wrapJavaCode(finalUserCode, input, methodName, methodParams, returnType);
 
     writeJavaFile(dirPath, wrapped.javaCode);
 
@@ -169,9 +216,28 @@ async function executeJavaCode(userCode, input) {
 
     const states = buildState(trace, initialArray);
 
+    // ── Semantic Interpretation Layer (non-authoritative, read-only) ────────────
+    // Runs AFTER state reconstruction. Never mutates `states`.
+    const semanticFrames = analyzePointerSemantics(states);
+    
+    const loopSemanticsMap = analyzeLoopSemantics(states);
+    const loopSemanticFrames = states.map(s => ({
+        step: s.step,
+        loopSemantics: loopSemanticsMap.get(s.step) || []
+    }));
+
+    const callStackSemanticsMap = analyzeCallStackSemantics(states);
+    const callStackSemanticFrames = states.map(s => ({
+      step: s.step,
+      callStackSemantics: callStackSemanticsMap.get(s.step) || []
+    }));
+
     return {
       success: true,
       states,
+      semanticFrames,
+      loopSemanticFrames,
+      callStackSemanticFrames,
       output,
       error: null,
     };
@@ -230,7 +296,17 @@ function parseExecutionOutput(rawOutput) {
         leftValue: Number(parts[5]),
       });
     } else if (type === "RETURN") {
-      trace.push({ type: "RETURN", value: Number(parts[2]) });
+      const valStr = parts[2];
+      let parsedVal;
+      if (valStr === "null") {
+        parsedVal = null;
+      } else if (valStr.startsWith("node_")) {
+        parsedVal = valStr; // keep runtime reference directly
+      } else {
+        const num = Number(valStr);
+        parsedVal = isNaN(num) ? valStr : num;
+      }
+      trace.push({ type: "RETURN", value: parsedVal });
     } else if (type === "ARRAY") {
       trace.push({ type: "ARRAY", name: parts[2], index: parts[3], value: parts[4] });
     } else if (type === "LOOP") {
@@ -239,6 +315,12 @@ function parseExecutionOutput(rawOutput) {
       trace.push({ type: "NODE_LINK", from: parts[2], to: parts[3] });
     } else if (type === "PTR_MOVE") {
       trace.push({ type: "PTR_MOVE", variable: parts[2], nodeId: parts[3] });
+    } else if (type === "NODE_MUTATE") {
+      trace.push({ type: "NODE_MUTATE", fromNodeId: parts[2], toNodeId: parts[3] });
+    } else if (type === "LOOP_ITER") {
+      trace.push({ type: "LOOP_ITER", loopId: parts[2] });
+    } else if (type === "LOOP_END") {
+      trace.push({ type: "LOOP_END", loopId: parts[2] });
     }
   }
 
@@ -343,7 +425,9 @@ function injectTraceIntoBody(body, methodName = "solve", methodParams = []) {
       out += `System.out.println("TRACE|ARRAY|${arrayName}|" + ${index} + "|" + ${arrayName}[${index}]);\n`;
     }
 
-    let match = trimmed.match(/\b([a-zA-Z_][a-zA-Z0-9_]*)\s*(\+|-|\*|\/|%)?=(?!=)/);
+    // ── VAR detection: use (?<!\.) so field accesses like `tail.next = ...`
+    // are never mistaken for a variable named `next` being assigned.
+    let match = trimmed.match(/(?<!\.)(\b[a-zA-Z_][a-zA-Z0-9_]*)\s*(\+|-|\*|\/|%)?=(?!=)/);
     if (!match) {
       match = trimmed.match(/\b([a-zA-Z_][a-zA-Z0-9_]*)\s*(\+\+|--)/);
     }
@@ -401,11 +485,14 @@ function injectTraceIntoBody(body, methodName = "solve", methodParams = []) {
 
       if (pendingForTrace) {
         tracedBody += `System.out.println("TRACE|LINE|${pendingForTrace.lineNumber}");\n`;
-        tracedBody += `System.out.println("TRACE|VAR|${pendingForTrace.loopVar}|" + ${pendingForTrace.loopVar});\n`;
-        tracedBody += `System.out.println("TRACE|LOOP|loop_${pendingForTrace.lineNumber}|" + ${pendingForTrace.loopVar});\n`;
-
-        // The loop body begins at the new braceDepth; remember to clear the loop var when it ends.
-        forVarScopeStack.push({ varName: pendingForTrace.loopVar, depth: braceDepth });
+        if (pendingForTrace.isWhile) {
+          tracedBody += `System.out.println("TRACE|LOOP_ITER|loop_${pendingForTrace.lineNumber}");\n`;
+          forVarScopeStack.push({ isWhile: true, lineId: pendingForTrace.lineNumber, depth: braceDepth });
+        } else {
+          tracedBody += `System.out.println("TRACE|VAR|${pendingForTrace.loopVar}|" + ${pendingForTrace.loopVar});\n`;
+          tracedBody += `System.out.println("TRACE|LOOP|loop_${pendingForTrace.lineNumber}|" + ${pendingForTrace.loopVar});\n`;
+          forVarScopeStack.push({ varName: pendingForTrace.loopVar, depth: braceDepth });
+        }
         pendingForTrace = null;
       }
 
@@ -421,9 +508,13 @@ function injectTraceIntoBody(body, methodName = "solve", methodParams = []) {
       braceDepth = Math.max(0, braceDepth - 1);
 
       while (forVarScopeStack.length > 0 && forVarScopeStack[forVarScopeStack.length - 1].depth === closingDepth) {
-        const { varName } = forVarScopeStack.pop();
-        tracedBody += `System.out.println("TRACE|LINE|${lineNumber}");\n`;
-        tracedBody += `System.out.println("TRACE|VAR|${varName}|null");\n`;
+        const scopeItem = forVarScopeStack.pop();
+        if (scopeItem.isWhile) {
+          tracedBody += `System.out.println("TRACE|LOOP_END|loop_${scopeItem.lineId}");\n`;
+        } else {
+          tracedBody += `System.out.println("TRACE|LINE|${lineNumber}");\n`;
+          tracedBody += `System.out.println("TRACE|VAR|${scopeItem.varName}|null");\n`;
+        }
       }
       continue;
     }
@@ -491,9 +582,13 @@ function injectTraceIntoBody(body, methodName = "solve", methodParams = []) {
         const closingDepth = braceDepth;
         braceDepth = Math.max(0, braceDepth - 1);
         while (forVarScopeStack.length > 0 && forVarScopeStack[forVarScopeStack.length - 1].depth === closingDepth) {
-          const { varName } = forVarScopeStack.pop();
-          tracedBody += `System.out.println("TRACE|LINE|${lineNumber}");\n`;
-          tracedBody += `System.out.println("TRACE|VAR|${varName}|null");\n`;
+          const scopeItem = forVarScopeStack.pop();
+          if (scopeItem.isWhile) {
+            tracedBody += `System.out.println("TRACE|LOOP_END|loop_${scopeItem.lineId}");\n`;
+          } else {
+            tracedBody += `System.out.println("TRACE|LINE|${lineNumber}");\n`;
+            tracedBody += `System.out.println("TRACE|VAR|${scopeItem.varName}|null");\n`;
+          }
         }
 
         continue;
@@ -530,6 +625,52 @@ function injectTraceIntoBody(body, methodName = "solve", methodParams = []) {
       continue;
     }
 
+    // WHILE LOOP handling
+    if (line.match(/^while\s*\(/)) {
+      const inlineWhile = line.match(/^(while\s*\(.*\))\s*\{\s*(.*?)\s*\}\s*$/);
+      if (inlineWhile) {
+        const whileHeader = `${inlineWhile[1]} {`;
+        const inlineBody = inlineWhile[2].trim();
+
+        tracedBody += whileHeader + "\n";
+        braceDepth += 1;
+        tracedBody += `System.out.println("TRACE|LINE|${lineNumber}");\n`;
+        tracedBody += `System.out.println("TRACE|LOOP_ITER|loop_${lineNumber}");\n`;
+
+        if (inlineBody) {
+          const stmts = inlineBody
+            .split(";")
+            .map((s) => s.trim())
+            .filter(Boolean)
+            .map((s) => `${s};`);
+          for (const stmt of stmts) {
+            tracedBody += emitTracedStatement(stmt, lineNumber);
+          }
+        }
+
+        tracedBody += "}" + "\n";
+        tracedBody += `System.out.println("TRACE|LOOP_END|loop_${lineNumber}");\n`;
+        braceDepth = Math.max(0, braceDepth - 1);
+        continue;
+      }
+
+      tracedBody += line + "\n";
+
+      if (line.includes("{") && !line.includes("}")) {
+        tracedBody += `System.out.println("TRACE|LINE|${lineNumber}");\n`;
+        tracedBody += `System.out.println("TRACE|LOOP_ITER|loop_${lineNumber}");\n`;
+        braceDepth += 1;
+        forVarScopeStack.push({ isWhile: true, lineId: lineNumber, depth: braceDepth });
+      } else {
+        pendingForTrace = { lineNumber, isWhile: true };
+      }
+
+      if (line.includes("{") && line.includes("}")) {
+        braceDepth = Math.max(0, braceDepth + openBracesInLine - closeBracesInLine);
+      }
+      continue;
+    }
+
     // LINE TRACE
     tracedBody += `System.out.println("TRACE|LINE|${lineNumber}");\n`;
 
@@ -550,6 +691,8 @@ function injectTraceIntoBody(body, methodName = "solve", methodParams = []) {
     // first would mutate the state engine's variables BEFORE the PTR_MOVE step
     // fires, breaking the intended "event before state change" ordering.
     let isPtrMove = false;
+    let isNodeMutate = false;
+    
     if (wantsListNode) {
       const ptrMatch = line.match(/^(?:ListNode\s+)?([a-zA-Z_]\w*)\s*=\s*([a-zA-Z_]\w*)\.next\s*;/);
       if (ptrMatch) {
@@ -557,12 +700,29 @@ function injectTraceIntoBody(body, methodName = "solve", methodParams = []) {
         const ptrVar = ptrMatch[1];
         tracedBody += `System.out.println("TRACE|PTR_MOVE|${ptrVar}|" + __DSAInput.getNodeId(${ptrVar}));\n`;
       }
+      
+      // NODE_MUTATE: arbitrary deep field assignment like `node.next.next = node`
+      // We extract the object path before the last property, the property itself (e.g., 'next'), and the RHS.
+      const mutateMatch = line.match(/^(.*)\.([a-zA-Z_]\w*)\s*=\s*(.*?)\s*;/);
+      if (mutateMatch && (mutateMatch[2] === 'next' || mutateMatch[2] === 'left' || mutateMatch[2] === 'right')) {
+        isNodeMutate = true;
+        const targetObject = mutateMatch[1].trim();
+        const rhsExpr = mutateMatch[3].trim();
+        
+        if (rhsExpr === "null") {
+          tracedBody += `System.out.println("TRACE|NODE_MUTATE|" + __DSAInput.getNodeId(${targetObject}) + "|null");\n`;
+        } else {
+          tracedBody += `System.out.println("TRACE|NODE_MUTATE|" + __DSAInput.getNodeId(${targetObject}) + "|" + __DSAInput.getNodeId(${rhsExpr}));\n`;
+        }
+      }
     }
 
     // VAR TRACE (assignments and mutations) — skip if this line is a PTR_MOVE
-    // (PTR_MOVE is the authoritative event for pointer variables)
-    if (!isPtrMove) {
-      let match = line.match(/\b([a-zA-Z_][a-zA-Z0-9_]*)\s*(\+|-|\*|\/|%)?=(?!=)/);
+    // or NODE_MUTATE (NODE_MUTATE would incorrectly match 'next' as a variable)
+    if (!isPtrMove && !isNodeMutate) {
+      // ── VAR detection: (?<!\.) prevents field names (e.g. `next` in `tail.next = ...`)
+      // from being treated as the assigned variable.
+      let match = line.match(/(?<!\.)(\b[a-zA-Z_][a-zA-Z0-9_]*)\s*(\+|-|\*|\/|%)?=(?!=)/);
       if (!match) {
         match = line.match(/\b([a-zA-Z_][a-zA-Z0-9_]*)\s*(\+\+|--)/);
       }
@@ -587,70 +747,90 @@ function injectTraceIntoBody(body, methodName = "solve", methodParams = []) {
   return tracedBody;
 }
 
-function extractMethodParts(userCode) {
-  let methodName = "solve"; // default fallback
-  let methodParams = [];
+function extractAllMethodsAndInstrument(userCode) {
+  const signatureRegex = /(?:public|private|protected)\s+(?:static\s+)?([A-Za-z0-9_<>[\]]+)\s+(\w+)\s*\(([^)]*)\)\s*\{/g;
+  let match;
+  
+  let mainMethodName = "solve";
+  let mainMethodParams = [];
+  let mainReturnType = "int";
 
-  // Step 1: Detect method definition and parameters
-  const signatureRegex = new RegExp(`\\b(\\w+)\\s*\\(([^)]*)\\)`);
-  const methodMatch = userCode.match(signatureRegex);
+  const methods = [];
+  while ((match = signatureRegex.exec(userCode)) !== null) {
+      const isPublic = match[0].includes("public");
+      const returnType = match[1];
+      const methodName = match[2];
+      const paramsStr = match[3];
 
-  if (methodMatch && (userCode.includes("solve(") || userCode.match(/^\s*(public|private|protected)/m))) {
-    methodName = methodMatch[1];
-    const paramsStr = methodMatch[2];
+      let methodParams = [];
+      if (paramsStr && paramsStr.trim()) {
+          methodParams = paramsStr.split(",").map((p) => {
+              const parts = p.trim().split(/\s+/).filter(Boolean);
+              const paramName = parts[parts.length - 1];
+              const typeTokens = parts.slice(0, -1).filter((t) => {
+                  if (!t) return false;
+                  if (t === "final") return false;
+                  if (t.startsWith("@")) return false;
+                  return true;
+              });
+              return { name: paramName, type: typeTokens.join("") };
+          });
+      }
 
-    if (paramsStr && paramsStr.trim()) {
-      methodParams = paramsStr.split(",").map((p) => {
-        const parts = p.trim().split(/\s+/).filter(Boolean);
-        const paramName = parts[parts.length - 1];
-        const typeTokens = parts.slice(0, -1).filter((t) => {
-          if (!t) return false;
-          if (t === "final") return false;
-          if (t.startsWith("@")) return false;
-          return true;
-        });
-        return { name: paramName, type: typeTokens.join("") };
-      });
-    }
+      if (isPublic && methods.length === 0) { // Assume first public is main
+          mainMethodName = methodName;
+          mainMethodParams = methodParams;
+          mainReturnType = returnType;
+      }
+
+      const openBraceIndex = match.index + match[0].length - 1;
+      let braceCount = 1;
+      let closeBraceIndex = -1;
+
+      for (let i = openBraceIndex + 1; i < userCode.length; i++) {
+          if (userCode[i] === "{") braceCount++;
+          else if (userCode[i] === "}") braceCount--;
+
+          if (braceCount === 0) {
+              closeBraceIndex = i;
+              break;
+          }
+      }
+
+      if (closeBraceIndex !== -1) {
+          const body = userCode.slice(openBraceIndex + 1, closeBraceIndex);
+          methods.push({
+              openBraceIndex,
+              closeBraceIndex,
+              methodName,
+              methodParams,
+              body
+          });
+      }
   }
 
-  // Step 2: Use safe string-based approach to locate braces (Works for single-line methods)
-  const methodIndex = userCode.indexOf(`${methodName}(`);
-  if (methodIndex === -1) {
-    return { before: userCode, body: "", after: "", methodName, methodParams };
+  if (methods.length === 0) {
+      return { finalUserCode: userCode, methodName: mainMethodName, methodParams: mainMethodParams, returnType: mainReturnType };
   }
 
-  const openBraceIndex = userCode.indexOf("{", methodIndex);
-  if (openBraceIndex === -1) {
-    return { before: userCode, body: "", after: "", methodName, methodParams };
+  // Replace backwards so indices remain valid
+  methods.reverse();
+  
+  let finalUserCode = userCode;
+  
+  for (const method of methods) {
+      const tracedBody = injectTraceIntoBody(method.body, method.methodName, method.methodParams);
+      finalUserCode = finalUserCode.substring(0, method.openBraceIndex + 1) + "\n" + tracedBody + "\n" + finalUserCode.substring(method.closeBraceIndex);
   }
 
-  let braceCount = 1;
-  let closeBraceIndex = -1;
-
-  for (let i = openBraceIndex + 1; i < userCode.length; i++) {
-    if (userCode[i] === "{") braceCount++;
-    else if (userCode[i] === "}") braceCount--;
-
-    if (braceCount === 0) {
-      closeBraceIndex = i;
-      break;
-    }
+  // ensure we default to the first method if no public method found
+  if (mainMethodName === "solve" && methods.length > 0) {
+      mainMethodName = methods[methods.length - 1].methodName;
+      mainMethodParams = methods[methods.length - 1].methodParams;
   }
 
-  if (closeBraceIndex === -1) {
-    // Malformed code
-    return { before: userCode, body: "", after: "", methodName, methodParams };
-  }
-
-  // Step 3: Exact slicing of before, body, and after
-  const before = userCode.slice(0, openBraceIndex + 1);
-  const body = userCode.slice(openBraceIndex + 1, closeBraceIndex);
-  const after = userCode.slice(closeBraceIndex);
-
-  return { before, body, after, methodName, methodParams };
+  return { finalUserCode, methodName: mainMethodName, methodParams: mainMethodParams, returnType: mainReturnType };
 }
-
 
 module.exports = {
   executeJavaCode,

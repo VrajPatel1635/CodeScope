@@ -3,10 +3,12 @@
 import React, { useState, useMemo, useEffect } from "react";
 import Controls from "./Controls";
 import ArrayVisualizer from "./ArrayVisualizer";
+import LinkedListVisualizer from "./LinkedListVisualizer";
 import VariablePanel from "./VariablePanel";
 import CallStackPanel from "./CallStackPanel";
 import ExpressionPanel from "./ExpressionPanel";
 import ConditionInsightPanel from "./ConditionInsightPanel";
+import LoopInsightPanel from "./LoopInsightPanel";
 
 const POINTER_NAMES = ["i", "j", "k", "left", "right", "start", "end"];
 const ACCUMULATOR_NAMES = ["sum", "count", "total", "ans"];
@@ -143,9 +145,35 @@ function classifyVariables(currentStep, previousStep) {
   return classified;
 }
 
-export default function StepViewer({ states, input, code }) {
+export default function StepViewer({ states, input, code, semanticFrames = [], loopSemanticFrames = [], callStackSemanticFrames = [] }) {
   const [currentStep, setCurrentStep] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
+
+  // Build a fast step→semantics lookup (step numbers are not guaranteed
+  // to be sequential indices, so we key by step number).
+  const semanticMap = useMemo(() => {
+    const m = new Map();
+    for (const frame of semanticFrames) {
+      m.set(frame.step, frame.semantics);
+    }
+    return m;
+  }, [semanticFrames]);
+
+  const loopSemanticMap = useMemo(() => {
+    const m = new Map();
+    for (const frame of loopSemanticFrames) {
+      m.set(frame.step, frame.loopSemantics);
+    }
+    return m;
+  }, [loopSemanticFrames]);
+
+  const callStackSemanticMap = useMemo(() => {
+    const m = new Map();
+    for (const frame of callStackSemanticFrames) {
+      m.set(frame.step, frame.callStackSemantics);
+    }
+    return m;
+  }, [callStackSemanticFrames]);
 
   // Memoize extracted method lines from the original Java code
   const bodyLines = useMemo(() => extractMethodBody(code), [code]);
@@ -201,21 +229,34 @@ export default function StepViewer({ states, input, code }) {
 
   // Pointers Detection
   const pointers = [];
-  if (currentState?.currentFrameVariables && (currentState?.array || currentState?.matrix)) {
+  if (currentState?.currentFrameVariables && (currentState?.array || currentState?.matrix || currentState?.linkedList)) {
     const rawVars = currentState.currentFrameVariables;
     for (const [key, value] of Object.entries(rawVars)) {
       if (
-        typeof value === "number" &&
-        value >= 0 &&
-        POINTER_NAMES.includes(key.toLowerCase())
+        (typeof value === "number" && value >= 0 && POINTER_NAMES.includes(key.toLowerCase()))
       ) {
         pointers.push({ name: key, index: value });
+      } else if (currentState?.linkedList && typeof value === "string" && value.startsWith("node_")) {
+        pointers.push({ name: key, target: value, isMoving: false });
       }
     }
     
     // Debug log to trace literal execution path order
     if (currentState.step) {
       console.log("Pointer:", rawVars.i, rawVars.j, "Step:", currentState.step);
+    }
+  }
+
+  // Apply ptrMoveEvent anticipation
+  if (currentState?.ptrMoveEvent) {
+    const { variable, nodeId } = currentState.ptrMoveEvent;
+    const movingPtr = pointers.find(p => p.name === variable);
+    if (movingPtr) {
+      movingPtr.target = nodeId;
+      movingPtr.isMoving = true;
+    } else {
+      // If the pointer didn't exist in the old state (e.g. first initialization), add it
+      pointers.push({ name: variable, target: nodeId, isMoving: true });
     }
   }
 
@@ -271,6 +312,13 @@ export default function StepViewer({ states, input, code }) {
         pointers={pointers}
       />
 
+      <LinkedListVisualizer
+        currentStep={currentState}
+        pointers={pointers}
+        currentSemantics={semanticMap.get(currentState?.step) ?? []}
+        loopSemantics={loopSemanticMap.get(currentState?.step) ?? []}
+      />
+
       {/* Expression breakdown — visible only on return steps with binary exprs */}
       {expressionEval && (
         <ExpressionPanel expressionEvaluation={expressionEval} />
@@ -279,6 +327,11 @@ export default function StepViewer({ states, input, code }) {
       {/* Condition Insight Layer */}
       {conditionInsight && (
         <ConditionInsightPanel insight={conditionInsight} />
+      )}
+
+      {/* Loop Insight Panel */}
+      {Object.keys(loopContext).length > 0 && (
+        <LoopInsightPanel loopContext={loopContext} />
       )}
 
       {/* Variable info + Call Stack side-by-side */}
@@ -291,11 +344,13 @@ export default function StepViewer({ states, input, code }) {
           />
         </div>
 
-        <div className="w-full md:w-72 shrink-0">
+        <div className="w-full md:w-72 shrink-0 flex flex-col gap-4">
           <CallStackPanel
             stack={callStack}
             returnFlow={returnFlow}
             stepReturn={stepReturn}
+            linkedList={currentState?.linkedList}
+            callStackSemantics={callStackSemanticMap.get(currentState?.step) ?? []}
           />
         </div>
       </div>

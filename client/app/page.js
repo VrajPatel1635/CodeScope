@@ -25,7 +25,7 @@ export default function Home() {
         <div className="text-red-500">{result.error}</div>
       )}
 
-      {result?.states && <StepViewer states={result.states} input={input} code={code} />}
+      {result?.states && <StepViewer states={result.states} input={input} code={code} semanticFrames={result.semanticFrames ?? []} loopSemanticFrames={result.loopSemanticFrames ?? []} callStackSemanticFrames={result.callStackSemanticFrames ?? []} />}
 
       {result?.output && (
         <div className="bg-gray-100 text-gray-900 p-3 rounded">

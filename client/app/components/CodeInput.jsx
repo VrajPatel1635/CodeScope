@@ -29,7 +29,14 @@ export default function CodeInput({ onRun }) {
         }),
       });
 
-      const data = await res.json();
+      const text = await res.text();
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch (e) {
+        console.error("Failed to parse JSON. Raw response:", text);
+        throw e;
+      }
 
       // Send response to parent
       onRun(data, input, code);

@@ -174,6 +174,10 @@ function buildHelperCode({ userCode, wantsListNode, wantsTreeNode }) {
       "    }\n" +
       "    return nodeMap.get(node);\n" +
       "  }\n" +
+      "  static String getNextId(ListNode node) {\n" +
+      "    if (node == null) return \"null\";\n" +
+      "    return getNodeId(node.next);\n" +
+      "  }\n" +
       "  static String formatNode(Object o) {\n" +
       "    if (o != null && o.getClass().getName().equals(\"ListNode\")) return getNodeId((ListNode)o);\n" +
       "    return String.valueOf(o);\n" +
