@@ -1,5 +1,6 @@
 const fs = require("fs");
 const path = require("path");
+const crypto = require("crypto");
 const { spawn } = require("child_process");
 const { buildState } = require("../utils/stateEngine");
 const { analyzePointerSemantics } = require("../semantic/PointerRelationshipAnalyzer");
@@ -163,6 +164,96 @@ async function runJava(dirPath) {
   return await runProcess("java", ["Main"], dirPath);
 }
 
+const USE_DOCKER = true;
+const DOCKER_TIMEOUT_MS = 30000;
+const MAX_TRACE_SIZE = 5 * 1024 * 1024; // 5MB
+
+async function runDockerExecution(dirPath, executionId) {
+  return new Promise((resolve, reject) => {
+    const uniqueId = crypto.randomUUID();
+    const containerName = `sandbox-${uniqueId}`;
+    
+    console.log(`[DOCKER DEBUG] Starting container: ${containerName} for executionId: ${executionId}`);
+    
+    const args = [
+      "run",
+      "--rm",
+      "--name",
+      containerName,
+      "--memory=256m",
+      "-v",
+      `${dirPath}:/app`,
+      "-w",
+      "/app",
+      "eclipse-temurin:17",
+      "sh",
+      "-c",
+      "javac Main.java && java Main"
+    ];
+
+    const childCmd = spawn("docker", args);
+
+    let stdout = "";
+    let stderr = "";
+    let isFinished = false;
+
+    const killContainer = () => {
+      spawn("docker", ["rm", "-f", containerName]);
+    };
+
+    const timer = setTimeout(() => {
+      if (isFinished) return;
+      isFinished = true;
+      console.log(`[DOCKER DEBUG] Timeout reached for container: ${containerName}`);
+      killContainer();
+      reject(new Error("Execution timed out"));
+    }, DOCKER_TIMEOUT_MS);
+
+    childCmd.stdout.on("data", (data) => {
+      if (isFinished) return;
+      stdout += data.toString();
+      
+      if (stdout.length > MAX_TRACE_SIZE) {
+        isFinished = true;
+        clearTimeout(timer);
+        console.log(`[DOCKER DEBUG] TRACE limit exceeded for container: ${containerName}`);
+        killContainer();
+        reject(new Error("TRACE size exceeded limit"));
+      }
+    });
+
+    childCmd.stderr.on("data", (data) => {
+      if (isFinished) return;
+      stderr += data.toString();
+    });
+
+    childCmd.on("close", (code) => {
+      if (isFinished) return;
+      isFinished = true;
+      clearTimeout(timer);
+      
+      console.log(`[DOCKER DEBUG] Container closed: ${containerName} with code: ${code}`);
+      if (stderr) {
+        console.log(`[DOCKER DEBUG] Stderr for ${containerName}: ${stderr}`);
+      }
+
+      if (code !== 0) {
+        reject(new Error(stderr || "Docker execution failed"));
+      } else {
+        resolve(stdout);
+      }
+    });
+
+    childCmd.on("error", (err) => {
+      if (isFinished) return;
+      isFinished = true;
+      clearTimeout(timer);
+      killContainer();
+      reject(err);
+    });
+  });
+}
+
 function cleanup(dirPath) {
   fs.rmSync(dirPath, { recursive: true, force: true });
 }
@@ -189,24 +280,39 @@ async function executeJavaCode(userCode, input) {
 
     writeJavaFile(dirPath, wrapped.javaCode);
 
-    const compileResult = await compileJava(dirPath);
+    let runResult = { code: 0, stdout: "", stderr: "" };
 
-    if (compileResult.code !== 0) {
-      return {
-        success: false,
-        output: null,
-        error: compileResult.stderr,
-      };
-    }
+    if (USE_DOCKER) {
+      try {
+        const dockerStdout = await runDockerExecution(dirPath, executionId);
+        runResult = { code: 0, stdout: dockerStdout, stderr: "" };
+      } catch (err) {
+        return {
+          success: false,
+          output: null,
+          error: err.message,
+        };
+      }
+    } else {
+      const compileResult = await compileJava(dirPath);
 
-    const runResult = await runJava(dirPath);
+      if (compileResult.code !== 0) {
+        return {
+          success: false,
+          output: null,
+          error: compileResult.stderr,
+        };
+      }
 
-    if (runResult.code !== 0) {
-      return {
-        success: false,
-        output: runResult.stdout,
-        error: runResult.stderr,
-      };
+      runResult = await runJava(dirPath);
+
+      if (runResult.code !== 0) {
+        return {
+          success: false,
+          output: runResult.stdout,
+          error: runResult.stderr,
+        };
+      }
     }
 
     const { trace, output } = parseExecutionOutput(runResult.stdout);
@@ -487,7 +593,7 @@ function injectTraceIntoBody(body, methodName = "solve", methodParams = []) {
         tracedBody += `System.out.println("TRACE|LINE|${pendingForTrace.lineNumber}");\n`;
         if (pendingForTrace.isWhile) {
           tracedBody += `System.out.println("TRACE|LOOP_ITER|loop_${pendingForTrace.lineNumber}");\n`;
-          forVarScopeStack.push({ isWhile: true, lineId: pendingForTrace.lineNumber, depth: braceDepth });
+          forVarScopeStack.push({ isWhile: true, lineId: pendingForTrace.lineNumber, depth: braceDepth, isInfinite: pendingForTrace.isInfinite });
         } else {
           tracedBody += `System.out.println("TRACE|VAR|${pendingForTrace.loopVar}|" + ${pendingForTrace.loopVar});\n`;
           tracedBody += `System.out.println("TRACE|LOOP|loop_${pendingForTrace.lineNumber}|" + ${pendingForTrace.loopVar});\n`;
@@ -510,7 +616,9 @@ function injectTraceIntoBody(body, methodName = "solve", methodParams = []) {
       while (forVarScopeStack.length > 0 && forVarScopeStack[forVarScopeStack.length - 1].depth === closingDepth) {
         const scopeItem = forVarScopeStack.pop();
         if (scopeItem.isWhile) {
-          tracedBody += `System.out.println("TRACE|LOOP_END|loop_${scopeItem.lineId}");\n`;
+          if (!scopeItem.isInfinite) {
+            tracedBody += `System.out.println("TRACE|LOOP_END|loop_${scopeItem.lineId}");\n`;
+          }
         } else {
           tracedBody += `System.out.println("TRACE|LINE|${lineNumber}");\n`;
           tracedBody += `System.out.println("TRACE|VAR|${scopeItem.varName}|null");\n`;
@@ -542,6 +650,23 @@ function injectTraceIntoBody(body, methodName = "solve", methodParams = []) {
 
     // FOR LOOP handling
     if (line.startsWith("for")) {
+      const isInfiniteFor = /^\s*for\s*\(\s*;\s*;\s*\)/.test(line);
+      if (isInfiniteFor) {
+        tracedBody += line + "\n";
+        if (line.includes("{") && !line.includes("}")) {
+          tracedBody += `System.out.println("TRACE|LINE|${lineNumber}");\n`;
+          tracedBody += `System.out.println("TRACE|LOOP_ITER|loop_${lineNumber}");\n`;
+          braceDepth += 1;
+          forVarScopeStack.push({ isWhile: true, lineId: lineNumber, depth: braceDepth, isInfinite: true });
+        } else {
+          pendingForTrace = { lineNumber, isWhile: true, isInfinite: true };
+        }
+        if (line.includes("{") && line.includes("}")) {
+          braceDepth = Math.max(0, braceDepth + openBracesInLine - closeBracesInLine);
+        }
+        continue;
+      }
+
       // Expand single-line loop bodies: `for (...) { stmt; }`
       // so that injected traces run inside the loop (loop var in scope).
       const inlineFor = line.match(/^(for\s*\(.*\))\s*\{\s*(.*?)\s*\}\s*$/);
@@ -584,7 +709,9 @@ function injectTraceIntoBody(body, methodName = "solve", methodParams = []) {
         while (forVarScopeStack.length > 0 && forVarScopeStack[forVarScopeStack.length - 1].depth === closingDepth) {
           const scopeItem = forVarScopeStack.pop();
           if (scopeItem.isWhile) {
-            tracedBody += `System.out.println("TRACE|LOOP_END|loop_${scopeItem.lineId}");\n`;
+            if (!scopeItem.isInfinite) {
+              tracedBody += `System.out.println("TRACE|LOOP_END|loop_${scopeItem.lineId}");\n`;
+            }
           } else {
             tracedBody += `System.out.println("TRACE|LINE|${lineNumber}");\n`;
             tracedBody += `System.out.println("TRACE|VAR|${scopeItem.varName}|null");\n`;
@@ -627,6 +754,8 @@ function injectTraceIntoBody(body, methodName = "solve", methodParams = []) {
 
     // WHILE LOOP handling
     if (line.match(/^while\s*\(/)) {
+      const isInfiniteClass = /^\s*while\s*\(\s*true\s*\)/.test(line);
+
       const inlineWhile = line.match(/^(while\s*\(.*\))\s*\{\s*(.*?)\s*\}\s*$/);
       if (inlineWhile) {
         const whileHeader = `${inlineWhile[1]} {`;
@@ -649,7 +778,9 @@ function injectTraceIntoBody(body, methodName = "solve", methodParams = []) {
         }
 
         tracedBody += "}" + "\n";
-        tracedBody += `System.out.println("TRACE|LOOP_END|loop_${lineNumber}");\n`;
+        if (!isInfiniteClass) {
+          tracedBody += `System.out.println("TRACE|LOOP_END|loop_${lineNumber}");\n`;
+        }
         braceDepth = Math.max(0, braceDepth - 1);
         continue;
       }
@@ -660,9 +791,9 @@ function injectTraceIntoBody(body, methodName = "solve", methodParams = []) {
         tracedBody += `System.out.println("TRACE|LINE|${lineNumber}");\n`;
         tracedBody += `System.out.println("TRACE|LOOP_ITER|loop_${lineNumber}");\n`;
         braceDepth += 1;
-        forVarScopeStack.push({ isWhile: true, lineId: lineNumber, depth: braceDepth });
+        forVarScopeStack.push({ isWhile: true, lineId: lineNumber, depth: braceDepth, isInfinite: isInfiniteClass });
       } else {
-        pendingForTrace = { lineNumber, isWhile: true };
+        pendingForTrace = { lineNumber, isWhile: true, isInfinite: isInfiniteClass };
       }
 
       if (line.includes("{") && line.includes("}")) {
