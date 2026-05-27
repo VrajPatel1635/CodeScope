@@ -1,98 +1,4 @@
-function normalizeType(type) {
-  if (!type) return "";
-  return String(type).replace(/\s+/g, "");
-}
-
-function parseJsonLoose(inputRaw) {
-  if (inputRaw == null) return null;
-  const text = String(inputRaw).trim();
-  if (!text) return null;
-  try {
-    return JSON.parse(text);
-  } catch {
-    return null;
-  }
-}
-
-function parseIntLoose(inputRaw) {
-  const text = String(inputRaw ?? "").trim();
-  if (!text) return 0;
-  const n = Number(text);
-  if (Number.isFinite(n)) return Math.trunc(n);
-  throw new Error(`Invalid int input: ${text}`);
-}
-
-function parseIntArrayLoose(inputRaw) {
-  const parsed = parseJsonLoose(inputRaw);
-  if (Array.isArray(parsed)) {
-    return parsed.map((x) => {
-      if (x == null) throw new Error("int[] cannot contain null");
-      const n = Number(x);
-      if (!Number.isFinite(n)) throw new Error(`Invalid number in int[]: ${x}`);
-      return Math.trunc(n);
-    });
-  }
-
-  // Fallback: allow "1,2,3" or "[1,2,3]"-ish
-  const text = String(inputRaw ?? "").trim();
-  const cleaned = text.replace(/[\[\]\s]/g, "");
-  if (!cleaned) return [];
-  return cleaned.split(",").filter(Boolean).map((part) => {
-    const n = Number(part);
-    if (!Number.isFinite(n)) throw new Error(`Invalid number in int[]: ${part}`);
-    return Math.trunc(n);
-  });
-}
-
-function parseIntMatrixLoose(inputRaw) {
-  const parsed = parseJsonLoose(inputRaw);
-  if (Array.isArray(parsed)) {
-    return parsed.map((row) => {
-      if (!Array.isArray(row)) throw new Error("int[][] must be an array of arrays");
-      return row.map((x) => {
-        if (x == null) throw new Error("int[][] cannot contain null");
-        const n = Number(x);
-        if (!Number.isFinite(n)) throw new Error(`Invalid number in int[][]: ${x}`);
-        return Math.trunc(n);
-      });
-    });
-  }
-
-  // No safe non-JSON fallback here; require proper [[...],[...]]
-  const text = String(inputRaw ?? "").trim();
-  if (!text) return [];
-  throw new Error("Invalid int[][] input. Use JSON like [[1,2],[3,4]]");
-}
-
-function parseIntegerArrayLoose(inputRaw) {
-  const parsed = parseJsonLoose(inputRaw);
-  if (!Array.isArray(parsed)) {
-    const text = String(inputRaw ?? "").trim();
-    if (!text) return [];
-    throw new Error("Invalid Integer[] input. Use JSON like [1,2,3,null,4]");
-  }
-
-  return parsed.map((x) => {
-    if (x == null) return null;
-    const n = Number(x);
-    if (!Number.isFinite(n)) throw new Error(`Invalid number in Integer[]: ${x}`);
-    return Math.trunc(n);
-  });
-}
-
-function toJavaIntArrayLiteral(values) {
-  return `new int[]{${values.join(",")}}`;
-}
-
-function toJavaIntMatrixLiteral(matrix) {
-  const rows = matrix.map((row) => `{${row.join(",")}}`).join(",");
-  return `new int[][]{${rows}}`;
-}
-
-function toJavaIntegerArrayLiteral(values) {
-  const items = values.map((v) => (v == null ? "null" : String(v))).join(",");
-  return `new Integer[]{${items}}`;
-}
+const { normalizeType, parseJsonLoose } = require("./inputUtils");
 
 function splitJavaPreamble(javaCode) {
   const lines = String(javaCode ?? "").split(/\r?\n/);
@@ -163,10 +69,16 @@ function buildHelperCode({ userCode, wantsListNode, wantsTreeNode }) {
   const dsaInputParts = [];
   dsaInputParts.push("class __DSAInput {");
 
+  if (wantsListNode || wantsTreeNode) {
+    dsaInputParts.push(
+      "  static java.util.IdentityHashMap<Object, String> nodeMap = new java.util.IdentityHashMap<>();\n" +
+      "  static int nodeCount = 1;\n" +
+      "  static int treeNodeCount = 1;"
+    );
+  }
+
   if (wantsListNode) {
     dsaInputParts.push(
-      "  static java.util.IdentityHashMap<ListNode, String> nodeMap = new java.util.IdentityHashMap<>();\n" +
-      "  static int nodeCount = 1;\n" +
       "  static String getNodeId(ListNode node) {\n" +
       "    if (node == null) return \"null\";\n" +
       "    if (!nodeMap.containsKey(node)) {\n" +
@@ -177,11 +89,40 @@ function buildHelperCode({ userCode, wantsListNode, wantsTreeNode }) {
       "  static String getNextId(ListNode node) {\n" +
       "    if (node == null) return \"null\";\n" +
       "    return getNodeId(node.next);\n" +
-      "  }\n" +
-      "  static String formatNode(Object o) {\n" +
-      "    if (o != null && o.getClass().getName().equals(\"ListNode\")) return getNodeId((ListNode)o);\n" +
+      "  }"
+    );
+  }
+
+  if (wantsTreeNode) {
+    dsaInputParts.push(
+      "  static String getTreeNodeId(TreeNode node) {\n" +
+      "    if (node == null) return \"null\";\n" +
+      "    if (!nodeMap.containsKey(node)) {\n" +
+      "      nodeMap.put(node, \"treeNode_\" + treeNodeCount++);\n" +
+      "    }\n" +
+      "    return nodeMap.get(node);\n" +
+      "  }"
+    );
+  }
+
+  if (wantsListNode || wantsTreeNode) {
+    dsaInputParts.push(
+      "  static String formatNode(Object o) {"
+    );
+    if (wantsListNode) {
+      dsaInputParts.push("    if (o != null && o.getClass().getName().equals(\"ListNode\")) return getNodeId((ListNode)o);");
+    }
+    if (wantsTreeNode) {
+      dsaInputParts.push("    if (o != null && o.getClass().getName().equals(\"TreeNode\")) return getTreeNodeId((TreeNode)o);");
+    }
+    dsaInputParts.push(
       "    return String.valueOf(o);\n" +
-      "  }\n\n" +
+      "  }"
+    );
+  }
+
+  if (wantsListNode) {
+    dsaInputParts.push(
       "  static ListNode buildLinkedList(int[] vals) {\n" +
       "    if (vals == null || vals.length == 0) return null;\n" +
       "    ListNode head = new ListNode(vals[0]);\n" +
@@ -203,6 +144,7 @@ function buildHelperCode({ userCode, wantsListNode, wantsTreeNode }) {
       "  static TreeNode buildTree(Integer[] vals) {\n" +
       "    if (vals == null || vals.length == 0 || vals[0] == null) return null;\n" +
       "    TreeNode root = new TreeNode(vals[0]);\n" +
+      "    getTreeNodeId(root);\n" +
       "    java.util.Queue<TreeNode> q = new java.util.ArrayDeque<>();\n" +
       "    q.add(root);\n" +
       "    int idx = 1;\n" +
@@ -212,6 +154,8 @@ function buildHelperCode({ userCode, wantsListNode, wantsTreeNode }) {
       "        Integer lv = vals[idx++];\n" +
       "        if (lv != null) {\n" +
       "          node.left = new TreeNode(lv);\n" +
+      "          getTreeNodeId(node.left);\n" +
+      "          System.out.println(\"TRACE|TREE_LINK|parent=\" + getTreeNodeId(node) + \"|dir=left|child=\" + getTreeNodeId(node.left));\n" +
       "          q.add(node.left);\n" +
       "        }\n" +
       "      }\n" +
@@ -219,6 +163,8 @@ function buildHelperCode({ userCode, wantsListNode, wantsTreeNode }) {
       "        Integer rv = vals[idx++];\n" +
       "        if (rv != null) {\n" +
       "          node.right = new TreeNode(rv);\n" +
+      "          getTreeNodeId(node.right);\n" +
+      "          System.out.println(\"TRACE|TREE_LINK|parent=\" + getTreeNodeId(node) + \"|dir=right|child=\" + getTreeNodeId(node.right));\n" +
       "          q.add(node.right);\n" +
       "        }\n" +
       "      }\n" +
@@ -234,60 +180,9 @@ function buildHelperCode({ userCode, wantsListNode, wantsTreeNode }) {
   return parts.join("\n");
 }
 
-function buildInt({ paramName, inputRaw }) {
-  const value = parseIntLoose(inputRaw);
-  return { decl: `int ${paramName} = ${value};`, arg: paramName, initialValue: value };
-}
-
-function buildIntArray({ paramName, inputRaw }) {
-  const values = parseIntArrayLoose(inputRaw);
-  return { decl: `int[] ${paramName} = ${toJavaIntArrayLiteral(values)};`, arg: paramName, initialValue: values };
-}
-
-function buildIntMatrix({ paramName, inputRaw }) {
-  const values = parseIntMatrixLoose(inputRaw);
-  return { decl: `int[][] ${paramName} = ${toJavaIntMatrixLiteral(values)};`, arg: paramName, initialValue: values };
-}
-
-function buildLinkedList({ paramName, inputRaw }) {
-  const values = parseIntArrayLoose(inputRaw);
-  const arrDecl = `int[] __vals_${paramName} = ${toJavaIntArrayLiteral(values)};`;
-  const nodeDecl = `ListNode ${paramName} = __DSAInput.buildLinkedList(__vals_${paramName});`;
-  
-  let initialValue = null;
-  if (values.length > 0) {
-    const nodes = {};
-    for (let i = 0; i < values.length; i++) {
-      const nodeId = `node_${i + 1}`;
-      const nextId = i < values.length - 1 ? `node_${i + 2}` : null;
-      nodes[nodeId] = { val: values[i], next: nextId };
-    }
-    initialValue = {
-      type: "LinkedList",
-      head: "node_1",
-      nodes: nodes
-    };
-  }
-
-  return {
-    decl: `${arrDecl}\n        ${nodeDecl}`,
-    arg: paramName,
-    initialValue: initialValue,
-    wantsListNode: true,
-  };
-}
-
-function buildTree({ paramName, inputRaw }) {
-  const values = parseIntegerArrayLoose(inputRaw);
-  const arrDecl = `Integer[] __vals_${paramName} = ${toJavaIntegerArrayLiteral(values)};`;
-  const nodeDecl = `TreeNode ${paramName} = __DSAInput.buildTree(__vals_${paramName});`;
-  return {
-    decl: `${arrDecl}\n        ${nodeDecl}`,
-    arg: paramName,
-    initialValue: null,
-    wantsTreeNode: true,
-  };
-}
+const { buildInt, buildIntArray, buildIntMatrix } = require("../../structures/arrays/arrayInputBuilder");
+const { buildLinkedList } = require("../../structures/linkedlist/linkedListInputBuilder");
+const { buildTree } = require("../../structures/tree/treeInputBuilder");
 
 const builders = {
   int: buildInt,
@@ -336,8 +231,8 @@ function buildJavaInputsFromSignature({ userCode, methodName, methodParams, inpu
     decls.push(built.decl);
     args.push(built.arg);
 
-    if (idx === 0 && (p.type === "int[]" || p.type === "int[][]" || p.type === "ListNode")) {
-      // Preserve existing array/matrix visualization behavior, and add linked list initial tree.
+    if (idx === 0 && (p.type === "int[]" || p.type === "int[][]" || p.type === "ListNode" || p.type === "TreeNode")) {
+      // Preserve existing array/matrix visualization behavior, and add linked list/tree initial state.
       initialValueForState = built.initialValue;
     }
 
@@ -356,8 +251,9 @@ function buildJavaInputsFromSignature({ userCode, methodName, methodParams, inpu
 }
 
 module.exports = {
-  builders,
   normalizeType,
+  parseJsonLoose,
   splitJavaPreamble,
-  buildJavaInputsFromSignature,
+  buildHelperCode,
+  buildJavaInputsFromSignature
 };

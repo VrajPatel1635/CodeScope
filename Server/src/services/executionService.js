@@ -2,15 +2,15 @@ const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
 const { spawn } = require("child_process");
-const { buildState } = require("../utils/stateEngine");
+const { buildState } = require("../state/stateEngine");
 const { analyzePointerSemantics } = require("../semantic/PointerRelationshipAnalyzer");
 const { analyzeLoopSemantics } = require("../semantic/LoopSemanticAnalyzer");
 const { analyzeCallStackSemantics } = require("../semantic/CallStackSemanticAnalyzer");
-const { buildJavaInputsFromSignature, splitJavaPreamble, normalizeType } = require("../utils/inputBuilders");
-const { normalizeJavaControlFlow } = require("../utils/javaControlFlowNormalizer");
-const { normalizeReturns } = require("../utils/javaReturnNormalizer");
-const { normalizeLoopFlows } = require("../utils/javaLoopFlowNormalizer");
-const { normalizeConditions } = require("../utils/javaConditionNormalizer");
+const { buildJavaInputsFromSignature, splitJavaPreamble, normalizeType } = require("../execution/runtime/inputRegistry");
+const { normalizeJavaControlFlow } = require("../execution/normalizers/javaControlFlowNormalizer");
+const { normalizeReturns } = require("../execution/normalizers/javaReturnNormalizer");
+const { normalizeLoopFlows } = require("../execution/normalizers/javaLoopFlowNormalizer");
+const { normalizeConditions } = require("../execution/normalizers/javaConditionNormalizer");
 const { deriveSourceSteps } = require("../sourceSteps/deriveSourceSteps");
 const { resolveSourceStepStates, printResolvedSourceSteps } = require("../sourceSteps/resolveSourceStepStates");
 
@@ -66,6 +66,9 @@ class OutputSerializer {
         if (obj.getClass().getSimpleName().equals("ListNode")) {
             return serializeLinkedList(obj);
         }
+        if (obj.getClass().getSimpleName().equals("TreeNode")) {
+            return serializeTree(obj);
+        }
         return String.valueOf(obj);
     }
 
@@ -100,6 +103,40 @@ class OutputSerializer {
         }
         sb.append("]");
         return sb.toString();
+    }
+
+    private static String serializeTree(Object rootObj) {
+        if (rootObj == null) return "[]";
+        java.util.List<String> res = new java.util.ArrayList<>();
+        java.util.Queue<Object> q = new java.util.LinkedList<>();
+        q.add(rootObj);
+        while (!q.isEmpty()) {
+            Object curr = q.poll();
+            if (curr == null) {
+                res.add("null");
+            } else {
+                try {
+                    java.lang.reflect.Field valField = curr.getClass().getDeclaredField("val");
+                    valField.setAccessible(true);
+                    res.add(String.valueOf(valField.get(curr)));
+
+                    java.lang.reflect.Field leftField = curr.getClass().getDeclaredField("left");
+                    leftField.setAccessible(true);
+                    q.add(leftField.get(curr));
+
+                    java.lang.reflect.Field rightField = curr.getClass().getDeclaredField("right");
+                    rightField.setAccessible(true);
+                    q.add(rightField.get(curr));
+                } catch (Exception e) {
+                    return "Error serializing TreeNode";
+                }
+            }
+        }
+        // Remove trailing nulls
+        while (res.size() > 0 && res.get(res.size() - 1).equals("null")) {
+            res.remove(res.size() - 1);
+        }
+        return "[" + String.join(",", res) + "]";
     }
 }
 `;
@@ -339,7 +376,7 @@ async function executeJavaCode(userCode, input) {
 
     const sourceSteps = deriveSourceSteps(states);
     const resolvedSourceSteps = resolveSourceStepStates(sourceSteps, states);
-    printResolvedSourceSteps(resolvedSourceSteps);
+    // printResolvedSourceSteps(resolvedSourceSteps);
 
     // ── Semantic Interpretation Layer (non-authoritative, read-only) ────────────
     // Runs AFTER state reconstruction. Never mutates `states`.
@@ -426,7 +463,7 @@ function parseExecutionOutput(rawOutput) {
       let parsedVal;
       if (valStr === "null") {
         parsedVal = null;
-      } else if (valStr.startsWith("node_")) {
+      } else if (valStr.startsWith("node_") || valStr.startsWith("treeNode_")) {
         parsedVal = valStr; // keep runtime reference directly
       } else {
         const num = Number(valStr);
@@ -439,6 +476,11 @@ function parseExecutionOutput(rawOutput) {
       trace.push({ type: "LOOP", loopId: parts[2], iteration: Number(parts[3]) });
     } else if (type === "NODE_LINK") {
       trace.push({ type: "NODE_LINK", from: parts[2], to: parts[3] });
+    } else if (type === "TREE_LINK") {
+      const parent = parts[2].split("=")[1];
+      const dir = parts[3].split("=")[1];
+      const child = parts[4].split("=")[1];
+      trace.push({ type: "TREE_LINK", parent, dir, child });
     } else if (type === "PTR_MOVE") {
       trace.push({ type: "PTR_MOVE", variable: parts[2], nodeId: parts[3] });
     } else if (type === "NODE_MUTATE") {
@@ -541,7 +583,9 @@ function injectTraceIntoBody(mappedLines, methodName = "solve", methodParams = [
   let pendingForTrace = null;
   
   const wantsListNode = methodParams.some(p => p.type === "ListNode");
-  const formatter = wantsListNode ? "__DSAInput.formatNode" : "String.valueOf";
+  const wantsTreeNode = methodParams.some(p => p.type === "TreeNode");
+  const wantsNodeFormat = wantsListNode || wantsTreeNode;
+  const formatter = wantsNodeFormat ? "__DSAInput.formatNode" : "String.valueOf";
 
   let braceDepth = 0;
   const forVarScopeStack = [];
@@ -555,7 +599,7 @@ function injectTraceIntoBody(mappedLines, methodName = "solve", methodParams = [
     // which emits all TRACE lines BEFORE the return keyword.
     if (trimmed.startsWith("return")) {
       const returnExpr = trimmed.replace(/^return\s*/, "").replace(/;$/, "").trim();
-      return buildReturnTrace(returnExpr, lineNumber, methodName, wantsListNode, retCounter++);
+      return buildReturnTrace(returnExpr, lineNumber, methodName, wantsNodeFormat, retCounter++);
     }
 
     let out = "";
