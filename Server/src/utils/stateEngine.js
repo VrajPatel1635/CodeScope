@@ -19,7 +19,6 @@ function topVars(stack) {
 
 function buildState(traceEvents, initialArray) {
     const states = [];
-    let currentLine = null;
     let step = 1;
     
     // Evaluate if input is 1D or 2D Array
@@ -35,10 +34,11 @@ function buildState(traceEvents, initialArray) {
        };
     }
 
+    let frameCounter = 0;
     // ── Stack-based scoping ──────────────────────────────────────────
     // Each entry: { function: "<name>", variables: { ... } }
     // Initialised with a "global" frame so the stack is never empty.
-    let stack = [{ function: "global", variables: {} }];
+    let stack = [{ function: "global", variables: {}, frameId: "F0", currentLine: null }];
 
     // ── Expression tracking ──────────────────────────────────────────
     // EXPR events fire BEFORE `var trace_return = n * solve(n-1)`.
@@ -66,20 +66,28 @@ function buildState(traceEvents, initialArray) {
             stack.push({
                 function: event.function,
                 variables: {},
+                frameId: `F${++frameCounter}`,
+                currentLine: null,
             });
 
             currentStep = {
+                stepId: step,
+                type: event.type,
+                frameId: stack[stack.length - 1].frameId,
                 step: step++,
-                line: currentLine,
+                line: stack[stack.length - 1].currentLine,
                 callEvent: { type: "CALL", function: event.function },
             };
 
         // ── LINE ─────────────────────────────────────────────────────
         } else if (event.type === "LINE") {
-            currentLine = event.line;
+            stack[stack.length - 1].currentLine = event.line;
             currentStep = {
+                stepId: step,
+                type: event.type,
+                frameId: stack[stack.length - 1].frameId,
                 step: step++,
-                line: currentLine,
+                line: stack[stack.length - 1].currentLine,
             };
 
         // ── VAR ──────────────────────────────────────────────────────
@@ -90,8 +98,11 @@ function buildState(traceEvents, initialArray) {
             }
             stack[stack.length - 1].variables[event.name] = parseValue(event.value);
             currentStep = {
+                stepId: step,
+                type: event.type,
+                frameId: stack[stack.length - 1].frameId,
                 step: step++,
-                line: currentLine,
+                line: stack[stack.length - 1].currentLine,
             };
 
         // ── EXPR ──────────────────────────────────────────────────────
@@ -106,18 +117,38 @@ function buildState(traceEvents, initialArray) {
             });
             // No step emitted — this is metadata only.
 
+        // ── COND ─────────────────────────────────────────────────────
+        } else if (event.type === "COND") {
+            stack[stack.length - 1].currentLine = event.line;
+            currentStep = {
+                stepId: step,
+                type: event.type,
+                frameId: stack[stack.length - 1].frameId,
+                step: step++,
+                line: event.line,
+                traceEvent: event,
+            };
+
         // ── RETURN ───────────────────────────────────────────────────
         } else if (event.type === "RETURN") {
             const returnValue = parseValue(event.value);
 
             // Capture returning frame name BEFORE popping.
-            const returningFunction = stack.length > 0
-                ? stack[stack.length - 1].function
-                : "unknown";
+            const returningFrame = stack.length > 0 ? stack[stack.length - 1] : null;
+            const returningFunction = returningFrame ? returningFrame.function : "unknown";
+
+            // Establish frame-local return ownership
+            if (returningFrame) {
+                returningFrame.isReturning = true;
+                returningFrame.returnValue = returnValue;
+            }
 
             currentStep = {
+                stepId: step,
+                type: event.type,
+                frameId: returningFrame ? returningFrame.frameId : null,
                 step: step++,
-                line: currentLine,
+                line: returningFrame ? returningFrame.currentLine : null,
                 return: returnValue,
                 callEvent: { type: "RETURN", value: returnValue },
             };
@@ -140,16 +171,13 @@ function buildState(traceEvents, initialArray) {
                 pendingExprByDepth.delete(depth);
             }
 
-            // Pop the completed frame.
-            stack.pop();
-
-            // Safety: stack must never be empty.
-            if (stack.length === 0) {
-                stack.push({ function: "global", variables: {} });
-            }
+            // DO NOT OVERWRITE PARENT'S STATE WITH CHILD'S RETURN.
+            // Pop the completely finished frame LATER at the very end of this iteration
+            // so that it survives long enough to be snapshot recursively as "currently returning".
+            currentStep.shouldPopFrame = true;
 
             // returnFlow: who returned, to whom, with what value.
-            const parentFrame = stack[stack.length - 1];
+            const parentFrame = stack.length > 1 ? stack[stack.length - 2] : stack[0];
             currentStep.returnFlow = {
                 fromFunction: returningFunction,
                 toFunction:   parentFrame.function,
@@ -163,8 +191,11 @@ function buildState(traceEvents, initialArray) {
         // ── ARRAY ─────────────────────────────────────────────────────
         } else if (event.type === "ARRAY") {
             currentStep = {
+                stepId: step,
+                type: event.type,
+                frameId: stack[stack.length - 1].frameId,
                 step: step++,
-                line: currentLine,
+                line: stack[stack.length - 1].currentLine,
                 arrayEvent: {
                     name:  event.name,
                     index: event.index,
@@ -176,8 +207,11 @@ function buildState(traceEvents, initialArray) {
         } else if (event.type === "LOOP") {
             currentLoops[event.loopId] = event.iteration;
             currentStep = {
+                stepId: step,
+                type: event.type,
+                frameId: stack[stack.length - 1].frameId,
                 step: step++,
-                line: currentLine,
+                line: stack[stack.length - 1].currentLine,
                 loopEvent: {
                     loopId: event.loopId,
                     iteration: event.iteration,
@@ -188,8 +222,11 @@ function buildState(traceEvents, initialArray) {
         } else if (event.type === "LOOP_ITER") {
             currentLoops[event.loopId] = (currentLoops[event.loopId] || 0) + 1;
             currentStep = {
+                stepId: step,
+                type: event.type,
+                frameId: stack[stack.length - 1].frameId,
                 step: step++,
-                line: currentLine,
+                line: stack[stack.length - 1].currentLine,
                 loopEvent: {
                     loopId: event.loopId,
                     iteration: currentLoops[event.loopId],
@@ -203,8 +240,11 @@ function buildState(traceEvents, initialArray) {
         // ── NODE LINK ─────────────────────────────────────────────────
         } else if (event.type === "NODE_LINK") {
             currentStep = {
+                stepId: step,
+                type: event.type,
+                frameId: stack[stack.length - 1].frameId,
                 step: step++,
-                line: currentLine,
+                line: stack[stack.length - 1].currentLine,
                 nodeLinkEvent: {
                     from: event.from,
                     to: event.to
@@ -220,14 +260,21 @@ function buildState(traceEvents, initialArray) {
             // run for this step (it only runs for whatever currentStep is
             // at the end of this if-else chain).
             const announceStep = {
+                stepId: step,
+                type: event.type,
+                frameId: stack[stack.length - 1].frameId,
                 step: step++,
-                line: currentLine,
+                line: stack[stack.length - 1].currentLine,
                 ptrMoveEvent: { variable: event.variable, nodeId: nodeId },
                 // Snapshot OLD variables (pointer not yet moved)
                 currentFrameVariables: topVars(stack),
                 stack: stack.map(f => ({
                     function:  f.function,
                     variables: { ...f.variables },
+                    frameId: f.frameId,
+                    currentLine: f.currentLine,
+                    isReturning: f.isReturning || false,
+                    returnValue: f.returnValue !== undefined ? f.returnValue : null
                 })),
                 loopContext: { ...currentLoops },
             };
@@ -245,8 +292,11 @@ function buildState(traceEvents, initialArray) {
 
             // ── Step N+1: plain step — bottom block attaches NEW state ─
             currentStep = {
+                stepId: step,
+                type: event.type + "_APPLIED",
+                frameId: stack[stack.length - 1].frameId,
                 step: step++,
-                line: currentLine,
+                line: stack[stack.length - 1].currentLine,
             };
 
         // ── NODE MUTATE ───────────────────────────────────────────────
@@ -256,13 +306,20 @@ function buildState(traceEvents, initialArray) {
 
             // ── Step N: announce event with OLD (pre-mutation) state ──
             const announceStep = {
+                stepId: step,
+                type: event.type,
+                frameId: stack[stack.length - 1].frameId,
                 step: step++,
-                line: currentLine,
+                line: stack[stack.length - 1].currentLine,
                 nodeMutateEvent: { fromNodeId, toNodeId },
                 currentFrameVariables: topVars(stack),
                 stack: stack.map(f => ({
                     function:  f.function,
                     variables: { ...f.variables },
+                    frameId: f.frameId,
+                    currentLine: f.currentLine,
+                    isReturning: f.isReturning || false,
+                    returnValue: f.returnValue !== undefined ? f.returnValue : null
                 })),
                 loopContext: { ...currentLoops },
             };
@@ -283,8 +340,11 @@ function buildState(traceEvents, initialArray) {
 
             // ── Step N+1: plain step — bottom block attaches NEW state ─
             currentStep = {
+                stepId: step,
+                type: event.type + "_APPLIED",
+                frameId: stack[stack.length - 1].frameId,
                 step: step++,
-                line: currentLine,
+                line: stack[stack.length - 1].currentLine,
             };
         }
 
@@ -320,12 +380,25 @@ function buildState(traceEvents, initialArray) {
             currentStep.stack = stack.map((f) => ({
                 function:  f.function,
                 variables: { ...f.variables },
+                frameId: f.frameId,
+                currentLine: f.currentLine,
+                isReturning: f.isReturning || false,
+                returnValue: f.returnValue !== undefined ? f.returnValue : null
             }));
 
             // Attach loop context
             currentStep.loopContext = { ...currentLoops };
 
             states.push(currentStep);
+
+            // NOW pop the frame if it completed, ensuring properties were snapshotted locally
+            if (currentStep.shouldPopFrame) {
+                stack.pop();
+                if (stack.length === 0) {
+                    stack.push({ function: "global", variables: {}, frameId: "F0", currentLine: null });
+                }
+                delete currentStep.shouldPopFrame;
+            }
         }
     }
 

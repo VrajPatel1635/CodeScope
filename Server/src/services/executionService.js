@@ -7,6 +7,12 @@ const { analyzePointerSemantics } = require("../semantic/PointerRelationshipAnal
 const { analyzeLoopSemantics } = require("../semantic/LoopSemanticAnalyzer");
 const { analyzeCallStackSemantics } = require("../semantic/CallStackSemanticAnalyzer");
 const { buildJavaInputsFromSignature, splitJavaPreamble, normalizeType } = require("../utils/inputBuilders");
+const { normalizeJavaControlFlow } = require("../utils/javaControlFlowNormalizer");
+const { normalizeReturns } = require("../utils/javaReturnNormalizer");
+const { normalizeLoopFlows } = require("../utils/javaLoopFlowNormalizer");
+const { normalizeConditions } = require("../utils/javaConditionNormalizer");
+const { deriveSourceSteps } = require("../sourceSteps/deriveSourceSteps");
+const { resolveSourceStepStates, printResolvedSourceSteps } = require("../sourceSteps/resolveSourceStepStates");
 
 const EXECUTIONS_DIR = path.join(__dirname, "../../executions");
 
@@ -106,6 +112,11 @@ ${outputSerializer}
 ${rest}
 
 public class Main {
+    public static boolean __DSA_COND(boolean result, int line, String expr) {
+        System.out.println("TRACE|COND|line=" + line + "|expr=" + expr + "|value=" + result);
+        return result;
+    }
+
     public static void main(String[] args) {
         Solution sol = new Solution();
         
@@ -164,7 +175,7 @@ async function runJava(dirPath) {
   return await runProcess("java", ["Main"], dirPath);
 }
 
-const USE_DOCKER = true;
+const USE_DOCKER = false;
 const DOCKER_TIMEOUT_MS = 30000;
 const MAX_TRACE_SIZE = 5 * 1024 * 1024; // 5MB
 
@@ -255,7 +266,11 @@ async function runDockerExecution(dirPath, executionId) {
 }
 
 function cleanup(dirPath) {
-  fs.rmSync(dirPath, { recursive: true, force: true });
+  try {
+    fs.rmSync(dirPath, { recursive: true, force: true });
+  } catch (e) {
+    console.error("Cleanup error:", e.message);
+  }
 }
 
 async function executeJavaCode(userCode, input) {
@@ -322,6 +337,10 @@ async function executeJavaCode(userCode, input) {
 
     const states = buildState(trace, initialArray);
 
+    const sourceSteps = deriveSourceSteps(states);
+    const resolvedSourceSteps = resolveSourceStepStates(sourceSteps, states);
+    printResolvedSourceSteps(resolvedSourceSteps);
+
     // ── Semantic Interpretation Layer (non-authoritative, read-only) ────────────
     // Runs AFTER state reconstruction. Never mutates `states`.
     const semanticFrames = analyzePointerSemantics(states);
@@ -341,6 +360,7 @@ async function executeJavaCode(userCode, input) {
     return {
       success: true,
       states,
+      sourceSteps: resolvedSourceSteps,
       semanticFrames,
       loopSemanticFrames,
       callStackSemanticFrames,
@@ -427,6 +447,16 @@ function parseExecutionOutput(rawOutput) {
       trace.push({ type: "LOOP_ITER", loopId: parts[2] });
     } else if (type === "LOOP_END") {
       trace.push({ type: "LOOP_END", loopId: parts[2] });
+    } else if (type === "COND") {
+      const lineStr = parts[2].substring(5); // line=...
+      const exprStr = parts[3].substring(5); // expr=...
+      const valStr = parts[4].substring(6); // value=...
+      trace.push({
+        type: "COND",
+        line: Number(lineStr),
+        expr: exprStr,
+        value: valStr === "true",
+      });
     }
   }
 
@@ -451,54 +481,62 @@ function detectBinaryExpr(returnExpr, methodName) {
 
 /**
  * Generate the traced return block (used in multiple places).
+ * @param {string}  returnExpr    - the expression being returned
+ * @param {number}  lineNumber    - editor-absolute line number
+ * @param {string}  methodName    - method name for binary-expr detection
+ * @param {boolean} wantsListNode - whether the method deals with ListNode
+ * @param {number}  retIdx        - unique index within this method (prevents duplicate var declarations)
  */
-function buildReturnTrace(returnExpr, lineNumber, methodName = "solve", wantsListNode = false) {
+function buildReturnTrace(returnExpr, lineNumber, methodName = "solve", wantsListNode = false, retIdx = 0) {
+  // Use a collision-safe, deterministic temp var name unique to each return site.
+  const tmpVar = `__TRACE_RET_${retIdx}__`;
+
   let out = "";
   out += `System.out.println("TRACE|LINE|${lineNumber}");\n`;
 
-  // Detect and emit expression metadata BEFORE computing trace_return
-  const expr = detectBinaryExpr(returnExpr, methodName);
+  // Void return (`return;`) — no expression to evaluate.
+  const exprTrimmed = String(returnExpr ?? "").trim();
+  if (!exprTrimmed) {
+    out += `System.out.println("TRACE|VAR|__return__|void");\n`;
+    out += `System.out.println("TRACE|RETURN|void");\n`;
+    out += `return;\n`;
+    return out;
+  }
+
+  // Detect and emit expression metadata BEFORE computing the return value
+  const expr = detectBinaryExpr(exprTrimmed, methodName);
   if (expr) {
-    // TRACE|EXPR|<leftVar>|<operator>|<rightFn>
     out += `System.out.println("TRACE|EXPR|${expr.left}|${expr.operator}|${expr.rightFn}|" + ${expr.left});\n`;
   }
 
   const formatter = wantsListNode ? "__DSAInput.formatNode" : "String.valueOf";
 
-  out += `var trace_return = ${returnExpr};\n`;
-  out += `System.out.println("TRACE|VAR|__return__|" + ${formatter}(trace_return));\n`;
-  out += `System.out.println("TRACE|RETURN|" + ${formatter}(trace_return));\n`;
-  out += `return trace_return;\n`;
+  out += `var ${tmpVar} = ${exprTrimmed};\n`;
+  out += `System.out.println("TRACE|VAR|__return__|" + ${formatter}(${tmpVar}));\n`;
+  out += `System.out.println("TRACE|RETURN|" + ${formatter}(${tmpVar}));\n`;
+  out += `return ${tmpVar};\n`;
   return out;
 }
 
-function injectTraceIntoBody(body, methodName = "solve", methodParams = []) {
-  // ── Normalize: one statement per line ───────────────────────────────
-  // Walk character-by-character tracking paren depth so that semicolons
-  // inside for(...) headers are NOT split, but bare multi-statement lines
-  // like `head = head.next; return 0;` are broken into separate lines.
-  body = (function normalizeSemicolons(src) {
-    let result = "";
-    let parenDepth = 0;
-    for (let ci = 0; ci < src.length; ci++) {
-      const ch = src[ci];
-      if (ch === "(") parenDepth++;
-      else if (ch === ")") parenDepth--;
-      result += ch;
-      // Only split on `;` that is outside parentheses AND not already
-      // followed by a newline (avoid double-blank-lines).
-      if (ch === ";" && parenDepth === 0) {
-        const next = src[ci + 1];
-        if (next !== undefined && next !== "\n" && next !== "\r") {
-          result += "\n";
-        }
-      }
-    }
-    return result;
-  })(body);
-  // ────────────────────────────────────────────────────────────────────
+/**
+ * Robustly parses Java source to tokens, adds explicit { } for braceless 
+ * control flow statements (if, else, for, while, do), and splits statements 
+ * on semicolons while preserving the correct original line numbers.
+ */
+function normalizeControlFlowAndLineMap(source, baseLineOffset, returnType = "") {
+  let mappedLines = normalizeJavaControlFlow(source, baseLineOffset).mappedLines;
+  mappedLines = normalizeReturns(mappedLines, returnType);
+  mappedLines = normalizeLoopFlows(mappedLines);
+  mappedLines = normalizeConditions(mappedLines);
+  return mappedLines;
+}
 
-  const lines = body.split("\n");
+function injectTraceIntoBody(mappedLines, methodName = "solve", methodParams = [], returnType = "") {
+  // Counter for generating unique return-temp variable names within this method.
+  // Each return site gets a distinct __TRACE_RET_N__ so the same method can have
+  // multiple return statements without Java compilation errors.
+  let retCounter = 0;
+
   let currentLoopVar = null;
   let pendingForTrace = null;
   
@@ -517,7 +555,7 @@ function injectTraceIntoBody(body, methodName = "solve", methodParams = []) {
     // which emits all TRACE lines BEFORE the return keyword.
     if (trimmed.startsWith("return")) {
       const returnExpr = trimmed.replace(/^return\s*/, "").replace(/;$/, "").trim();
-      return buildReturnTrace(returnExpr, lineNumber, methodName, wantsListNode);
+      return buildReturnTrace(returnExpr, lineNumber, methodName, wantsListNode, retCounter++);
     }
 
     let out = "";
@@ -576,13 +614,50 @@ function injectTraceIntoBody(body, methodName = "solve", methodParams = []) {
     }
   }
 
-  for (let i = 0; i < lines.length; i++) {
-    let line = lines[i].trim();
+  for (let i = 0; i < mappedLines.length; i++) {
+    let lineObj = mappedLines[i];
+    let line = lineObj.text.trim();
     if (!line) continue;
 
-    const lineNumber = i + 1;
+    const lineNumber = lineObj.line;
     const openBracesInLine = (line.match(/{/g) || []).length;
     const closeBracesInLine = (line.match(/}/g) || []).length;
+
+    // ── HARD ARCHITECTURAL RULES ───────────────────────────────────
+    // 1) NEVER inject TRACE between `if (...) <body>` and `else`.
+    // 2) NEVER inject TRACE between `do { ... }` and `while (...) ;`.
+    //
+    // Our normalization emits `} else ...` and `} while (...) ;` as single
+    // structural lines. They must pass through untouched.
+    if (/^else\b/.test(line) || /^}\s*else\b/.test(line)) {
+      tracedBody += line + "\n";
+      braceDepth = Math.max(0, braceDepth + openBracesInLine - closeBracesInLine);
+      continue;
+    }
+
+    if (/^}\s*while\b/.test(line)) {
+      tracedBody += line + "\n";
+      const closingDepth = braceDepth;
+      braceDepth = Math.max(0, braceDepth + openBracesInLine - closeBracesInLine);
+
+      while (forVarScopeStack.length > 0 && forVarScopeStack[forVarScopeStack.length - 1].depth === closingDepth) {
+        const scopeItem = forVarScopeStack.pop();
+        if (scopeItem.isDoWhile) {
+          tracedBody += `System.out.println("TRACE|LOOP_END|loop_${scopeItem.lineId}");\n`;
+        }
+      }
+      continue;
+    }
+
+    if (line.match(/^do\s*\{/)) {
+        tracedBody += line + "\n";
+        braceDepth += 1;
+        tracedBody += `System.out.println("TRACE|LINE|${lineNumber}");\n`;
+        tracedBody += `System.out.println("TRACE|LOOP_ITER|loop_${lineNumber}");\n`;
+        forVarScopeStack.push({ isWhile: true, isDoWhile: true, lineId: lineNumber, depth: braceDepth });
+        continue;
+    }
+
 
     // Skip pure braces (but allow inserting pending for-loop trace right after '{')
     if (line === "{") {
@@ -616,9 +691,7 @@ function injectTraceIntoBody(body, methodName = "solve", methodParams = []) {
       while (forVarScopeStack.length > 0 && forVarScopeStack[forVarScopeStack.length - 1].depth === closingDepth) {
         const scopeItem = forVarScopeStack.pop();
         if (scopeItem.isWhile) {
-          if (!scopeItem.isInfinite) {
-            tracedBody += `System.out.println("TRACE|LOOP_END|loop_${scopeItem.lineId}");\n`;
-          }
+          tracedBody += `System.out.println("TRACE|LOOP_END|loop_${scopeItem.lineId}");\n`;
         } else {
           tracedBody += `System.out.println("TRACE|LINE|${lineNumber}");\n`;
           tracedBody += `System.out.println("TRACE|VAR|${scopeItem.varName}|null");\n`;
@@ -627,24 +700,10 @@ function injectTraceIntoBody(body, methodName = "solve", methodParams = []) {
       continue;
     }
 
-    // ── INLINE RETURN inside if/else-if ──────────────────────────
-    // Pattern: if(...) return expr;  OR  } else if(...) return expr;
-    const inlineReturnMatch = line.match(/^((?:}\s*else\s+)?if\s*\(.*\))\s+return\s+(.*);\s*$/);
-    if (inlineReturnMatch) {
-      const condition = inlineReturnMatch[1]; // e.g. "if(n == 0)"
-      const returnExpr = inlineReturnMatch[2]; // e.g. "1"
-
-      tracedBody += `System.out.println("TRACE|LINE|${lineNumber}");\n`;
-      tracedBody += `${condition} {\n`;
-      tracedBody += buildReturnTrace(returnExpr, lineNumber, methodName, wantsListNode);
-      tracedBody += `}\n`;
-      continue;
-    }
-
     // ── Standalone RETURN ────────────────────────────────────────
     if (line.startsWith("return")) {
       const returnExpr = line.replace("return", "").replace(";", "").trim();
-      tracedBody += buildReturnTrace(returnExpr, lineNumber, methodName, wantsListNode);
+      tracedBody += buildReturnTrace(returnExpr, lineNumber, methodName, wantsListNode, retCounter++);
       continue;
     }
 
@@ -709,9 +768,7 @@ function injectTraceIntoBody(body, methodName = "solve", methodParams = []) {
         while (forVarScopeStack.length > 0 && forVarScopeStack[forVarScopeStack.length - 1].depth === closingDepth) {
           const scopeItem = forVarScopeStack.pop();
           if (scopeItem.isWhile) {
-            if (!scopeItem.isInfinite) {
-              tracedBody += `System.out.println("TRACE|LOOP_END|loop_${scopeItem.lineId}");\n`;
-            }
+            tracedBody += `System.out.println("TRACE|LOOP_END|loop_${scopeItem.lineId}");\n`;
           } else {
             tracedBody += `System.out.println("TRACE|LINE|${lineNumber}");\n`;
             tracedBody += `System.out.println("TRACE|VAR|${scopeItem.varName}|null");\n`;
@@ -778,9 +835,7 @@ function injectTraceIntoBody(body, methodName = "solve", methodParams = []) {
         }
 
         tracedBody += "}" + "\n";
-        if (!isInfiniteClass) {
-          tracedBody += `System.out.println("TRACE|LOOP_END|loop_${lineNumber}");\n`;
-        }
+        tracedBody += `System.out.println("TRACE|LOOP_END|loop_${lineNumber}");\n`;
         braceDepth = Math.max(0, braceDepth - 1);
         continue;
       }
@@ -881,10 +936,6 @@ function injectTraceIntoBody(body, methodName = "solve", methodParams = []) {
 function extractAllMethodsAndInstrument(userCode) {
   const signatureRegex = /(?:public|private|protected)\s+(?:static\s+)?([A-Za-z0-9_<>[\]]+)\s+(\w+)\s*\(([^)]*)\)\s*\{/g;
   let match;
-  
-  let mainMethodName = "solve";
-  let mainMethodParams = [];
-  let mainReturnType = "int";
 
   const methods = [];
   while ((match = signatureRegex.exec(userCode)) !== null) {
@@ -908,12 +959,6 @@ function extractAllMethodsAndInstrument(userCode) {
           });
       }
 
-      if (isPublic && methods.length === 0) { // Assume first public is main
-          mainMethodName = methodName;
-          mainMethodParams = methodParams;
-          mainReturnType = returnType;
-      }
-
       const openBraceIndex = match.index + match[0].length - 1;
       let braceCount = 1;
       let closeBraceIndex = -1;
@@ -935,14 +980,24 @@ function extractAllMethodsAndInstrument(userCode) {
               closeBraceIndex,
               methodName,
               methodParams,
+              returnType,
+              isPublic,
               body
           });
       }
   }
 
-  if (methods.length === 0) {
-      return { finalUserCode: userCode, methodName: mainMethodName, methodParams: mainMethodParams, returnType: mainReturnType };
+  const publicMethods = methods.filter(m => m.isPublic);
+  if (publicMethods.length === 0) {
+      throw new Error("Exactly one public method is required inside Solution class.");
   }
+  if (publicMethods.length > 1) {
+      throw new Error("Multiple public methods detected. Exactly one public entry method is required.");
+  }
+
+  const mainMethodName = publicMethods[0].methodName;
+  const mainMethodParams = publicMethods[0].methodParams;
+  const mainReturnType = publicMethods[0].returnType;
 
   // Replace backwards so indices remain valid
   methods.reverse();
@@ -950,14 +1005,16 @@ function extractAllMethodsAndInstrument(userCode) {
   let finalUserCode = userCode;
   
   for (const method of methods) {
-      const tracedBody = injectTraceIntoBody(method.body, method.methodName, method.methodParams);
+      // Compute the number of newlines before the method body's first character
+      // (the char immediately after the opening '{'). This gives the
+      // 0-based line index of the '{' in the full source, so body line 1
+      // maps to lineOffset+1 in the editor.
+      const bodyLineOffset = (userCode.substring(0, method.openBraceIndex + 1).match(/\n/g) || []).length;
+      
+        const mappedLines = normalizeControlFlowAndLineMap(method.body, bodyLineOffset, method.returnType);
+        const tracedBody = injectTraceIntoBody(mappedLines, method.methodName, method.methodParams, method.returnType);
+      
       finalUserCode = finalUserCode.substring(0, method.openBraceIndex + 1) + "\n" + tracedBody + "\n" + finalUserCode.substring(method.closeBraceIndex);
-  }
-
-  // ensure we default to the first method if no public method found
-  if (mainMethodName === "solve" && methods.length > 0) {
-      mainMethodName = methods[methods.length - 1].methodName;
-      mainMethodParams = methods[methods.length - 1].methodParams;
   }
 
   return { finalUserCode, methodName: mainMethodName, methodParams: mainMethodParams, returnType: mainReturnType };
@@ -965,4 +1022,21 @@ function extractAllMethodsAndInstrument(userCode) {
 
 module.exports = {
   executeJavaCode,
+  // Debug-only helpers for instrumentation architecture audits.
+  // Not used by production routes.
+  __debug: {
+    wrapJavaCode,
+    parseExecutionOutput,
+    normalizeControlFlowAndLineMap,
+    injectTraceIntoBody,
+    extractAllMethodsAndInstrument,
+    buildReturnTrace,
+    detectBinaryExpr,
+    runDockerExecution,
+    compileJava,
+    runJava,
+    writeJavaFile,
+    createExecutionFolder,
+    generateExecutionId,
+  },
 };

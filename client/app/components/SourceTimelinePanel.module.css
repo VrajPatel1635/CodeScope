@@ -1,0 +1,99 @@
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  background: #0f1117;
+  border: 1px solid #1e2433;
+  border-radius: 8px;
+  overflow: hidden;
+  min-width: 180px;
+  max-width: 220px;
+  flex-shrink: 0;
+}
+
+.header {
+  padding: 7px 12px 6px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #4b5a7a;
+  border-bottom: 1px solid #1e2433;
+  user-select: none;
+}
+
+.list {
+  overflow-y: auto;
+  max-height: 340px;
+  padding: 4px 0;
+  scrollbar-width: thin;
+  scrollbar-color: #2a3550 transparent;
+}
+
+.list::-webkit-scrollbar { width: 4px; }
+.list::-webkit-scrollbar-track { background: transparent; }
+.list::-webkit-scrollbar-thumb { background: #2a3550; border-radius: 4px; }
+
+.item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px 5px 12px;
+  cursor: pointer;
+  border-left: 2px solid transparent;
+  transition: background 0.12s, border-color 0.12s;
+  user-select: none;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.item:hover { background: #141928; }
+
+.itemPrep { opacity: 0.55; }
+.itemPrep:hover { opacity: 0.8; }
+
+.itemActive {
+  background: #1a243d;
+  border-left-color: #3b82f6;
+  opacity: 1;
+}
+
+.badge {
+  font-size: 0.6rem;
+  font-weight: 600;
+  color: #3b5080;
+  min-width: 22px;
+  font-variant-numeric: tabular-nums;
+}
+.itemActive .badge { color: #5b8be0; }
+
+.frame {
+  font-size: 0.6rem;
+  font-weight: 600;
+  padding: 1px 5px;
+  border-radius: 3px;
+  background: #1a2540;
+  color: #4b6ea8;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+}
+.itemActive .frame { background: #1e3060; color: #6fa0e8; }
+
+.lineLabel {
+  font-size: 0.68rem;
+  color: #8899bb;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.itemActive .lineLabel { color: #aac4f0; }
+.lineLabelPrep { color: #4b5a7a; font-style: italic; }
+
+.activeDot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #3b82f6;
+  flex-shrink: 0;
+  box-shadow: 0 0 6px 1px rgba(59, 130, 246, 0.5);
+}

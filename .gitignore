@@ -2,3 +2,7 @@
 
 /server/executions
 /server/scripts
+/server/audit-reports
+/server/node_modules
+/server/request.rest
+/server/src/instrumentation

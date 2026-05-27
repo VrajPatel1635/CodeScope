@@ -4,26 +4,40 @@ export default function Controls({
   currentStep,
   totalSteps,
   setCurrentStep,
+  sourceStepIndex,
+  totalSourceSteps,
+  setSourceStepIndex,
+  timelineMode,
+  setTimelineMode,
   isPlaying,
   setIsPlaying,
   loopContext = {},
   loopMarkers = [],
 }) {
+  const isMicro = timelineMode === "micro";
+  const activeStep = isMicro ? currentStep : sourceStepIndex;
+  const activeTotal = isMicro ? totalSteps : totalSourceSteps;
+
   const next = () => {
-    if (currentStep < totalSteps - 1) {
-      setCurrentStep(currentStep + 1);
+    if (isMicro) {
+      if (currentStep < totalSteps - 1) setCurrentStep(currentStep + 1);
+    } else {
+      if (sourceStepIndex < totalSourceSteps - 1) setSourceStepIndex(sourceStepIndex + 1);
     }
   };
 
   const prev = () => {
-    if (currentStep > 0) {
-      setCurrentStep(currentStep - 1);
+    if (isMicro) {
+      if (currentStep > 0) setCurrentStep(currentStep - 1);
+    } else {
+      if (sourceStepIndex > 0) setSourceStepIndex(sourceStepIndex - 1);
     }
   };
 
   const togglePlay = () => {
-    if (!isPlaying && currentStep >= totalSteps - 1) {
-      setCurrentStep(0);
+    if (!isPlaying && activeStep >= activeTotal - 1) {
+      if (isMicro) setCurrentStep(0);
+      else setSourceStepIndex(0);
     }
     setIsPlaying((prev) => !prev);
   };
@@ -31,20 +45,50 @@ export default function Controls({
   const handleSliderChange = (e) => {
     // Pause auto-play whenever the user drags the slider
     if (isPlaying) setIsPlaying(false);
-    setCurrentStep(Number(e.target.value));
+    const val = Number(e.target.value);
+    if (isMicro) setCurrentStep(val);
+    else setSourceStepIndex(val);
   };
 
   // Don't render the slider section at all if there are no steps
-  const hasSteps = totalSteps > 0;
-  const singleStep = totalSteps === 1;
+  const hasSteps = activeTotal > 0;
+  const singleStep = activeTotal === 1;
 
   return (
     <div className="controls-wrapper">
+      {/* ── Mode Toggle Row ── */}
+      <div className="flex gap-2 justify-center mb-2">
+        <button
+          onClick={() => {
+            setTimelineMode("micro");
+            // Optionally, snap the micro index to the current source's resolved step, 
+            // but for safety, we just keep currentStep where it was.
+          }}
+          className={`px-3 py-1 text-xs font-semibold rounded-full border transition-colors ${
+            timelineMode === "micro"
+              ? "bg-blue-100 text-blue-700 border-blue-300"
+              : "bg-gray-50 text-gray-500 border-gray-200 hover:bg-gray-100"
+          }`}
+        >
+          Micro Mode
+        </button>
+        <button
+          onClick={() => setTimelineMode("source")}
+          className={`px-3 py-1 text-xs font-semibold rounded-full border transition-colors ${
+            timelineMode === "source"
+              ? "bg-blue-100 text-blue-700 border-blue-300"
+              : "bg-gray-50 text-gray-500 border-gray-200 hover:bg-gray-100"
+          }`}
+        >
+          Source Mode
+        </button>
+      </div>
+
       {/* ── Playback buttons row ── */}
       <div className="controls-row">
         <button
           onClick={prev}
-          disabled={currentStep === 0}
+          disabled={activeStep === 0}
           className="ctrl-btn ctrl-btn--secondary"
         >
           ← Prev
@@ -59,7 +103,7 @@ export default function Controls({
 
         <button
           onClick={next}
-          disabled={currentStep === totalSteps - 1}
+          disabled={activeStep === activeTotal - 1}
           className="ctrl-btn ctrl-btn--secondary"
         >
           Next →
@@ -67,7 +111,7 @@ export default function Controls({
 
         <span className="step-counter flex items-center gap-3">
           <span>
-            Step <strong>{currentStep + 1}</strong> / <strong>{totalSteps}</strong>
+            Step <strong>{activeStep + 1}</strong> / <strong>{activeTotal}</strong>
           </span>
         </span>
       </div>
@@ -83,26 +127,26 @@ export default function Controls({
               className="slider-fill"
               style={{
                 width:
-                  totalSteps > 1
-                    ? `${(currentStep / (totalSteps - 1)) * 100}%`
+                  activeTotal > 1
+                    ? `${(activeStep / (activeTotal - 1)) * 100}%`
                     : "0%",
               }}
             />
             <input
               type="range"
               min={0}
-              max={totalSteps - 1}
-              value={currentStep}
+              max={activeTotal - 1}
+              value={activeStep}
               onChange={handleSliderChange}
               disabled={singleStep}
               className="timeline-slider"
               aria-label="Execution step timeline"
             />
 
-            {/* Loop Markers */}
-            {totalSteps > 1 &&
+            {/* Loop Markers (Only show in micro mode for accurate timeline matching, or map to source logic if needed) */}
+            {isMicro && activeTotal > 1 &&
               loopMarkers.map((m) => {
-                const leftPercent = (m.stepIndex / (totalSteps - 1)) * 100;
+                const leftPercent = (m.stepIndex / (activeTotal - 1)) * 100;
                 return (
                   <div
                     key={m.stepIndex}
@@ -117,7 +161,7 @@ export default function Controls({
               })}
           </div>
 
-          <span className="timeline-label">End ({totalSteps - 1})</span>
+          <span className="timeline-label">End ({activeTotal - 1})</span>
         </div>
       )}
 

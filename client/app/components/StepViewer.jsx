@@ -9,6 +9,7 @@ import CallStackPanel from "./CallStackPanel";
 import ExpressionPanel from "./ExpressionPanel";
 import ConditionInsightPanel from "./ConditionInsightPanel";
 import LoopInsightPanel from "./LoopInsightPanel";
+import SourceTimelinePanel from "./SourceTimelinePanel";
 
 const POINTER_NAMES = ["i", "j", "k", "left", "right", "start", "end"];
 const ACCUMULATOR_NAMES = ["sum", "count", "total", "ans"];
@@ -145,8 +146,10 @@ function classifyVariables(currentStep, previousStep) {
   return classified;
 }
 
-export default function StepViewer({ states, input, code, semanticFrames = [], loopSemanticFrames = [], callStackSemanticFrames = [] }) {
+export default function StepViewer({ states, sourceSteps = [], input, code, semanticFrames = [], loopSemanticFrames = [], callStackSemanticFrames = [], onActiveLineChange }) {
   const [currentStep, setCurrentStep] = useState(0);
+  const [sourceStepIndex, setSourceStepIndex] = useState(0);
+  const [timelineMode, setTimelineMode] = useState("micro"); // "micro" | "source"
   const [isPlaying, setIsPlaying] = useState(false);
 
   // Build a fast step→semantics lookup (step numbers are not guaranteed
@@ -181,36 +184,70 @@ export default function StepViewer({ states, input, code, semanticFrames = [], l
   // Reset when new states arrive
   useEffect(() => {
     setCurrentStep(0);
+    setSourceStepIndex(0);
     setIsPlaying(false);
-  }, [states]);
+  }, [states, sourceSteps]);
 
   useEffect(() => {
     if (!isPlaying) return;
 
     const interval = setInterval(() => {
-      setCurrentStep(prev => {
-        if (prev >= states.length - 1) {
-          clearInterval(interval);
-          return prev;
-        }
-        return prev + 1;
-      });
+      if (timelineMode === "micro") {
+        setCurrentStep(prev => {
+          if (prev >= states.length - 1) {
+            clearInterval(interval);
+            return prev;
+          }
+          return prev + 1;
+        });
+      } else {
+        setSourceStepIndex(prev => {
+          if (prev >= sourceSteps.length - 1) {
+            clearInterval(interval);
+            return prev;
+          }
+          return prev + 1;
+        });
+      }
     }, 500);
 
     return () => clearInterval(interval);
-  }, [isPlaying, states]);
+  }, [isPlaying, states, sourceSteps, timelineMode]);
 
   // Automatically pause when the last step is reached
   useEffect(() => {
-    if (currentStep >= states.length - 1 && isPlaying) {
-      setIsPlaying(false);
+    if (timelineMode === "micro") {
+      if (currentStep >= states.length - 1 && isPlaying) setIsPlaying(false);
+    } else {
+      if (sourceStepIndex >= sourceSteps.length - 1 && isPlaying) setIsPlaying(false);
     }
-  }, [currentStep, states.length, isPlaying]);
+  }, [currentStep, sourceStepIndex, states.length, sourceSteps.length, isPlaying, timelineMode]);
 
   if (!states || states.length === 0) return null;
 
-  const currentState = states[currentStep];
-  const previousState = currentStep > 0 ? states[currentStep - 1] : null;
+  // DERIVE ACTIVE MICRO STEP
+  let activeMicroStepIndex = currentStep;
+  if (timelineMode === "source" && sourceSteps.length > 0) {
+    const activeSourceStep = sourceSteps[sourceStepIndex];
+    if (activeSourceStep) {
+      const idx = states.findIndex(s => s.stepId === activeSourceStep.resolvedMicroStepId);
+      if (idx !== -1) {
+        activeMicroStepIndex = idx;
+      } else {
+        // Fallback just in case resolvedMicroStepId fails to map
+        activeMicroStepIndex = Math.min(activeSourceStep.lastMicroStep - 1, states.length - 1);
+      }
+    }
+  }
+
+  const currentState = states[activeMicroStepIndex];
+  const previousState = activeMicroStepIndex > 0 ? states[activeMicroStepIndex - 1] : null;
+
+  useEffect(() => {
+    if (currentState && onActiveLineChange) {
+      onActiveLineChange(currentState.line || null);
+    }
+  }, [currentState, onActiveLineChange]);
 
   // Variables Diff
   const changedVariables = [];
@@ -300,6 +337,11 @@ export default function StepViewer({ states, input, code, semanticFrames = [], l
         currentStep={currentStep}
         totalSteps={states.length}
         setCurrentStep={setCurrentStep}
+        sourceStepIndex={sourceStepIndex}
+        totalSourceSteps={sourceSteps.length}
+        setSourceStepIndex={setSourceStepIndex}
+        timelineMode={timelineMode}
+        setTimelineMode={setTimelineMode}
         isPlaying={isPlaying}
         setIsPlaying={setIsPlaying}
         loopContext={loopContext}
@@ -334,7 +376,7 @@ export default function StepViewer({ states, input, code, semanticFrames = [], l
         <LoopInsightPanel loopContext={loopContext} />
       )}
 
-      {/* Variable info + Call Stack side-by-side */}
+      {/* Variable info + Call Stack + Source Timeline side-by-side */}
       <div className="flex flex-col md:flex-row gap-4 items-start">
         <div className="flex-1 min-w-0">
           <VariablePanel
@@ -352,6 +394,16 @@ export default function StepViewer({ states, input, code, semanticFrames = [], l
             linkedList={currentState?.linkedList}
             callStackSemantics={callStackSemanticMap.get(currentState?.step) ?? []}
           />
+
+          {/* Source Timeline: only visible in source mode, auto-hides in micro mode */}
+          {timelineMode === "source" && sourceSteps.length > 0 && (
+            <SourceTimelinePanel
+              sourceSteps={sourceSteps}
+              sourceStepIndex={sourceStepIndex}
+              setSourceStepIndex={setSourceStepIndex}
+              setTimelineMode={setTimelineMode}
+            />
+          )}
         </div>
       </div>
     </div>

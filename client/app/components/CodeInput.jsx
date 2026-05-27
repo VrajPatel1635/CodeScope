@@ -3,7 +3,7 @@
 import { useState } from "react";
 import CodeEditor from "./CodeEditor";
 
-export default function CodeInput({ onRun }) {
+export default function CodeInput({ onRun, activeLine }) {
   const [code, setCode] = useState(`class Solution {
     public int solve(int[] arr) {
         
@@ -58,7 +58,7 @@ export default function CodeInput({ onRun }) {
       {/* Code Input */}
       <div className="border rounded overflow-hidden">
         <label className="block font-semibold mb-1 p-2 bg-gray-50 border-b">Java Code</label>
-        <CodeEditor code={code} setCode={setCode} />
+        <CodeEditor code={code} setCode={setCode} activeLine={activeLine} />
       </div>
 
       {/* Input Data */}

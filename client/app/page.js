@@ -8,6 +8,7 @@ export default function Home() {
   const [result, setResult] = useState(null);
   const [input, setInput] = useState("");
   const [code, setCode] = useState("");
+  const [activeLine, setActiveLine] = useState(null);
 
   return (
     <main className="p-6 space-y-6">
@@ -18,14 +19,16 @@ export default function Home() {
           setResult(data);
           setInput(inputValue);
           setCode(codeValue);
+          setActiveLine(null); // Clear highlight on new run
         }}
+        activeLine={activeLine}
       />
 
       {result?.error && (
         <div className="text-red-500">{result.error}</div>
       )}
 
-      {result?.states && <StepViewer states={result.states} input={input} code={code} semanticFrames={result.semanticFrames ?? []} loopSemanticFrames={result.loopSemanticFrames ?? []} callStackSemanticFrames={result.callStackSemanticFrames ?? []} />}
+      {result?.states && <StepViewer states={result.states} sourceSteps={result.sourceSteps ?? []} input={input} code={code} semanticFrames={result.semanticFrames ?? []} loopSemanticFrames={result.loopSemanticFrames ?? []} callStackSemanticFrames={result.callStackSemanticFrames ?? []} onActiveLineChange={setActiveLine} />}
 
       {result?.output && (
         <div className="bg-gray-100 text-gray-900 p-3 rounded">

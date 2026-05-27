@@ -7,13 +7,16 @@
 
 ## 2. Execution Pipeline
 * **Code Generation:** The user's snippet is wrapped in a structured `Main.java` template. `splitJavaPreamble` ensures imports and packages are preserved. Helper classes (`ListNode`, `TreeNode`) and `OutputSerializer` are automatically injected.
-* **Instrumentation:** The AST/Regex instrumenter injects `System.out.println("TRACE|...");` statements at every critical execution step (lines, variables, array updates, loops, returns) to capture state transitions.
-* **Docker Sandbox Execution:** The code is executed within an ephemeral, strictly limited Docker container running `eclipse-temurin:17` on Alpine/sh.
-* **TRACE Collection:** Standard output from the container is streamed back to the Node.js orchestrator in real-time.
-* **Parser Stage:** The raw text `stdout` is parsed line-by-line (`TRACE|VAR|...`) into an array of structured JSON trace events.
-* **State Reconstruction:** The `buildState` engine chronologically applies the trace events to a base initial state, creating an immutable timeline of memory states.
-* **Semantic Layering:** Additional read-only semantic passes (`analyzePointerSemantics`, `analyzeLoopSemantics`) infer higher-level intent (e.g., fast/slow pointer convergence) strictly derived from the base states.
-* **Frontend Visualization:** The client consumes the timeline to visually render data structures, pointers, and memory updates frame-by-frame.
+* **Control-Flow Pre-Processing (Phase B):** 
+  - Converts braceless `if/for/while` statements into block structures to guarantee safe trace injection.
+  - Normalizes terminal flows (`break`, `continue`) to ensure loop traces properly finalize.
+  - Re-maps nested returns ensuring multi-return recursive unwinds do not collide.
+* **Condition Normalization (Phase C):** `javaConditionNormalizer` safely isolates boolean expressions within branches (`if`, `while`, `for`) and wraps them in a `Main.__DSA_COND` interceptor to capture exactly-once truth evaluations while preserving short-circuiting natively.
+* **Trace Instrumentation:** Injects `System.out.println("TRACE|...");` statements mapping to lines, variables, pointer mutations, condition evaluations, and calls/returns.
+* **Execution Environment:** Code is typically executed within an ephemeral Docker container (`eclipse-temurin:17`). *Note: Native host execution fallback is supported when Docker IPC pipes are unreachable.*
+* **Parser Stage:** The raw text `stdout` is parsed line-by-line into an array of structured JSON trace events.
+* **State Reconstruction (`stateEngine.js`):** Chronologically applies trace events to build an immutable timeline. Enforces **frame-local ownership**, ensuring child frames do not corrupt parent variables, and perfectly maps recursive stack unwinding.
+* **Frontend Visualization & Smart Synchronization:** The client consumes the timeline. The Source Timeline uses bounding-box intersection calculations to "smart scroll" the active code step only when it leaves the local visible viewport, ensuring stable UX.
 
 ## 3. Docker Sandbox Architecture
 * **eclipse-temurin:17 Usage:** Provides a robust, standard JVM environment for compiling (`javac`) and executing (`java`) the algorithmic submissions.
@@ -41,19 +44,23 @@
 * **Timeout vs TRACE Overflow Race Behavior:** Fast infinite loops usually trigger the 5MB TRACE overflow before the 30s timeout is reached, which is the intended safe failure mode.
 * **Why Multiple Safety Layers Are Necessary:** A container might freeze without printing logs (needs timeout limit), or print logs too fast without freezing (needs TRACE limit). One protection is insufficient.
 
-## 6. Stress Testing Results
-* **stressTest.js Purpose:** Validates the orchestrator's ability to survive heavy concurrent hostile inputs without Node.js crashing or requests leaking into each other.
-* **cleanupVerification.js Purpose:** Validates filesystem and Docker daemon hygiene to guarantee zero artifact leaks after severe stress conditions.
-* **Concurrency Behavior:** Verified that the system safely processes parallel executions with linear scaling of WSL2 latency, handled smoothly by the 30s timeout window.
-* **Successful Validation Results:** Legitimate code correctly runs, while infinite loops and TRACE floods accurately trip the safety constraints.
-* **Cleanup Verification Success:** Passed cleanly. 0 leaked directories, 0 leaked containers after intense concurrent loads.
+## 6. Structural & Stress Testing Results
+* **stressTest.js:** Validates the orchestrator's ability to survive heavy concurrent hostile inputs without Node.js crashing or requests leaking into each other.
+* **cleanupVerification.js:** Validates filesystem and Docker daemon hygiene to guarantee zero artifact leaks after severe stress conditions.
+* **Regression Validation Suite (`regressionSuite.js`):** A high-stress architectural verifier that runs complex composite algorithms (e.g., DFS Backtracking, Recursive Linked List Reversal, Floyd's Cycle Detection) and runs invariants against the output.
+  - *Trace Validator*: Ensures symmetric `CALL`/`RETURN` pairings perfectly balance to zero.
+  - *State Validator*: Prevents future-state leakage and ensures `frameId` integrity is perfectly mapped.
+  - *Source-Step Validator*: Enforces monotonically increasing temporal steps.
+  - *Topology Validator*: Asserts pointer mutations (`NODE_MUTATE`) never produce orphaned topological branches.
+* **Successful Validation Results:** Legitimate code perfectly maintains frame and loop ownership, while hostile infinite loops correctly trip the 30s timeout and 5MB TRACE overflow limits safely.
 
 ## 7. Current Supported Runtime Features
-* **Arrays:** 1D and 2D integer array mutations and access tracing.
+* **Arrays:** 1D integer array mutations and access tracing.
 * **Linked Lists:** Head pointer tracking, cyclic detection, `var = var.next` movements, and node structural mutations.
-* **Recursion:** Deep call stack tracing and frame-specific variable scoping.
+* **Recursion & Frame-Ownership:** Deep call stack tracing with flawless frame-local variable isolation and multi-return unwinding.
+* **Control-Flow Stability:** Safe tracking of terminal paths (`break`, `continue`) and nested loop flow (`do-while`, `for`) without trace corruption.
+* **Condition Introspection:** Runtime trace extraction of native boolean evaluations (`if`, `while`, `for`), respecting short-circuiting limits without throwing exceptions.
 * **Topology Reconstruction:** Real-time JVM memory heap mapping to frontend graph representations.
-* **Semantic Overlays:** Identification of logical phases (e.g., Two-Pointer Meets, Loop Iterations) without hardcoded hints.
 * **Concurrent Sandbox Execution:** Safe orchestration of multi-tenant execution requests.
 
 ## 8. Architectural Principles
