@@ -6,6 +6,10 @@ const { buildState } = require("../state/stateEngine");
 const { analyzePointerSemantics } = require("../semantic/PointerRelationshipAnalyzer");
 const { analyzeLoopSemantics } = require("../semantic/LoopSemanticAnalyzer");
 const { analyzeCallStackSemantics } = require("../semantic/CallStackSemanticAnalyzer");
+const { analyzeTreeTraversal } = require("../semantic/TreeTraversalAnalyzer");
+const { analyzeTreeMutation } = require("../semantic/TreeMutationAnalyzer");
+const { analyzeGraphTraversal } = require("../semantic/GraphTraversalAnalyzer");
+const { detectPatterns } = require("../patterns/PatternEngine");
 const { buildJavaInputsFromSignature, splitJavaPreamble, normalizeType } = require("../execution/runtime/inputRegistry");
 const { normalizeJavaControlFlow } = require("../execution/normalizers/javaControlFlowNormalizer");
 const { normalizeReturns } = require("../execution/normalizers/javaReturnNormalizer");
@@ -394,6 +398,24 @@ async function executeJavaCode(userCode, input) {
       callStackSemantics: callStackSemanticsMap.get(s.step) || []
     }));
 
+    const treeSemanticFrames = analyzeTreeTraversal(states);
+    const treeMutationSemanticFrames = analyzeTreeMutation(states);
+    const graphSemanticFrames = analyzeGraphTraversal(states);
+
+    // ── Algorithm Pattern Recognition Layer ────────────
+    const patterns = detectPatterns({
+      states,
+      sourceSteps: resolvedSourceSteps,
+      semantics: {
+        pointerSemanticFrames: semanticFrames,
+        loopSemanticFrames,
+        callStackSemanticFrames,
+        treeSemanticFrames,
+        treeMutationSemanticFrames,
+        graphSemanticFrames
+      }
+    });
+
     return {
       success: true,
       states,
@@ -401,6 +423,10 @@ async function executeJavaCode(userCode, input) {
       semanticFrames,
       loopSemanticFrames,
       callStackSemanticFrames,
+      treeSemanticFrames,
+      treeMutationSemanticFrames,
+      graphSemanticFrames,
+      patterns,
       output,
       error: null,
     };
@@ -471,7 +497,13 @@ function parseExecutionOutput(rawOutput) {
       }
       trace.push({ type: "RETURN", value: parsedVal });
     } else if (type === "ARRAY") {
-      trace.push({ type: "ARRAY", name: parts[2], index: parts[3], value: parts[4] });
+      const name = parts[2];
+      const index = parts[3];
+      const value = parts[4];
+      trace.push({ type: "ARRAY", name, index, value });
+      if (name === "visited") {
+        trace.push({ type: "VISITED_MARK", node: `graphNode_${index}`, value });
+      }
     } else if (type === "LOOP") {
       trace.push({ type: "LOOP", loopId: parts[2], iteration: Number(parts[3]) });
     } else if (type === "NODE_LINK") {
@@ -481,6 +513,32 @@ function parseExecutionOutput(rawOutput) {
       const dir = parts[3].split("=")[1];
       const child = parts[4].split("=")[1];
       trace.push({ type: "TREE_LINK", parent, dir, child });
+    } else if (type === "TREE_VISIT") {
+      const node = parts[2].split("=")[1];
+      const phase = parts[3].split("=")[1];
+      trace.push({ type: "TREE_VISIT", node, phase });
+    } else if (type === "TREE_MUTATE") {
+      const node = parts[2].split("=")[1];
+      const field = parts[3].split("=")[1];
+      const to = parts[4].split("=")[1];
+      trace.push({ type: "TREE_MUTATE", node, field, to });
+    } else if (type === "GRAPH_EDGE" || type === "GRAPH_EDGE_ADD" || type === "GRAPH_EDGE_REMOVE") {
+      const from = parts[2].split("=")[1];
+      const to = parts[3].split("=")[1];
+      trace.push({ type, from, to });
+    } else if (type === "GRAPH_VISIT") {
+      const node = parts[2].split("=")[1];
+      trace.push({ type: "GRAPH_VISIT", node });
+    } else if (type === "VISITED_MARK") {
+      const node = parts[2].split("=")[1];
+      const value = parts[3].split("=")[1];
+      trace.push({ type: "VISITED_MARK", node, value });
+    } else if (type === "QUEUE_ENQUEUE" || type === "QUEUE_DEQUEUE" || type === "BFS_VISIT") {
+      const node = parts[2].split("=")[1];
+      trace.push({ type, node });
+    } else if (type === "BFS_LEVEL_START") {
+      const level = Number(parts[2].split("=")[1]);
+      trace.push({ type: "BFS_LEVEL_START", level });
     } else if (type === "PTR_MOVE") {
       trace.push({ type: "PTR_MOVE", variable: parts[2], nodeId: parts[3] });
     } else if (type === "NODE_MUTATE") {
@@ -541,6 +599,7 @@ function buildReturnTrace(returnExpr, lineNumber, methodName = "solve", wantsLis
   if (!exprTrimmed) {
     out += `System.out.println("TRACE|VAR|__return__|void");\n`;
     out += `System.out.println("TRACE|RETURN|void");\n`;
+    out += `__DSA_RETURNED__ = true;\n`;
     out += `return;\n`;
     return out;
   }
@@ -556,6 +615,7 @@ function buildReturnTrace(returnExpr, lineNumber, methodName = "solve", wantsLis
   out += `var ${tmpVar} = ${exprTrimmed};\n`;
   out += `System.out.println("TRACE|VAR|__return__|" + ${formatter}(${tmpVar}));\n`;
   out += `System.out.println("TRACE|RETURN|" + ${formatter}(${tmpVar}));\n`;
+  out += `__DSA_RETURNED__ = true;\n`;
   out += `return ${tmpVar};\n`;
   return out;
 }
@@ -644,6 +704,9 @@ function injectTraceIntoBody(mappedLines, methodName = "solve", methodParams = [
 
   // Inject CALL trace as the very first thing inside the method body
   let tracedBody = `System.out.println("TRACE|CALL|${methodName}");\n`;
+  tracedBody += `boolean __DSA_RETURNED__ = false;\n`;
+  tracedBody += `int __DSA_BFS_LEVEL__ = 0;\n`;
+  tracedBody += `try {\n`;
 
   // Inject TRACE|VAR for each method parameter right after CALL
   for (const param of methodParams) {
@@ -655,6 +718,15 @@ function injectTraceIntoBody(mappedLines, methodName = "solve", methodParams = [
       tracedBody += `System.out.println("TRACE|VAR|${param.name}|" + java.util.Arrays.toString(${param.name}));\n`;
     } else {
       tracedBody += `System.out.println("TRACE|VAR|${param.name}|" + ${formatter}(${param.name}));\n`;
+    }
+    
+    // Inject initial PREORDER tree visit trace for TreeNode params
+    if (param.type === "TreeNode") {
+      tracedBody += `System.out.println("TRACE|TREE_VISIT|node=" + __DSAInput.getTreeNodeId(${param.name}) + "|phase=PREORDER");\n`;
+    }
+
+    if (param.type === "int" && ["node", "curr", "u", "v", "vertex"].includes(param.name)) {
+      tracedBody += `System.out.println("TRACE|GRAPH_VISIT|node=graphNode_" + ${param.name});\n`;
     }
   }
 
@@ -947,6 +1019,43 @@ function injectTraceIntoBody(mappedLines, methodName = "solve", methodParams = [
       }
     }
 
+    if (wantsTreeNode) {
+      const mutateMatch = line.match(/^(.*)\.([a-zA-Z_]\w*)\s*=\s*(.*?)\s*;/);
+      if (mutateMatch && (mutateMatch[2] === 'left' || mutateMatch[2] === 'right')) {
+        isNodeMutate = true;
+        const targetObject = mutateMatch[1].trim();
+        const field = mutateMatch[2];
+        const rhsExpr = mutateMatch[3].trim();
+        
+        if (rhsExpr === "null") {
+          tracedBody += `System.out.println("TRACE|TREE_MUTATE|node=" + __DSAInput.getTreeNodeId(${targetObject}) + "|field=${field}|to=null");\n`;
+        } else {
+          tracedBody += `System.out.println("TRACE|TREE_MUTATE|node=" + __DSAInput.getTreeNodeId(${targetObject}) + "|field=${field}|to=" + __DSAInput.getTreeNodeId(${rhsExpr}));\n`;
+        }
+      }
+    }
+
+    // BFS QUEUE ENQUEUE
+    const enqueueMatch = line.match(/([a-zA-Z_]\w*)\.(?:add|offer)\s*\(\s*([a-zA-Z_]\w*)\s*\)\s*;/);
+    if (enqueueMatch && enqueueMatch[1].match(/q|queue|frontier/i)) {
+      const valVar = enqueueMatch[2];
+      tracedBody += `System.out.println("TRACE|QUEUE_ENQUEUE|node=graphNode_" + ${valVar});\n`;
+    }
+
+    // BFS QUEUE DEQUEUE
+    const dequeueMatch = line.match(/(?:int|Integer)\s+([a-zA-Z_]\w*)\s*=\s*([a-zA-Z_]\w*)\.(?:poll|remove)\s*\(\s*\)\s*;/);
+    if (dequeueMatch && dequeueMatch[2].match(/q|queue|frontier/i)) {
+      const valVar = dequeueMatch[1];
+      tracedBody += `System.out.println("TRACE|QUEUE_DEQUEUE|node=graphNode_" + ${valVar});\n`;
+      tracedBody += `System.out.println("TRACE|BFS_VISIT|node=graphNode_" + ${valVar});\n`;
+    }
+
+    // BFS LEVEL START
+    const sizeMatch = line.match(/int\s+([a-zA-Z_]\w*)\s*=\s*([a-zA-Z_]\w*)\.size\s*\(\s*\)\s*;/);
+    if (sizeMatch && sizeMatch[2].match(/q|queue|frontier/i)) {
+      tracedBody += `System.out.println("TRACE|BFS_LEVEL_START|level=" + (__DSA_BFS_LEVEL__++));\n`;
+    }
+
     // VAR TRACE (assignments and mutations) — skip if this line is a PTR_MOVE
     // or NODE_MUTATE (NODE_MUTATE would incorrectly match 'next' as a variable)
     if (!isPtrMove && !isNodeMutate) {
@@ -972,7 +1081,32 @@ function injectTraceIntoBody(mappedLines, methodName = "solve", methodParams = [
     // Keep braceDepth in sync for all other lines (e.g., `if (...) {`).
     // This prevents accidentally treating an inner-block '}' as the end of a loop.
     braceDepth = Math.max(0, braceDepth + openBracesInLine - closeBracesInLine);
+
+    if (wantsTreeNode) {
+      const rootParam = methodParams.find(p => p.type === "TreeNode")?.name || "root";
+      const leftCallRegex = new RegExp(`\\b${methodName}\\s*\\([^\\{\\}\\;]*\\.left\\b`);
+      if (leftCallRegex.test(line)) {
+        tracedBody += `System.out.println("TRACE|TREE_VISIT|node=" + __DSAInput.getTreeNodeId(${rootParam}) + "|phase=INORDER");\n`;
+      }
+
+      const rightCallRegex = new RegExp(`\\b${methodName}\\s*\\([^\\{\\}\\;]*\\.right\\b`);
+      if (rightCallRegex.test(line)) {
+        tracedBody += `System.out.println("TRACE|TREE_VISIT|node=" + __DSAInput.getTreeNodeId(${rootParam}) + "|phase=POSTORDER");\n`;
+      }
+    }
+    // Ensure trace loops cleanly
   }
+
+  tracedBody += `} finally {\n`;
+  tracedBody += `  if (!__DSA_RETURNED__) {\n`;
+  if (returnType === "void") {
+    tracedBody += `    System.out.println("TRACE|RETURN|void");\n`;
+  } else {
+    // If a non-void method throws an exception without returning, we still want to pop the frame.
+    tracedBody += `    System.out.println("TRACE|RETURN|null");\n`;
+  }
+  tracedBody += `  }\n`;
+  tracedBody += `}\n`;
 
   return tracedBody;
 }

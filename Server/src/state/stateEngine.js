@@ -1,6 +1,7 @@
 const { handleArrayTrace, applyArrayMutation, attachArrayState } = require("../structures/arrays/arrayStateHandler");
 const { handleLinkedListTrace, applyLinkedListMutation, attachLinkedListState } = require("../structures/linkedlist/linkedListStateHandler");
 const { handleTreeTrace, applyTreeMutation, attachTreeState } = require("../structures/tree/treeStateHandler");
+const { handleGraphTrace, applyGraphMutation, attachGraphState } = require("../structures/graph/graphStateHandler");
 
 function parseValue(value) {
     if (typeof value === "number") return value;
@@ -38,6 +39,16 @@ class StateEngineContext {
                this.currentTreeState = {
                    root: initialArray.root,
                    nodes: JSON.parse(JSON.stringify(initialArray.nodes))
+               };
+           } else if (initialArray.type === "Graph") {
+               this.currentGraphState = {
+                   nodes: new Set(),
+                   adjacency: {},
+                   visitedState: {},
+                   traversalOwnership: "DFS",
+                   queue: [],
+                   frontier: new Set(),
+                   level: 0
                };
            }
         }
@@ -98,8 +109,9 @@ function buildState(traceEvents, initialArray) {
             currentStep = ctx.createStep(event.type);
         } else if (event.type === "VAR") {
             if (event.name === "__return__") continue;
-            ctx.stack[ctx.stack.length - 1].variables[event.name] = parseValue(event.value);
-            currentStep = ctx.createStep(event.type);
+            const parsedVal = parseValue(event.value);
+            ctx.stack[ctx.stack.length - 1].variables[event.name] = parsedVal;
+            currentStep = ctx.createStep(event.type, { name: event.name, value: parsedVal });
         } else if (event.type === "EXPR") {
             ctx.pendingExprByDepth.set(ctx.stack.length, {
                 left:      event.left,
@@ -166,20 +178,26 @@ function buildState(traceEvents, initialArray) {
             });
         } else if (event.type === "LOOP_END") {
             delete ctx.currentLoops[event.loopId];
+            currentStep = ctx.createStep(event.type, {
+                loopEvent: { loopId: event.loopId },
+            });
         } else {
-            currentStep = handleArrayTrace(event, ctx) 
-                || handleLinkedListTrace(event, ctx) 
-                || handleTreeTrace(event, ctx);
+            if (!currentStep) currentStep = handleArrayTrace(event, ctx);
+            if (!currentStep) currentStep = handleLinkedListTrace(event, ctx);
+            if (!currentStep) currentStep = handleTreeTrace(event, ctx);
+            if (!currentStep) currentStep = handleGraphTrace(event, ctx);
         }
 
         if (currentStep) {
             applyArrayMutation(currentStep, ctx);
             applyLinkedListMutation(currentStep, ctx);
             applyTreeMutation(currentStep, ctx);
+            applyGraphMutation(currentStep, ctx);
 
             attachArrayState(currentStep, ctx);
             attachLinkedListState(currentStep, ctx);
             attachTreeState(currentStep, ctx);
+            attachGraphState(currentStep, ctx);
 
             currentStep.currentFrameVariables = ctx.topVars();
             currentStep.stack = ctx.cloneStack();

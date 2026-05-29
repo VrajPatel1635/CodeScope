@@ -33,12 +33,12 @@ function needsHelper(userCode, className) {
   return !re.test(userCode);
 }
 
-function buildHelperCode({ userCode, wantsListNode, wantsTreeNode }) {
+function buildHelperCode({ userCode, wantsListNode, wantsTreeNode, wantsGraphList }) {
   const parts = [];
   const needList = wantsListNode && needsHelper(userCode, "ListNode");
   const needTree = wantsTreeNode && needsHelper(userCode, "TreeNode");
 
-  if (!wantsListNode && !wantsTreeNode) return "";
+  if (!wantsListNode && !wantsTreeNode && !wantsGraphList) return "";
 
   if (needList) {
     parts.push(
@@ -174,6 +174,35 @@ function buildHelperCode({ userCode, wantsListNode, wantsTreeNode }) {
     );
   }
 
+  if (wantsGraphList) {
+    dsaInputParts.push(
+      "  static class __DSATracedAdjacencyList extends java.util.ArrayList<Integer> {\n" +
+      "    private int u;\n" +
+      "    public __DSATracedAdjacencyList(int u) { super(); this.u = u; }\n" +
+      "    @Override\n" +
+      "    public boolean add(Integer v) {\n" +
+      "        boolean res = super.add(v);\n" +
+      "        System.out.println(\"TRACE|GRAPH_EDGE_ADD|from=graphNode_\" + u + \"|to=graphNode_\" + v);\n" +
+      "        return res;\n" +
+      "    }\n" +
+      "    @Override\n" +
+      "    public boolean remove(Object v) {\n" +
+      "        boolean res = super.remove(v);\n" +
+      "        if (res) {\n" +
+      "            System.out.println(\"TRACE|GRAPH_EDGE_REMOVE|from=graphNode_\" + u + \"|to=graphNode_\" + v);\n" +
+      "        }\n" +
+      "        return res;\n" +
+      "    }\n" +
+      "    @Override\n" +
+      "    public Integer remove(int index) {\n" +
+      "        Integer removed = super.remove(index);\n" +
+      "        System.out.println(\"TRACE|GRAPH_EDGE_REMOVE|from=graphNode_\" + u + \"|to=graphNode_\" + removed);\n" +
+      "        return removed;\n" +
+      "    }\n" +
+      "  }"
+    );
+  }
+
   dsaInputParts.push("}\n");
   parts.push(dsaInputParts.join("\n\n"));
 
@@ -190,6 +219,8 @@ const builders = {
   "int[][]": buildIntMatrix,
   ListNode: buildLinkedList,
   TreeNode: buildTree,
+  "List<List<Integer>>": require("../../structures/graph/graphInputBuilder").buildGraphList,
+  "ArrayList<ArrayList<Integer>>": require("../../structures/graph/graphInputBuilder").buildGraphList
 };
 
 function getBuilderForType(paramType) {
@@ -220,9 +251,16 @@ function buildJavaInputsFromSignature({ userCode, methodName, methodParams, inpu
   let initialValueForState = null;
   let wantsListNode = false;
   let wantsTreeNode = false;
+  let wantsGraphList = false;
 
   params.forEach((p, idx) => {
-    const builder = getBuilderForType(p.type);
+    let builder = getBuilderForType(p.type);
+    
+    // Heuristic routing: if param is int[][] and named graph/adj, route to Graph builder
+    if (p.type === "int[][]" && ["graph", "adj"].includes(p.name.toLowerCase())) {
+       builder = require("../../structures/graph/graphInputBuilder").buildGraph;
+    }
+    
     if (!builder) {
       throw new Error(`Unsupported parameter type: ${p.type}`);
     }
@@ -231,16 +269,17 @@ function buildJavaInputsFromSignature({ userCode, methodName, methodParams, inpu
     decls.push(built.decl);
     args.push(built.arg);
 
-    if (idx === 0 && (p.type === "int[]" || p.type === "int[][]" || p.type === "ListNode" || p.type === "TreeNode")) {
-      // Preserve existing array/matrix visualization behavior, and add linked list/tree initial state.
+    if (idx === 0 && (p.type === "int[]" || p.type === "int[][]" || p.type === "ListNode" || p.type === "TreeNode" || built.wantsGraphList)) {
+      // Preserve existing array/matrix visualization behavior, and add linked list/tree/graph initial state.
       initialValueForState = built.initialValue;
     }
 
     wantsListNode = wantsListNode || Boolean(built.wantsListNode);
     wantsTreeNode = wantsTreeNode || Boolean(built.wantsTreeNode);
+    wantsGraphList = wantsGraphList || Boolean(built.wantsGraphList);
   });
 
-  const helperCode = buildHelperCode({ userCode, wantsListNode, wantsTreeNode });
+  const helperCode = buildHelperCode({ userCode, wantsListNode, wantsTreeNode, wantsGraphList });
 
   return {
     declarations: decls.join("\n        "),
