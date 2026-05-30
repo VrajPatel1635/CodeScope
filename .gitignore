@@ -6,3 +6,4 @@
 /server/node_modules
 /server/request.rest
 /server/src/instrumentation
+/.vscode

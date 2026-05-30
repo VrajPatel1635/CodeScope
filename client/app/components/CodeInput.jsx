@@ -54,33 +54,39 @@ export default function CodeInput({ onRun, activeLine }) {
   };
 
   return (
-    <div className="max-w-3xl mx-auto space-y-4">
+    <div className="flex flex-col h-full w-full gap-4">
       {/* Code Input */}
-      <div className="border rounded overflow-hidden">
-        <label className="block font-semibold mb-1 p-2 bg-gray-50 border-b">Java Code</label>
-        <CodeEditor code={code} setCode={setCode} activeLine={activeLine} />
+      <div className="flex-1 border rounded overflow-hidden flex flex-col" style={{ borderColor: 'var(--border-color)', backgroundColor: 'var(--bg-primary)' }}>
+        <label className="block font-semibold p-2 border-b text-sm" style={{ backgroundColor: 'var(--bg-elevated)', borderColor: 'var(--border-color)', color: 'var(--text-secondary)' }}>Java Code</label>
+        <div className="flex-1 min-h-0">
+          <CodeEditor code={code} setCode={setCode} activeLine={activeLine} />
+        </div>
       </div>
 
-      {/* Input Data */}
-      <div>
-        <label className="block font-semibold mb-1">Input</label>
-        <textarea
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          rows={3}
-          className="w-full border p-2 rounded"
-          placeholder='Example: [1,2,3]'
-        />
-      </div>
+      {/* Bottom Controls: Input & Run */}
+      <div className="flex flex-row items-end gap-4 w-full">
+        <div className="flex-1 ml-2">
+          <label className="block font-semibold mb-1 text-sm" style={{ color: 'var(--text-secondary)' }}>Input Data</label>
+          <textarea
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            rows={1}
+            className="w-full border px-3 py-2 rounded focus:outline-none focus:ring-1 focus:ring-blue-500/50 resize-y min-h-[42px]"
+            style={{ backgroundColor: 'var(--bg-primary)', borderColor: 'var(--border-color)', color: 'var(--text-primary)' }}
+            placeholder='Example: [1,2,3]'
+          />
+        </div>
 
-      {/* Run Button */}
-      <button
-        onClick={handleRun}
-        disabled={loading}
-        className="bg-black text-white px-4 py-2 rounded"
-      >
-        {loading ? "Running..." : "Run"}
-      </button>
+        {/* Run Button */}
+        <button
+          onClick={handleRun}
+          disabled={loading}
+          className="px-6 py-2 h-[42px] rounded font-semibold transition-transform hover-scale-sm whitespace-nowrap mr-2 mb-1.5"
+          style={{ backgroundColor: 'var(--accent-primary)', color: 'var(--text-primary)' }}
+        >
+          {loading ? "Running..." : "Run Execution"}
+        </button>
+      </div>
     </div>
   );
 }

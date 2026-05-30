@@ -37,7 +37,7 @@ export default function CodeEditor({ code, setCode, activeLine }) {
   return (
     <Editor
       onMount={handleEditorDidMount}
-      height="400px"
+      height="100%"
       language="java"
       theme="vs-dark"
       value={code}

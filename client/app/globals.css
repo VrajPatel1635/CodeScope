@@ -1,31 +1,134 @@
+@import url('https://api.fontshare.com/v2/css?f[]=satoshi@900,700,500,300,400&f[]=cabinet-grotesk@800,500,100,700,400,300,200,900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap');
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* =========================================
+     TYPOGRAPHY SYSTEM
+     ========================================= */
+  --font-heading: 'Cabinet Grotesk', sans-serif;
+  --font-ui: 'Satoshi', sans-serif;
+  --font-code: 'JetBrains Mono', monospace;
+
+  /* =========================================
+     COLOR SYSTEM (Dark Burgundy & Copper)
+     ========================================= */
+  
+  /* BACKGROUND COLORS */
+  --bg-primary: #0F0A0A;
+  --bg-surface: #191313;
+  --bg-elevated: #241A1A;
+
+  /* ACCENT COLORS */
+  --accent-primary: #B3564A;
+  --accent-secondary: #C97A57;
+  --accent-highlight: #E3A57B;
+
+  /* TEXT COLORS */
+  --text-primary: #FCFAF8;
+  --text-secondary: #D8CEC6;
+  --text-muted: #A89B94;
+
+  /* BORDER COLORS */
+  --border-color: #342525;
+
+  /* =========================================
+     EXECUTION COLORS
+     ========================================= */
+  --exec-active: #4F8CFF;
+  --exec-node-active: #00D084;
+  --exec-node-visited: #8B95A7;
+  --exec-mutation: #FFB020;
+  --exec-error: #FF5D5D;
+  --exec-return: #B388FF;
+  --exec-frontier: #2DD4BF;
+
+  /* =========================================
+     GLOBAL SPACING SYSTEM
+     ========================================= */
+  --space-xs: 0.25rem;  /* 4px */
+  --space-sm: 0.5rem;   /* 8px */
+  --space-md: 1rem;     /* 16px */
+  --space-lg: 1.5rem;   /* 24px */
+  --space-xl: 2rem;     /* 32px */
+  --space-2xl: 3rem;    /* 48px */
+
+  /* =========================================
+     BORDER RADIUS SYSTEM
+     ========================================= */
+  --radius-sm: 0.25rem; /* 4px */
+  --radius-md: 0.5rem;  /* 8px */
+  --radius-lg: 0.75rem; /* 12px */
+  --radius-xl: 1rem;    /* 16px */
+
+  /* =========================================
+     SHADOW SYSTEM (Subtle, No heavy glow)
+     ========================================= */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
+
+  /* =========================================
+     ANIMATION FOUNDATIONS
+     ========================================= */
+  --transition-fast: 150ms ease;
+  --transition-normal: 300ms ease;
+  --transition-slow: 500ms ease;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-background: var(--bg-primary);
+  --color-foreground: var(--text-primary);
+  --font-sans: var(--font-ui);
+  --font-mono: var(--font-code);
+  --font-heading: var(--font-heading);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
+/* =========================================
+   GLOBAL HTML/BODY STYLING
+   ========================================= */
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-ui);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  margin: 0;
+  padding: 0;
 }
 
-/* Monaco Active Line Highlighting */
+/* =========================================
+   SELECTION STYLING
+   ========================================= */
+::selection {
+  background-color: var(--accent-primary);
+  color: var(--text-primary);
+}
+
+/* =========================================
+   SCROLLBAR SYSTEM
+   ========================================= */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-primary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: var(--radius-sm);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-secondary);
+}
+
+/* =========================================
+   MONACO EDITOR OVERRIDES
+   ========================================= */
 .monaco-active-line-highlight {
-  background-color: rgba(59, 130, 246, 0.3) !important;
+  background-color: rgba(79, 140, 255, 0.15) !important; /* Subtle --exec-active */
 }
