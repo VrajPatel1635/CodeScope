@@ -1,0 +1,228 @@
+/* =========================================
+   ARRAY VISUALIZER — G.3.1 Redesign
+   Visual debugger styles using design tokens
+   ========================================= */
+
+/* ── CONTAINER ───────────────────────────── */
+.container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  padding: var(--space-md) 0;
+}
+
+.label {
+  font-family: var(--font-ui);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.arrayRow {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--av-gap, 10px);
+  padding-top: var(--space-xl);
+}
+
+/* ── CELL COLUMN (cell + index + ownership) */
+.cellColumn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+}
+
+/* ── ARRAY CELL ──────────────────────────── */
+.cell {
+  width: var(--av-cell-size, 48px);
+  height: var(--av-cell-size, 48px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-elevated);
+  border: 1.5px solid var(--border-color);
+  border-radius: var(--radius-md);
+  font-family: var(--font-code);
+  font-size: var(--av-font-size, 15px);
+  font-weight: 600;
+  color: var(--text-primary);
+  transition: border-color var(--transition-fast),
+              box-shadow var(--transition-fast),
+              background-color var(--transition-fast);
+  position: relative;
+  user-select: none;
+  flex-shrink: 0;
+}
+
+/* LAYER 3 — Execution Focus */
+.cellFocused {
+  border-color: var(--exec-active);
+  box-shadow: 0 0 0 1px rgba(79, 140, 255, 0.3),
+              0 0 8px rgba(79, 140, 255, 0.15);
+}
+
+/* LAYER 4 — Mutation */
+.cellMutating {
+  border-color: var(--exec-mutation);
+  box-shadow: 0 0 0 1px rgba(255, 176, 32, 0.4),
+              0 0 10px rgba(255, 176, 32, 0.15);
+  background: rgba(255, 176, 32, 0.08);
+}
+
+/* LAYER 5 — Comparison */
+.cellComparing {
+  border-color: var(--accent-secondary);
+  box-shadow: 0 0 0 1px rgba(74, 143, 212, 0.35),
+              0 0 8px rgba(74, 143, 212, 0.12);
+}
+
+/* ── MUTATION OVERLAY ────────────────────── */
+.mutationOverlay {
+  position: absolute;
+  top: -18px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.oldValue {
+  font-family: var(--font-code);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--exec-error);
+  text-decoration: line-through;
+  opacity: 0.8;
+}
+
+.arrow {
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+.newValue {
+  font-family: var(--font-code);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--exec-mutation);
+}
+
+/* ── INDEX LABEL ─────────────────────────── */
+.indexLabel {
+  font-family: var(--font-code);
+  font-size: 10px;
+  font-weight: 400;
+  color: var(--text-muted);
+  margin-top: 4px;
+  line-height: 1;
+}
+
+/* ── OWNERSHIP MARKERS ───────────────────── */
+.ownershipZone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  margin-top: 4px;
+  min-height: 20px;
+}
+
+.ownershipConnector {
+  width: 1px;
+  height: 6px;
+  opacity: 0.5;
+}
+
+.ownershipBadge {
+  font-family: var(--font-ui);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  padding: 1px 6px;
+  border-radius: 4px;
+  line-height: 1.4;
+  white-space: nowrap;
+  border: 1px solid;
+}
+
+/* ── COMPARISON CONNECTOR (SVG overlay) ─── */
+.comparisonSvg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.comparisonLabel {
+  font-family: var(--font-ui);
+  font-size: 10px;
+  font-weight: 600;
+  fill: var(--accent-secondary);
+}
+
+/* ── MATRIX STYLES ───────────────────────── */
+.matrixContainer {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: var(--space-sm);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  width: fit-content;
+}
+
+.matrixRow {
+  display: flex;
+  gap: 6px;
+}
+
+.matrixCell {
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-elevated);
+  border: 1.5px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-code);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  transition: border-color var(--transition-fast),
+              box-shadow var(--transition-fast),
+              background-color var(--transition-fast);
+}
+
+.matrixCellActive {
+  border-color: var(--exec-active);
+  box-shadow: 0 0 0 1px rgba(79, 140, 255, 0.3),
+              0 0 8px rgba(79, 140, 255, 0.15);
+  background: rgba(79, 140, 255, 0.08);
+}
+
+.matrixPointer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 20px;
+  margin-top: 2px;
+}
+
+.matrixPointerText {
+  font-family: var(--font-code);
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--exec-active);
+}

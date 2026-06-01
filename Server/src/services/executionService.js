@@ -604,10 +604,9 @@ function buildReturnTrace(returnExpr, lineNumber, methodName = "solve", wantsLis
     return out;
   }
 
-  // Detect and emit expression metadata BEFORE computing the return value
   const expr = detectBinaryExpr(exprTrimmed, methodName);
   if (expr) {
-    out += `System.out.println("TRACE|EXPR|${expr.left}|${expr.operator}|${expr.rightFn}|" + ${expr.left});\n`;
+    out += `System.out.println("TRACE|EXPR|${expr.left}|${expr.operator}|${expr.rightFn}|" + (${expr.left}));\n`;
   }
 
   const formatter = wantsListNode ? "__DSAInput.formatNode" : "String.valueOf";
@@ -670,7 +669,7 @@ function injectTraceIntoBody(mappedLines, methodName = "solve", methodParams = [
     if (arrayMatch) {
       const arrayName = arrayMatch[1];
       const index = arrayMatch[2];
-      out += `System.out.println("TRACE|ARRAY|${arrayName}|" + ${index} + "|" + ${arrayName}[${index}]);\n`;
+      out += `System.out.println("TRACE|ARRAY|${arrayName}|" + (${index}) + "|" + ${arrayName}[${index}]);\n`;
     }
 
     // ── VAR detection: use (?<!\.) so field accesses like `tail.next = ...`
@@ -984,7 +983,7 @@ function injectTraceIntoBody(mappedLines, methodName = "solve", methodParams = [
     if (arrayMatch) {
       const arrayName = arrayMatch[1];
       const index = arrayMatch[2];
-      tracedBody += `System.out.println("TRACE|ARRAY|${arrayName}|" + ${index} + "|" + ${arrayName}[${index}]);\n`;
+      tracedBody += `System.out.println("TRACE|ARRAY|${arrayName}|" + (${index}) + "|" + ${arrayName}[${index}]);\n`;
     }
 
     // PTR_MOVE: detect var = var.next pattern

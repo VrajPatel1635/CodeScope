@@ -1,10 +1,10 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import CodeInput from "./CodeInput";
-import Controls from "./Controls";
-import StepViewer from "./StepViewer";
-import CallStackPanel from "./CallStackPanel";
+import CodeInput from "@/app/components/layout/CodeInput";
+import Controls from "@/app/components/controls/Controls";
+import VisualizationWorkspace from "@/app/components/layout/VisualizationWorkspace";
+import CallStackPanel from "@/app/components/stack/CallStackPanel";
 
 export default function VisualizerLayout() {
   const [result, setResult] = useState(null);
@@ -66,8 +66,9 @@ export default function VisualizerLayout() {
 
   // DERIVE ACTIVE MICRO STEP
   let activeMicroStepIndex = currentStep;
+  let activeSourceStep = null;
   if (timelineMode === "source" && sourceSteps.length > 0) {
-    const activeSourceStep = sourceSteps[sourceStepIndex];
+    activeSourceStep = sourceSteps[sourceStepIndex];
     if (activeSourceStep) {
       const idx = states.findIndex(s => s.stepId === activeSourceStep.resolvedMicroStepId);
       if (idx !== -1) {
@@ -172,9 +173,10 @@ export default function VisualizerLayout() {
           <div className="flex-1 flex flex-col gap-4 rounded-lg border shadow-sm overflow-hidden" style={{ borderColor: 'var(--border-color)', backgroundColor: 'var(--bg-surface)' }}>
             <div className="p-4 flex-1 overflow-auto">
               {states.length > 0 ? (
-                <StepViewer 
+                <VisualizationWorkspace 
                   currentState={currentState} 
                   result={result} 
+                  activeSourceStep={activeSourceStep}
                 />
               ) : (
                 <div className="h-full w-full flex items-center justify-center opacity-50" style={{ color: 'var(--text-muted)' }}>

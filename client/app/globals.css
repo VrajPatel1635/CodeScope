@@ -15,22 +15,22 @@
      ========================================= */
   
   /* BACKGROUND COLORS */
-  --bg-primary: #0F0A0A;
-  --bg-surface: #191313;
-  --bg-elevated: #241A1A;
+  --bg-primary: #0E0F11;
+  --bg-surface: #161820;
+  --bg-elevated: #1F2130;
 
   /* ACCENT COLORS */
-  --accent-primary: #B3564A;
-  --accent-secondary: #C97A57;
-  --accent-highlight: #E3A57B;
+  --accent-primary: #E8A44A;
+  --accent-secondary: #4A8FD4;
+  --accent-highlight: #6BBFA0;
 
   /* TEXT COLORS */
-  --text-primary: #FCFAF8;
-  --text-secondary: #D8CEC6;
-  --text-muted: #A89B94;
+  --text-primary: #F0F1F3;
+  --text-secondary: #A8AABB;
+  --text-muted: #565869;
 
   /* BORDER COLORS */
-  --border-color: #342525;
+  --border-color: #2A2D3E;
 
   /* =========================================
      EXECUTION COLORS

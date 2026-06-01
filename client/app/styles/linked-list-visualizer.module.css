@@ -1,0 +1,149 @@
+/* =========================================
+   LINKED LIST VISUALIZER — G.3.2 Redesign
+   Visual debugger styles using design tokens
+   ========================================= */
+
+/* ── CONTAINER ───────────────────────────── */
+.container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+  padding: var(--space-md) 0;
+}
+
+.label {
+  font-family: var(--font-ui);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+/* ── CHAIN CONTAINER (horizontal row) ────── */
+.chainContainer {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+  padding-top: var(--space-xl);
+}
+
+.chainLabel {
+  font-family: var(--font-ui);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--exec-return);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.chainLabelDot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--exec-return);
+}
+
+/* ── NODE ────────────────────────────────── */
+.node {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-elevated);
+  border: 1.5px solid var(--border-color);
+  border-radius: var(--radius-md);
+  font-family: var(--font-code);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+  transition: border-color var(--transition-fast),
+              box-shadow var(--transition-fast),
+              background-color var(--transition-fast);
+  position: relative;
+  user-select: none;
+  flex-shrink: 0;
+}
+
+/* Execution focus glow */
+.nodeFocused {
+  border-color: var(--exec-active);
+  box-shadow: 0 0 0 1px rgba(79, 140, 255, 0.3),
+              0 0 8px rgba(79, 140, 255, 0.15);
+}
+
+/* Mutation highlight (CSS hook, driven by parent) */
+.nodeMutating {
+  border-color: var(--exec-mutation);
+  box-shadow: 0 0 0 1px rgba(255, 176, 32, 0.4),
+              0 0 10px rgba(255, 176, 32, 0.15);
+  background: rgba(255, 176, 32, 0.08);
+}
+
+/* ── NODE COLUMN (node + optional spacing below for overlays) */
+.nodeColumn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+}
+
+/* ── EDGE (arrow between nodes) ──────────── */
+.edge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  font-family: var(--font-code);
+  font-size: 1.125rem;
+  font-weight: 600;
+  min-width: 20px;
+  flex-shrink: 0;
+  transition: color var(--transition-fast),
+              opacity var(--transition-fast);
+  user-select: none;
+}
+
+/* Mutating edge (CSS hook for rewire) */
+.edgeMutating {
+  color: var(--exec-mutation);
+}
+
+/* ── NULL TERMINATOR ─────────────────────── */
+.nullTerminator {
+  font-family: var(--font-code);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  font-style: italic;
+  color: var(--text-muted);
+  opacity: 0.7;
+  user-select: none;
+}
+
+/* ── CYCLE INDICATOR ─────────────────────── */
+.cycleIndicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font-ui);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  color: var(--exec-error);
+  background: rgba(255, 93, 93, 0.1);
+  border: 1px solid rgba(255, 93, 93, 0.25);
+  border-radius: var(--radius-xl);
+  padding: 2px 10px;
+  white-space: nowrap;
+}
+
+/* ── SPACING for overlay clearance ───────── */
+.overlaySpacerBelow {
+  min-height: 28px;
+}

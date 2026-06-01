@@ -1,0 +1,58 @@
+.variablesContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 24px;
+  align-items: center;
+}
+
+.semanticCard {
+  display: inline-flex;
+  align-items: center;
+  background: var(--surface-bg, #1e1e1e);
+  border: 1px solid var(--border-color, #333333);
+  border-radius: var(--radius-md, 8px);
+  padding: 8px 16px;
+  font-family: var(--font-mono, monospace);
+  font-size: 0.9rem;
+  color: var(--text-primary, #ffffff);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.varName {
+  color: var(--color-copper, #c47c5d);
+  font-weight: 600;
+  margin-right: 8px;
+}
+
+.varOperator {
+  color: #888888;
+  margin-right: 8px;
+}
+
+.varValue {
+  font-weight: 500;
+}
+
+.varOldValue {
+  color: #888888;
+  text-decoration: line-through;
+  margin-right: 6px;
+}
+
+.varArrow {
+  color: var(--color-copper, #c47c5d);
+  margin-right: 6px;
+  font-weight: bold;
+}
+
+.varNewValue {
+  color: var(--color-burgundy-light, #a03c50);
+  font-weight: 700;
+}
+
+/* Temporary Variable Animation */
+.tempActive {
+  border-color: var(--color-copper, #c47c5d);
+  box-shadow: 0 0 12px rgba(196, 124, 93, 0.4);
+}

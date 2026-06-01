@@ -1,0 +1,64 @@
+/* =========================================
+   SEMANTIC CHIP OVERLAY
+   Renders semantic annotations as subtle chips
+   ========================================= */
+
+.chipContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font-ui);
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  border: 1px solid;
+  white-space: nowrap;
+  line-height: 1.4;
+  user-select: none;
+}
+
+/* ── Semantic type variants ──────────────── */
+.chipTransientOverlap {
+  color: var(--text-muted);
+  background: rgba(86, 88, 105, 0.12);
+  border-color: rgba(86, 88, 105, 0.25);
+}
+
+.chipStableMeet {
+  color: var(--exec-return);
+  background: rgba(179, 136, 255, 0.1);
+  border-color: rgba(179, 136, 255, 0.3);
+}
+
+.chipConverging {
+  color: var(--accent-highlight);
+  background: rgba(107, 191, 160, 0.1);
+  border-color: rgba(107, 191, 160, 0.3);
+}
+
+.chipDiverging {
+  color: var(--exec-mutation);
+  background: rgba(255, 176, 32, 0.1);
+  border-color: rgba(255, 176, 32, 0.3);
+}
+
+.chipFollowing {
+  color: var(--accent-secondary);
+  background: rgba(74, 143, 212, 0.1);
+  border-color: rgba(74, 143, 212, 0.3);
+}
+
+.chipIcon {
+  font-size: 0.75rem;
+  line-height: 1;
+}
