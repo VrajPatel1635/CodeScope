@@ -1,0 +1,127 @@
+/* =========================================
+   TREE VISUALIZER — G.3.3 Implementation
+   Visual debugger styles using design tokens
+   ========================================= */
+
+/* ── CONTAINER ───────────────────────────── */
+.container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  padding: var(--space-md) 0;
+}
+
+.label {
+  font-family: var(--font-ui);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+/* ── TREE CANVAS (relative wrapper for absolute nodes + SVG edges) */
+.treeCanvas {
+  position: relative;
+  width: 100%;
+  min-height: 120px;
+}
+
+/* ── NODE ────────────────────────────────── */
+.node {
+  position: absolute;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-elevated);
+  border: 1.5px solid var(--border-color);
+  border-radius: 50%;
+  font-family: var(--font-code);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  transition: border-color var(--transition-fast),
+              box-shadow var(--transition-fast),
+              background-color var(--transition-fast);
+  user-select: none;
+  z-index: 10;
+  /* Center the node on its (x, y) coordinate */
+  transform: translate(-50%, -50%);
+}
+
+/* Execution focus glow */
+.nodeFocused {
+  border-color: var(--exec-active);
+  box-shadow: 0 0 0 2px rgba(79, 140, 255, 0.25),
+              0 0 12px rgba(79, 140, 255, 0.15);
+}
+
+/* Mutation highlight */
+.nodeMutating {
+  border-color: var(--exec-mutation);
+  box-shadow: 0 0 0 2px rgba(255, 176, 32, 0.3),
+              0 0 12px rgba(255, 176, 32, 0.15);
+  background: rgba(255, 176, 32, 0.08);
+}
+
+/* Visited node — subtle completed indicator */
+.nodeVisited {
+  border-color: var(--exec-node-visited);
+  background: rgba(139, 149, 167, 0.08);
+}
+
+/* Currently active node (being processed this step) */
+.nodeActive {
+  border-color: var(--exec-node-active);
+  box-shadow: 0 0 0 2px rgba(0, 208, 132, 0.3),
+              0 0 12px rgba(0, 208, 132, 0.15);
+  background: rgba(0, 208, 132, 0.08);
+}
+
+/* Root indicator — subtle ring */
+.nodeRoot {
+  box-shadow: 0 0 0 1px rgba(232, 164, 74, 0.3);
+}
+
+/* ── EDGES (SVG overlay) ─────────────────── */
+.edgeSvg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: visible;
+  z-index: 5;
+}
+
+.edge {
+  stroke: var(--border-color);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  fill: none;
+  transition: stroke var(--transition-fast),
+              opacity var(--transition-fast);
+}
+
+.edgeMutating {
+  stroke: var(--exec-mutation);
+  stroke-width: 2;
+  stroke-dasharray: 6 4;
+}
+
+/* ── NULL LEAF INDICATOR ─────────────────── */
+.nullLeaf {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  font-family: var(--font-code);
+  font-size: 9px;
+  font-weight: 500;
+  color: var(--text-muted);
+  opacity: 0.4;
+  user-select: none;
+  z-index: 8;
+}

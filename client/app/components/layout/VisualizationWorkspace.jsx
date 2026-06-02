@@ -3,6 +3,7 @@
 import React, { useMemo } from "react";
 import ArrayVisualizer from "@/app/components/visualizers/array/ArrayVisualizer";
 import LinkedListVisualizer from "@/app/components/visualizers/linked-list/LinkedListVisualizer";
+import TreeVisualizer from "@/app/components/visualizers/tree/TreeVisualizer";
 
 import VariableSemanticsLayer from "@/app/components/variables/VariableSemanticsLayer";
 
@@ -40,6 +41,17 @@ const LL_POINTER_NAMES = [
   "runner", "walker",
 ];
 
+/**
+ * Tree ownership pointer name whitelist.
+ * Variables with these names whose values are "treeNode_*" strings are treated
+ * as tree node ownership pointers.
+ */
+const TREE_POINTER_NAMES = [
+  "root", "node", "current",
+  "left", "right", "parent",
+  "p", "q",
+];
+
 const ACC_NAMES = ["sum", "product", "score", "total"];
 const TEMP_NAMES = ["temp", "swap", "nextvalue", "tmp"];
 
@@ -49,6 +61,7 @@ const TEMP_NAMES = ["temp", "swap", "nextvalue", "tmp"];
 const ALL_POINTER_NAMES = new Set([
   ...ARRAY_POINTER_NAMES,
   ...LL_POINTER_NAMES,
+  ...TREE_POINTER_NAMES,
 ]);
 
 /**
@@ -121,6 +134,7 @@ function InnerWorkspace({ currentState, result, activeSourceStep }) {
   const variables = currentState?.currentFrameVariables || {};
   const isLinkedList = !!currentState?.linkedList;
   const isArray = !!currentState?.array || !!currentState?.matrix;
+  const isTree = !!currentState?.tree;
 
   // ── Source Mode Aggregation ──────────────────────────────────────
   const activeMicroSteps = useMemo(() => {
@@ -295,6 +309,134 @@ function InnerWorkspace({ currentState, result, activeSourceStep }) {
   }, [isLinkedList, llMutatingNodeId, currentState, llPointers]);
 
   // ══════════════════════════════════════════════════════════════════
+  // TREE POINTER DETECTION
+  // ══════════════════════════════════════════════════════════════════
+  const treePointers = useMemo(() => {
+    const ptrs = [];
+    if (!variables || !isTree) return ptrs;
+
+    for (const [key, value] of Object.entries(variables)) {
+      if (typeof value === "string" && value.startsWith("treeNode_")) {
+        ptrs.push({ name: key, target: value, isMoving: false });
+      }
+    }
+
+    return ptrs;
+  }, [variables, isTree]);
+
+  // ══════════════════════════════════════════════════════════════════
+  // TREE: Visit / Mutation / Rewire Detection
+  // ══════════════════════════════════════════════════════════════════
+
+  // Accumulate all visited nodes across the entire execution history
+  const treeVisitedNodes = useMemo(() => {
+    if (!isTree) return null;
+    const visited = new Set();
+    const states = result?.states || [];
+    const currentIdx = states.indexOf(currentState);
+    for (let i = 0; i <= currentIdx; i++) {
+      const step = states[i];
+      if (step?.treeVisitEvent) {
+        visited.add(step.treeVisitEvent.node);
+      }
+    }
+    return visited.size > 0 ? visited : null;
+  }, [isTree, result, currentState]);
+
+  // Currently active node (being visited this step)
+  const treeActiveNodeId = useMemo(() => {
+    if (!isTree) return null;
+    for (const step of activeMicroSteps) {
+      if (step.treeVisitEvent) {
+        return step.treeVisitEvent.node;
+      }
+    }
+    return null;
+  }, [activeMicroSteps, isTree]);
+
+  // Tree mutation events (node value changes)
+  const treeMutateEvent = useMemo(() => {
+    if (!isTree) return null;
+    for (const step of activeMicroSteps) {
+      if (step.treeMutateEvent) {
+        return step.treeMutateEvent;
+      }
+    }
+    return null;
+  }, [activeMicroSteps, isTree]);
+
+  const treeMutatingNodeId = treeMutateEvent?.node ?? null;
+
+  // Tree link events (edge rewiring — child reassignment)
+  const treeLinkEvents = useMemo(() => {
+    if (!isTree) return [];
+    const links = [];
+    for (const step of activeMicroSteps) {
+      if (step.treeLinkEvent) {
+        links.push(step.treeLinkEvent);
+      }
+    }
+    return links;
+  }, [activeMicroSteps, isTree]);
+
+  // Set of parent nodeIds whose edges are mutating
+  const treeMutatingEdges = useMemo(() => {
+    if (treeLinkEvents.length === 0) return null;
+    const edgeSet = new Set();
+    treeLinkEvents.forEach(e => edgeSet.add(e.parent));
+    return edgeSet;
+  }, [treeLinkEvents]);
+
+  // Tree rewire overlays (convert treeLinkEvents to RewireOverlay props)
+  const treeRewireEvents = useMemo(() => {
+    if (!isTree || treeLinkEvents.length === 0) return [];
+    return treeLinkEvents.map(linkEvent => {
+      const { parent, dir, child } = linkEvent;
+
+      // Find old child from previous state
+      const states = result?.states || [];
+      const currentIdx = states.indexOf(currentState);
+      let oldChild = null;
+      if (currentIdx > 0) {
+        const prevTree = states[currentIdx - 1]?.tree;
+        if (prevTree?.nodes?.[parent]) {
+          oldChild = prevTree.nodes[parent][dir] || null;
+        }
+      }
+
+      // Only show rewire if the child actually changed
+      if (oldChild === child) return null;
+
+      return {
+        sourceNodeId: `tree-node-${parent}`,
+        oldTargetNodeId: oldChild ? `tree-node-${oldChild}` : null,
+        newTargetNodeId: child ? `tree-node-${child}` : null,
+      };
+    }).filter(Boolean);
+  }, [isTree, treeLinkEvents, result, currentState]);
+
+  // ══════════════════════════════════════════════════════════════════
+  // TREE: Execution Focus
+  // ══════════════════════════════════════════════════════════════════
+  const treeExecutionFocus = useMemo(() => {
+    if (!isTree) return null;
+    const focused = new Set();
+
+    // Active node this step
+    if (treeActiveNodeId) focused.add(treeActiveNodeId);
+
+    // Nodes involved in mutations
+    if (treeMutatingNodeId) focused.add(treeMutatingNodeId);
+
+    // Nodes currently pointed to by ownership pointers
+    treePointers.forEach(p => {
+      if (p.target) focused.add(p.target);
+    });
+
+    return focused.size > 0 ? focused : null;
+  }, [isTree, treeActiveNodeId, treeMutatingNodeId, treePointers]);
+
+  // ══════════════════════════════════════════════════════════════════
   // VARIABLE SEMANTICS CLASSIFICATION
   // ══════════════════════════════════════════════════════════════════
   const { stateVars, accumulators, tempVars } = useMemo(() => {
@@ -321,8 +463,8 @@ function InnerWorkspace({ currentState, result, activeSourceStep }) {
         // Skip ownership pointers (handled by PointerOverlay)
         if (ALL_POINTER_NAMES.has(lowerKey)) continue;
 
-        // Skip linked list node references (handled by PointerOverlay)
-        if (typeof value === "string" && value.startsWith("node_")) continue;
+        // Skip linked list / tree node references (handled by PointerOverlay)
+        if (typeof value === "string" && (value.startsWith("node_") || value.startsWith("treeNode_"))) continue;
 
         const prevValue = prevVariables ? prevVariables[key] : undefined;
         const isMutating = mutatedVarsInSource.has(key);
@@ -440,6 +582,43 @@ function InnerWorkspace({ currentState, result, activeSourceStep }) {
       )}
 
       {/* ══════════════════════════════════════════════════════════ */}
+      {/* TREE SEMANTIC OVERLAYS                                    */}
+      {/* ══════════════════════════════════════════════════════════ */}
+
+      {/* Pointer Overlays (tree — grouped by target node) */}
+      {(() => {
+        const grouped = {};
+        treePointers.forEach(p => {
+          if (!p.target) return;
+          const targetId = `tree-node-${p.target}`;
+          if (!grouped[targetId]) grouped[targetId] = [];
+          grouped[targetId].push(p);
+        });
+        return Object.entries(grouped).map(([targetId, activeP]) => (
+          <PointerOverlay key={`tree-ptr-${targetId}`} targetNodeId={targetId} activePointers={activeP} />
+        ));
+      })()}
+
+      {/* Mutation Overlay (tree node value change) */}
+      {treeMutatingNodeId && (
+        <MutationOverlay
+          targetNodeId={`tree-node-${treeMutatingNodeId}`}
+          oldValue="?"
+          newValue={treeMutateEvent?.to ?? "?"}
+        />
+      )}
+
+      {/* Rewire Overlays (tree edge mutations — child reassignment) */}
+      {treeRewireEvents.map((re, idx) => (
+        <RewireOverlay
+          key={`tree-rewire-${idx}`}
+          sourceNodeId={re.sourceNodeId}
+          oldTargetNodeId={re.oldTargetNodeId}
+          newTargetNodeId={re.newTargetNodeId}
+        />
+      ))}
+
+      {/* ══════════════════════════════════════════════════════════ */}
       {/* VARIABLE SEMANTICS LAYER                                  */}
       {/* ══════════════════════════════════════════════════════════ */}
       <VariableSemanticsLayer 
@@ -466,6 +645,17 @@ function InnerWorkspace({ currentState, result, activeSourceStep }) {
           executionFocus={llExecutionFocus}
           mutatingNodeId={llMutatingNodeId}
           mutatingEdgeId={llMutatingEdgeId}
+        />
+      )}
+
+      {currentState?.tree && (
+        <TreeVisualizer
+          currentStep={currentState}
+          executionFocus={treeExecutionFocus}
+          visitedNodes={treeVisitedNodes}
+          activeNodeId={treeActiveNodeId}
+          mutatingNodeId={treeMutatingNodeId}
+          mutatingEdges={treeMutatingEdges}
         />
       )}
     </div>

@@ -104,6 +104,7 @@ export default function VisualizerLayout() {
   const returnFlow = currentState?.returnFlow ?? null;
   const stepReturn = currentState?.return;
   const linkedList = currentState?.linkedList;
+  const tree = currentState?.tree;
 
   // Build CallStack semantics map
   const callStackSemanticFrames = result?.callStackSemanticFrames ?? [];
@@ -196,6 +197,7 @@ export default function VisualizerLayout() {
                   returnFlow={returnFlow}
                   stepReturn={stepReturn}
                   linkedList={linkedList}
+                  tree={tree}
                   callStackSemantics={currentCallStackSemantics}
                 />
               </div>

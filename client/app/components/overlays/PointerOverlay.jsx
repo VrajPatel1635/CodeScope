@@ -34,6 +34,13 @@ const VARIABLE_COLORS = {
   fast:    { bg: "rgba(232, 164, 74, 0.15)",  border: "#E8A44A", text: "#E8A44A" },
   temp:    { bg: "rgba(139, 149, 167, 0.15)", border: "#8B95A7", text: "#8B95A7" },
   newhead: { bg: "rgba(107, 191, 160, 0.15)", border: "#6BBFA0", text: "#6BBFA0" },
+  // ── Tree ownership pointers ──
+  root:    { bg: "rgba(79, 140, 255, 0.15)",  border: "#4F8CFF", text: "#4F8CFF" },
+  node:    { bg: "rgba(0, 208, 132, 0.15)",   border: "#00D084", text: "#00D084" },
+  current: { bg: "rgba(0, 208, 132, 0.15)",   border: "#00D084", text: "#00D084" },
+  parent:  { bg: "rgba(179, 136, 255, 0.15)", border: "#B388FF", text: "#B388FF" },
+  p:       { bg: "rgba(45, 212, 191, 0.15)",  border: "#2DD4BF", text: "#2DD4BF" },
+  q:       { bg: "rgba(232, 164, 74, 0.15)",  border: "#E8A44A", text: "#E8A44A" },
 };
 
 const DEFAULT_COLOR = { bg: "rgba(168, 170, 187, 0.12)", border: "#8B95A7", text: "#A8AABB" };
