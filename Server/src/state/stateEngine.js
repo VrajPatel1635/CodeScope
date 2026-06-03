@@ -2,6 +2,7 @@ const { handleArrayTrace, applyArrayMutation, attachArrayState } = require("../s
 const { handleLinkedListTrace, applyLinkedListMutation, attachLinkedListState } = require("../structures/linkedlist/linkedListStateHandler");
 const { handleTreeTrace, applyTreeMutation, attachTreeState } = require("../structures/tree/treeStateHandler");
 const { handleGraphTrace, applyGraphMutation, attachGraphState } = require("../structures/graph/graphStateHandler");
+const { handleCollectionTrace, applyCollectionMutation, attachCollectionState } = require("../structures/collections/collectionStateHandler");
 
 function parseValue(value) {
     if (typeof value === "number") return value;
@@ -52,6 +53,7 @@ class StateEngineContext {
                    frontier: new Set(),
                    level: 0
                };
+               this.currentCollectionsState = {};
            }
         }
 
@@ -184,10 +186,11 @@ function buildState(traceEvents, initialArray) {
                 loopEvent: { loopId: event.loopId },
             });
         } else {
-            if (!currentStep) currentStep = handleArrayTrace(event, ctx);
-            if (!currentStep) currentStep = handleLinkedListTrace(event, ctx);
-            if (!currentStep) currentStep = handleTreeTrace(event, ctx);
-            if (!currentStep) currentStep = handleGraphTrace(event, ctx);
+            currentStep = handleArrayTrace(event, ctx) ||
+            handleLinkedListTrace(event, ctx) ||
+            handleTreeTrace(event, ctx) ||
+            handleGraphTrace(event, ctx) ||
+            handleCollectionTrace(event, ctx);
         }
 
         if (currentStep) {
@@ -195,11 +198,13 @@ function buildState(traceEvents, initialArray) {
             applyLinkedListMutation(currentStep, ctx);
             applyTreeMutation(currentStep, ctx);
             applyGraphMutation(currentStep, ctx);
+            applyCollectionMutation(currentStep, ctx);
 
             attachArrayState(currentStep, ctx);
             attachLinkedListState(currentStep, ctx);
             attachTreeState(currentStep, ctx);
             attachGraphState(currentStep, ctx);
+            attachCollectionState(currentStep, ctx);
 
             currentStep.currentFrameVariables = ctx.topVars();
             currentStep.stack = ctx.cloneStack();

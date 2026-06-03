@@ -561,6 +561,8 @@ function parseExecutionOutput(rawOutput) {
         expr: exprStr,
         value: valStr === "true",
       });
+    } else if (type === "COLLECTION_MUT") {
+      trace.push({ type: "COLLECTION_MUT", name: parts[2], value: parts[3] });
     }
   }
 
@@ -1070,6 +1072,36 @@ function injectTraceIntoBody(mappedLines, methodName = "solve", methodParams = [
           tracedBody += `System.out.println("TRACE|VAR|${varName}|" + ${formatter}(${varName}));\n`;
         }
       }
+    }
+
+    // COLLECTION MUTATION TRACE
+    const collectionMutationMatch = line.match(/\b([a-zA-Z_]\w*)\.(add|remove|set|push|pop|offer|poll|put|clear|pollFirst|pollLast|removeFirst|removeLast|addFirst|addLast|offerFirst|offerLast)\s*\(/);
+    if (collectionMutationMatch) {
+      const varName = collectionMutationMatch[1];
+      tracedBody += `System.out.println("TRACE|COLLECTION_MUT|${varName}|" + ${formatter}(${varName}));\n`;
+    }
+
+    // STRINGBUILDER / STRINGBUFFER MUTATION TRACE
+    const stringBuilderMatch = line.match(/\b([a-zA-Z_]\w*)\.(append|insert|delete|deleteCharAt|replace|reverse|setCharAt)\s*\(/);
+    if (stringBuilderMatch) {
+      const varName = stringBuilderMatch[1];
+      if (varName !== "Collections" && varName !== "Arrays" && varName !== "Math") {
+        tracedBody += `System.out.println("TRACE|VAR|${varName}|" + ${formatter}(${varName}));\n`;
+      }
+    }
+
+    // ARRAYS UTILITY TRACE
+    const arraysUtilMatch = line.match(/\bArrays\.(sort|fill|copyOf|copyOfRange)\s*\(\s*([a-zA-Z_]\w*)/);
+    if (arraysUtilMatch) {
+      const varName = arraysUtilMatch[2];
+      tracedBody += `System.out.println("TRACE|VAR|${varName}|" + ${formatter}(${varName}));\n`;
+    }
+
+    // COLLECTIONS UTILITY TRACE
+    const collectionsUtilMatch = line.match(/\bCollections\.(sort|reverse|shuffle|rotate)\s*\(\s*([a-zA-Z_]\w*)/);
+    if (collectionsUtilMatch) {
+      const varName = collectionsUtilMatch[2];
+      tracedBody += `System.out.println("TRACE|COLLECTION_MUT|${varName}|" + ${formatter}(${varName}));\n`;
     }
 
     // Keep braceDepth in sync for all other lines (e.g., `if (...) {`).

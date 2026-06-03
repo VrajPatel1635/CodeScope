@@ -223,6 +223,12 @@ function buildHelperCode({ userCode, wantsListNode, wantsTreeNode, wantsGraphLis
 const { buildInt, buildIntArray, buildIntMatrix } = require("../../structures/arrays/arrayInputBuilder");
 const { buildLinkedList } = require("../../structures/linkedlist/linkedListInputBuilder");
 const { buildTree } = require("../../structures/tree/treeInputBuilder");
+const { 
+  buildIntegerList, 
+  buildIntegerStack, 
+  buildIntegerQueue, 
+  buildIntegerDeque 
+} = require("../../structures/collections/collectionInputBuilder");
 
 const builders = {
   int: buildInt,
@@ -230,13 +236,37 @@ const builders = {
   "int[][]": buildIntMatrix,
   ListNode: buildLinkedList,
   TreeNode: buildTree,
+  "List<Integer>": buildIntegerList,
+  "ArrayList<Integer>": buildIntegerList,
+  "java.util.List<Integer>": buildIntegerList,
+  "java.util.ArrayList<Integer>": buildIntegerList,
+  "Stack<Integer>": buildIntegerStack,
+  "java.util.Stack<Integer>": buildIntegerStack,
+  "Queue<Integer>": buildIntegerQueue,
+  "java.util.Queue<Integer>": buildIntegerQueue,
+  "LinkedList<Integer>": buildIntegerQueue, // For execution as a collection
+  "java.util.LinkedList<Integer>": buildIntegerQueue,
+  "Deque<Integer>": buildIntegerDeque,
+  "java.util.Deque<Integer>": buildIntegerDeque,
+  "ArrayDeque<Integer>": buildIntegerDeque,
+  "java.util.ArrayDeque<Integer>": buildIntegerDeque,
   "List<List<Integer>>": require("../../structures/graph/graphInputBuilder").buildGraphList,
   "ArrayList<ArrayList<Integer>>": require("../../structures/graph/graphInputBuilder").buildGraphList
 };
 
 function getBuilderForType(paramType) {
   const normalized = normalizeType(paramType);
-  return builders[normalized] || null;
+  if (builders[normalized]) return builders[normalized];
+  if (/^(java\.util\.)?(Hash)?Map<.*>$/.test(normalized)) {
+    return require("../../structures/collections/collectionInputBuilder").buildMap;
+  }
+  if (/^(java\.util\.)?(Hash)?Set<.*>$/.test(normalized)) {
+    return require("../../structures/collections/collectionInputBuilder").buildSet;
+  }
+  if (/^(java\.util\.)?PriorityQueue<.*>$/.test(normalized)) {
+    return require("../../structures/collections/collectionInputBuilder").buildPriorityQueue;
+  }
+  return null;
 }
 
 function buildJavaInputsFromSignature({ userCode, methodName, methodParams, inputRaw }) {

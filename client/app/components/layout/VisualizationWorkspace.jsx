@@ -554,6 +554,10 @@ function InnerWorkspace({ currentState, result, activeSourceStep }) {
                 }
                 resolvedValue = `[${parsed.join(", ")}]`;
               }
+            } else if (currentState.collections && currentState.collections[key]) {
+              resolvedValue = typeof currentState.collections[key] === "string" 
+                  ? currentState.collections[key] 
+                  : JSON.stringify(currentState.collections[key]);
             }
           } catch (e) {
             // Silently fallback to the original string snapshot if parsing fails
