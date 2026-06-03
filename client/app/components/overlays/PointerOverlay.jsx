@@ -41,6 +41,13 @@ const VARIABLE_COLORS = {
   parent:  { bg: "rgba(179, 136, 255, 0.15)", border: "#B388FF", text: "#B388FF" },
   p:       { bg: "rgba(45, 212, 191, 0.15)",  border: "#2DD4BF", text: "#2DD4BF" },
   q:       { bg: "rgba(232, 164, 74, 0.15)",  border: "#E8A44A", text: "#E8A44A" },
+  // ── Graph ownership pointers ──
+  neighbor:{ bg: "rgba(255, 176, 32, 0.15)",  border: "#FFB020", text: "#FFB020" },
+  src:     { bg: "rgba(45, 212, 191, 0.15)",  border: "#2DD4BF", text: "#2DD4BF" },
+  dest:    { bg: "rgba(255, 93, 93, 0.15)",   border: "#FF5D5D", text: "#FF5D5D" },
+  u:       { bg: "rgba(79, 140, 255, 0.15)",  border: "#4F8CFF", text: "#4F8CFF" },
+  v:       { bg: "rgba(0, 208, 132, 0.15)",   border: "#00D084", text: "#00D084" },
+  w:       { bg: "rgba(179, 136, 255, 0.15)", border: "#B388FF", text: "#B388FF" },
 };
 
 const DEFAULT_COLOR = { bg: "rgba(168, 170, 187, 0.12)", border: "#8B95A7", text: "#A8AABB" };

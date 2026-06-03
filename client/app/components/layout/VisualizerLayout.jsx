@@ -105,6 +105,7 @@ export default function VisualizerLayout() {
   const stepReturn = currentState?.return;
   const linkedList = currentState?.linkedList;
   const tree = currentState?.tree;
+  const graph = currentState?.graph;
 
   // Build CallStack semantics map
   const callStackSemanticFrames = result?.callStackSemanticFrames ?? [];
@@ -169,9 +170,9 @@ export default function VisualizerLayout() {
         </div>
 
         {/* RIGHT SIDE: Visualizer & Call Stack */}
-        <div className="flex flex-col xl:flex-row gap-6 flex-1 min-w-0">
-          {/* Visualizations (Array/LinkedList) */}
-          <div className="flex-1 flex flex-col gap-4 rounded-lg border shadow-sm overflow-hidden" style={{ borderColor: 'var(--border-color)', backgroundColor: 'var(--bg-surface)' }}>
+        <div className="flex-1 flex flex-col min-w-0">
+          {/* Visualizations (Array/LinkedList/Tree/Graph) */}
+          <div className="flex-1 flex flex-col gap-4 rounded-lg border shadow-sm overflow-hidden relative" style={{ borderColor: 'var(--border-color)', backgroundColor: 'var(--bg-surface)' }}>
             <div className="p-4 flex-1 overflow-auto">
               {states.length > 0 ? (
                 <VisualizationWorkspace 
@@ -185,24 +186,31 @@ export default function VisualizerLayout() {
                 </div>
               )}
             </div>
-          </div>
 
-          {/* Call Stack Widget (Only when relevant) */}
-          {states.length > 0 && callStack.length > 0 && (
-            <div className="xl:w-72 shrink-0 flex flex-col gap-4 rounded-lg border shadow-sm p-4 overflow-hidden" style={{ borderColor: 'var(--border-color)', backgroundColor: 'var(--bg-surface)' }}>
-              <h2 className="text-sm font-semibold mb-2" style={{ color: 'var(--text-secondary)' }}>Call Stack</h2>
-              <div className="flex-1 overflow-auto">
-                <CallStackPanel
-                  stack={callStack}
-                  returnFlow={returnFlow}
-                  stepReturn={stepReturn}
-                  linkedList={linkedList}
-                  tree={tree}
-                  callStackSemantics={currentCallStackSemantics}
-                />
+            {/* Floating Call Stack Widget (Overlay) */}
+            {states.length > 0 && callStack.length > 0 && (
+              <div 
+                className="absolute top-4 right-4 w-72 max-h-[calc(100%-2rem)] flex flex-col gap-4 rounded-lg border shadow-lg p-4 overflow-hidden backdrop-blur-md bg-opacity-95 z-50 transition-all duration-300" 
+                style={{ 
+                  borderColor: 'var(--border-color)', 
+                  backgroundColor: 'var(--bg-surface)', 
+                }}
+              >
+                <h2 className="text-sm font-semibold mb-2" style={{ color: 'var(--text-secondary)' }}>Call Stack</h2>
+                <div className="flex-1 overflow-auto pr-2">
+                  <CallStackPanel
+                    stack={callStack}
+                    returnFlow={returnFlow}
+                    stepReturn={stepReturn}
+                    linkedList={linkedList}
+                    tree={tree}
+                    graph={graph}
+                    callStackSemantics={currentCallStackSemantics}
+                  />
+                </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
 
       </div>

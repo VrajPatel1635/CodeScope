@@ -45,6 +45,8 @@ class StateEngineContext {
                    nodes: new Set(),
                    adjacency: {},
                    visitedState: {},
+                   distanceState: {},
+                   parentState: {},
                    traversalOwnership: "DFS",
                    queue: [],
                    frontier: new Set(),

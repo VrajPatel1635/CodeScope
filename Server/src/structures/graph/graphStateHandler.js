@@ -7,8 +7,8 @@ function handleGraphTrace(event, ctx) {
     if (event.type === "GRAPH_VISIT" || event.type === "BFS_VISIT") {
         return ctx.createStep(event.type, { graphVisitEvent: event });
     }
-    if (event.type === "VISITED_MARK") {
-        return ctx.createStep(event.type, { visitedMarkEvent: event });
+    if (event.type === "VISITED_MARK" || event.type === "DISTANCE_MARK" || event.type === "PARENT_MARK") {
+        return ctx.createStep(event.type, { [event.type]: event });
     }
     if (event.type === "QUEUE_ENQUEUE") {
         return ctx.createStep(event.type, { queueEnqueueEvent: event });
@@ -41,9 +41,17 @@ function applyGraphMutation(currentStep, ctx) {
             }
         }
     }
-    if (currentStep.visitedMarkEvent) {
-        const { node, value } = currentStep.visitedMarkEvent;
+    if (currentStep.VISITED_MARK) {
+        const { node, value } = currentStep.VISITED_MARK;
         ctx.currentGraphState.visitedState[node] = (value === 'true');
+    }
+    if (currentStep.DISTANCE_MARK) {
+        const { node, value } = currentStep.DISTANCE_MARK;
+        ctx.currentGraphState.distanceState[node] = value; // keep as string/number
+    }
+    if (currentStep.PARENT_MARK) {
+        const { node, value } = currentStep.PARENT_MARK;
+        ctx.currentGraphState.parentState[node] = value;
     }
     if (currentStep.graphVisitEvent) {
         const { node } = currentStep.graphVisitEvent;
@@ -79,6 +87,8 @@ function attachGraphState(currentStep, ctx) {
             nodes: Array.from(ctx.currentGraphState.nodes),
             adjacency: JSON.parse(JSON.stringify(ctx.currentGraphState.adjacency)),
             visitedState: { ...ctx.currentGraphState.visitedState },
+            distanceState: { ...ctx.currentGraphState.distanceState },
+            parentState: { ...ctx.currentGraphState.parentState },
             queue: [...ctx.currentGraphState.queue],
             frontier: Array.from(ctx.currentGraphState.frontier),
             level: ctx.currentGraphState.level,

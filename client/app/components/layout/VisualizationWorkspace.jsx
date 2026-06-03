@@ -4,6 +4,7 @@ import React, { useMemo } from "react";
 import ArrayVisualizer from "@/app/components/visualizers/array/ArrayVisualizer";
 import LinkedListVisualizer from "@/app/components/visualizers/linked-list/LinkedListVisualizer";
 import TreeVisualizer from "@/app/components/visualizers/tree/TreeVisualizer";
+import GraphVisualizer from "@/app/components/visualizers/graph/GraphVisualizer";
 
 import VariableSemanticsLayer from "@/app/components/variables/VariableSemanticsLayer";
 
@@ -52,6 +53,17 @@ const TREE_POINTER_NAMES = [
   "p", "q",
 ];
 
+/**
+ * Graph ownership pointer name whitelist.
+ * Variables with these names whose values are "graphNode_*" strings are treated
+ * as graph node ownership pointers.
+ */
+const GRAPH_POINTER_NAMES = [
+  "current", "node", "neighbor",
+  "start", "src", "dest",
+  "u", "v", "w",
+];
+
 const ACC_NAMES = ["sum", "product", "score", "total"];
 const TEMP_NAMES = ["temp", "swap", "nextvalue", "tmp"];
 
@@ -62,6 +74,7 @@ const ALL_POINTER_NAMES = new Set([
   ...ARRAY_POINTER_NAMES,
   ...LL_POINTER_NAMES,
   ...TREE_POINTER_NAMES,
+  ...GRAPH_POINTER_NAMES,
 ]);
 
 /**
@@ -135,6 +148,7 @@ function InnerWorkspace({ currentState, result, activeSourceStep }) {
   const isLinkedList = !!currentState?.linkedList;
   const isArray = !!currentState?.array || !!currentState?.matrix;
   const isTree = !!currentState?.tree;
+  const isGraph = !!currentState?.graph;
 
   // ── Source Mode Aggregation ──────────────────────────────────────
   const activeMicroSteps = useMemo(() => {
@@ -437,6 +451,53 @@ function InnerWorkspace({ currentState, result, activeSourceStep }) {
   }, [isTree, treeActiveNodeId, treeMutatingNodeId, treePointers]);
 
   // ══════════════════════════════════════════════════════════════════
+  // GRAPH POINTER DETECTION
+  // ══════════════════════════════════════════════════════════════════
+  const graphPointers = useMemo(() => {
+    const ptrs = [];
+    if (!variables || !isGraph) return ptrs;
+
+    for (const [key, value] of Object.entries(variables)) {
+      if (typeof value === "string" && value.startsWith("graphNode_")) {
+        ptrs.push({ name: key, target: value, isMoving: false });
+      }
+    }
+
+    return ptrs;
+  }, [variables, isGraph]);
+
+  // ══════════════════════════════════════════════════════════════════
+  // GRAPH: Active Node Detection
+  // ══════════════════════════════════════════════════════════════════
+  const graphActiveNodeId = useMemo(() => {
+    if (!isGraph) return null;
+    for (const step of activeMicroSteps) {
+      if (step.graphVisitEvent) {
+        return step.graphVisitEvent.node;
+      }
+    }
+    return null;
+  }, [activeMicroSteps, isGraph]);
+
+  // ══════════════════════════════════════════════════════════════════
+  // GRAPH: Execution Focus
+  // ══════════════════════════════════════════════════════════════════
+  const graphExecutionFocus = useMemo(() => {
+    if (!isGraph) return null;
+    const focused = new Set();
+
+    // Active node this step
+    if (graphActiveNodeId) focused.add(graphActiveNodeId);
+
+    // Nodes currently pointed to by ownership pointers
+    graphPointers.forEach(p => {
+      if (p.target) focused.add(p.target);
+    });
+
+    return focused.size > 0 ? focused : null;
+  }, [isGraph, graphActiveNodeId, graphPointers]);
+
+  // ══════════════════════════════════════════════════════════════════
   // VARIABLE SEMANTICS CLASSIFICATION
   // ══════════════════════════════════════════════════════════════════
   const { stateVars, accumulators, tempVars } = useMemo(() => {
@@ -458,24 +519,63 @@ function InnerWorkspace({ currentState, result, activeSourceStep }) {
         if (value === null || value === undefined) continue;
         if (typeof value !== "number" && typeof value !== "string" && typeof value !== "boolean") continue;
         
+        let resolvedValue = value;
         const lowerKey = key.toLowerCase();
+        
+        // ══════════════════════════════════════════════════════════════
+        // STRUCTURAL VARIABLE SYNC
+        // ══════════════════════════════════════════════════════════════
+        if (currentState) {
+          try {
+            if (currentState.array && (lowerKey === "arr" || lowerKey === "array" || lowerKey === "nums")) {
+              resolvedValue = `[${currentState.array.join(", ")}]`;
+            } else if (currentState.matrix && (lowerKey === "matrix" || lowerKey === "grid" || lowerKey === "board" || lowerKey === "dp")) {
+              resolvedValue = JSON.stringify(currentState.matrix).replace(/],/g, "],\n ");
+            } else if (currentState.graph && typeof value === "string" && value.startsWith("[")) {
+              if (lowerKey === "visited" && currentState.graph.visitedState) {
+                const parsed = JSON.parse(value);
+                for (let i = 0; i < parsed.length; i++) {
+                  const n = `graphNode_${i}`;
+                  if (currentState.graph.visitedState[n] !== undefined) parsed[i] = currentState.graph.visitedState[n];
+                }
+                resolvedValue = `[${parsed.join(", ")}]`;
+              } else if (lowerKey === "distance" && currentState.graph.distanceState) {
+                const parsed = JSON.parse(value);
+                for (let i = 0; i < parsed.length; i++) {
+                  const n = `graphNode_${i}`;
+                  if (currentState.graph.distanceState[n] !== undefined) parsed[i] = currentState.graph.distanceState[n];
+                }
+                resolvedValue = `[${parsed.join(", ")}]`;
+              } else if (lowerKey === "parent" && currentState.graph.parentState) {
+                const parsed = JSON.parse(value);
+                for (let i = 0; i < parsed.length; i++) {
+                  const n = `graphNode_${i}`;
+                  if (currentState.graph.parentState[n] !== undefined) parsed[i] = currentState.graph.parentState[n];
+                }
+                resolvedValue = `[${parsed.join(", ")}]`;
+              }
+            }
+          } catch (e) {
+            // Silently fallback to the original string snapshot if parsing fails
+          }
+        }
         
         // Skip ownership pointers (handled by PointerOverlay)
         if (ALL_POINTER_NAMES.has(lowerKey)) continue;
 
-        // Skip linked list / tree node references (handled by PointerOverlay)
-        if (typeof value === "string" && (value.startsWith("node_") || value.startsWith("treeNode_"))) continue;
+        // Skip linked list / tree / graph node references (handled by PointerOverlay)
+        if (typeof value === "string" && (value.startsWith("node_") || value.startsWith("treeNode_") || value.startsWith("graphNode_"))) continue;
 
         const prevValue = prevVariables ? prevVariables[key] : undefined;
         const isMutating = mutatedVarsInSource.has(key);
 
         if (ACC_NAMES.some(n => lowerKey.includes(n))) {
-          accs.push({ name: key, value, prevValue, isMutating });
+          accs.push({ name: key, value: resolvedValue, prevValue, isMutating });
         } else if (TEMP_NAMES.some(n => lowerKey.includes(n))) {
-          temps.push({ name: key, value, isActive: isMutating }); 
+          temps.push({ name: key, value: resolvedValue, isActive: isMutating }); 
         } else {
           // Default to State variable
-          sVars.push({ name: key, value });
+          sVars.push({ name: key, value: resolvedValue });
         }
       }
     }
@@ -621,11 +721,13 @@ function InnerWorkspace({ currentState, result, activeSourceStep }) {
       {/* ══════════════════════════════════════════════════════════ */}
       {/* VARIABLE SEMANTICS LAYER                                  */}
       {/* ══════════════════════════════════════════════════════════ */}
-      <VariableSemanticsLayer 
-        stateVars={stateVars} 
-        accumulators={accumulators} 
-        tempVars={tempVars} 
-      />
+      <div className="pr-80 z-10 relative">
+        <VariableSemanticsLayer 
+          stateVars={stateVars} 
+          accumulators={accumulators} 
+          tempVars={tempVars} 
+        />
+      </div>
 
       {/* ══════════════════════════════════════════════════════════ */}
       {/* STRUCTURAL VISUALIZERS                                    */}
@@ -656,6 +758,32 @@ function InnerWorkspace({ currentState, result, activeSourceStep }) {
           activeNodeId={treeActiveNodeId}
           mutatingNodeId={treeMutatingNodeId}
           mutatingEdges={treeMutatingEdges}
+        />
+      )}
+
+      {/* ══════════════════════════════════════════════════════════ */}
+      {/* GRAPH SEMANTIC OVERLAYS                                   */}
+      {/* ══════════════════════════════════════════════════════════ */}
+
+      {/* Pointer Overlays (graph — grouped by target node) */}
+      {(() => {
+        const grouped = {};
+        graphPointers.forEach(p => {
+          if (!p.target) return;
+          const targetId = `graph-node-${p.target}`;
+          if (!grouped[targetId]) grouped[targetId] = [];
+          grouped[targetId].push(p);
+        });
+        return Object.entries(grouped).map(([targetId, activeP]) => (
+          <PointerOverlay key={`graph-ptr-${targetId}`} targetNodeId={targetId} activePointers={activeP} />
+        ));
+      })()}
+
+      {currentState?.graph && (
+        <GraphVisualizer
+          currentStep={currentState}
+          executionFocus={graphExecutionFocus}
+          activeNodeId={graphActiveNodeId}
         />
       )}
     </div>

@@ -503,6 +503,10 @@ function parseExecutionOutput(rawOutput) {
       trace.push({ type: "ARRAY", name, index, value });
       if (name === "visited") {
         trace.push({ type: "VISITED_MARK", node: `graphNode_${index}`, value });
+      } else if (name === "distance") {
+        trace.push({ type: "DISTANCE_MARK", node: `graphNode_${index}`, value });
+      } else if (name === "parent") {
+        trace.push({ type: "PARENT_MARK", node: `graphNode_${index}`, value });
       }
     } else if (type === "LOOP") {
       trace.push({ type: "LOOP", loopId: parts[2], iteration: Number(parts[3]) });
@@ -609,7 +613,7 @@ function buildReturnTrace(returnExpr, lineNumber, methodName = "solve", wantsLis
     out += `System.out.println("TRACE|EXPR|${expr.left}|${expr.operator}|${expr.rightFn}|" + (${expr.left}));\n`;
   }
 
-  const formatter = wantsListNode ? "__DSAInput.formatNode" : "String.valueOf";
+  const formatter = "__DSAInput.formatValue";
 
   out += `var ${tmpVar} = ${exprTrimmed};\n`;
   out += `System.out.println("TRACE|VAR|__return__|" + ${formatter}(${tmpVar}));\n`;
@@ -643,8 +647,7 @@ function injectTraceIntoBody(mappedLines, methodName = "solve", methodParams = [
   
   const wantsListNode = methodParams.some(p => p.type === "ListNode");
   const wantsTreeNode = methodParams.some(p => p.type === "TreeNode");
-  const wantsNodeFormat = wantsListNode || wantsTreeNode;
-  const formatter = wantsNodeFormat ? "__DSAInput.formatNode" : "String.valueOf";
+  const formatter = "__DSAInput.formatValue";
 
   let braceDepth = 0;
   const forVarScopeStack = [];
@@ -709,15 +712,7 @@ function injectTraceIntoBody(mappedLines, methodName = "solve", methodParams = [
 
   // Inject TRACE|VAR for each method parameter right after CALL
   for (const param of methodParams) {
-    if (param.type === "int[][]") {
-      // For 2D arrays, log the deep string representation
-      tracedBody += `System.out.println("TRACE|VAR|${param.name}|" + java.util.Arrays.deepToString(${param.name}));\n`;
-    } else if (param.type === "int[]") {
-      // For 1D arrays, log the length/string representation
-      tracedBody += `System.out.println("TRACE|VAR|${param.name}|" + java.util.Arrays.toString(${param.name}));\n`;
-    } else {
-      tracedBody += `System.out.println("TRACE|VAR|${param.name}|" + ${formatter}(${param.name}));\n`;
-    }
+    tracedBody += `System.out.println("TRACE|VAR|${param.name}|" + ${formatter}(${param.name}));\n`;
     
     // Inject initial PREORDER tree visit trace for TreeNode params
     if (param.type === "TreeNode") {

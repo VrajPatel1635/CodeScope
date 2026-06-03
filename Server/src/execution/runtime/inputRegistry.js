@@ -37,9 +37,7 @@ function buildHelperCode({ userCode, wantsListNode, wantsTreeNode, wantsGraphLis
   const parts = [];
   const needList = wantsListNode && needsHelper(userCode, "ListNode");
   const needTree = wantsTreeNode && needsHelper(userCode, "TreeNode");
-
-  if (!wantsListNode && !wantsTreeNode && !wantsGraphList) return "";
-
+  // We must always generate __DSAInput because the execution service unconditionally uses __DSAInput.formatValue()
   if (needList) {
     parts.push(
       "class ListNode {\n" +
@@ -105,21 +103,34 @@ function buildHelperCode({ userCode, wantsListNode, wantsTreeNode, wantsGraphLis
     );
   }
 
-  if (wantsListNode || wantsTreeNode) {
-    dsaInputParts.push(
-      "  static String formatNode(Object o) {"
-    );
-    if (wantsListNode) {
-      dsaInputParts.push("    if (o != null && o.getClass().getName().equals(\"ListNode\")) return getNodeId((ListNode)o);");
-    }
-    if (wantsTreeNode) {
-      dsaInputParts.push("    if (o != null && o.getClass().getName().equals(\"TreeNode\")) return getTreeNodeId((TreeNode)o);");
-    }
-    dsaInputParts.push(
-      "    return String.valueOf(o);\n" +
-      "  }"
-    );
+  // Always inject a universal formatValue helper to handle array serialization correctly
+  dsaInputParts.push(
+    "  static String formatValue(Object o) {\n" +
+    "    if (o == null) return \"null\";\n" +
+    "    Class<?> c = o.getClass();\n" +
+    "    if (c.isArray()) {\n" +
+    "      if (c == int[].class) return java.util.Arrays.toString((int[]) o);\n" +
+    "      if (c == boolean[].class) return java.util.Arrays.toString((boolean[]) o);\n" +
+    "      if (c == double[].class) return java.util.Arrays.toString((double[]) o);\n" +
+    "      if (c == char[].class) return java.util.Arrays.toString((char[]) o);\n" +
+    "      if (c == long[].class) return java.util.Arrays.toString((long[]) o);\n" +
+    "      if (c == int[][].class) return java.util.Arrays.deepToString((int[][]) o);\n" +
+    "      if (c == boolean[][].class) return java.util.Arrays.deepToString((boolean[][]) o);\n" +
+    "      if (c == Object[].class) return java.util.Arrays.deepToString((Object[]) o);\n" +
+    "      // fallback for other arrays\n" +
+    "      return \"[...]\" ;\n" +
+    "    }"
+  );
+  if (wantsListNode) {
+    dsaInputParts.push("    if (c.getName().equals(\"ListNode\")) return getNodeId((ListNode)o);");
   }
+  if (wantsTreeNode) {
+    dsaInputParts.push("    if (c.getName().equals(\"TreeNode\")) return getTreeNodeId((TreeNode)o);");
+  }
+  dsaInputParts.push(
+    "    return String.valueOf(o);\n" +
+    "  }"
+  );
 
   if (wantsListNode) {
     dsaInputParts.push(
@@ -231,7 +242,12 @@ function getBuilderForType(paramType) {
 function buildJavaInputsFromSignature({ userCode, methodName, methodParams, inputRaw }) {
   const params = Array.isArray(methodParams) ? methodParams : [];
   if (params.length === 0) {
-    throw new Error(`No parameters found for method ${methodName || "solve"}().`);
+    return {
+      declarations: "",
+      argsList: "",
+      helperCode: buildHelperCode({ userCode, wantsListNode: false, wantsTreeNode: false, wantsGraphList: false }),
+      initialValueForState: null,
+    };
   }
 
   // If multiple params: expect JSON array of values in same order.

@@ -331,7 +331,7 @@ function StackFrame({ frame, isTop, depth, returnFlow, stepReturn, resolveNodeVa
 }
 
 // ── CallStackPanel ────────────────────────────────────────────────────────────
-export default function CallStackPanel({ stack = [], returnFlow = null, stepReturn, linkedList, tree, callStackSemantics = [] }) {
+export default function CallStackPanel({ stack = [], returnFlow = null, stepReturn, linkedList, tree, graph, callStackSemantics = [] }) {
   // Backend: index 0 = bottom, last = top. Reverse so active call is first visually.
   const displayFrames = [...stack].reverse();
   const isEmpty = displayFrames.length === 0;
@@ -348,6 +348,11 @@ export default function CallStackPanel({ stack = [], returnFlow = null, stepRetu
       if (nodeLabel !== undefined) {
         return `${val} → ${nodeLabel}`;
       }
+    }
+    if (typeof val === "string" && val.startsWith("graphNode_")) {
+      // Graph nodes use their numeric suffix as the label
+      const numLabel = val.replace("graphNode_", "");
+      return `node ${numLabel}`;
     }
     return val;
   };
