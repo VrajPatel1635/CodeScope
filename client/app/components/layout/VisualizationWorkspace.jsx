@@ -14,6 +14,7 @@ import PointerOverlay from "@/app/components/overlays/PointerOverlay";
 import MutationOverlay from "@/app/components/overlays/MutationOverlay";
 import RewireOverlay from "@/app/components/overlays/RewireOverlay";
 import SemanticChipOverlay from "@/app/components/overlays/SemanticChipOverlay";
+import OperationPanel from "@/app/components/operations/OperationPanel";
 
 /**
  * Array index pointer name whitelist.
@@ -527,7 +528,12 @@ function InnerWorkspace({ currentState, result, activeSourceStep }) {
         // ══════════════════════════════════════════════════════════════
         if (currentState) {
           try {
-            if (currentState.array && (lowerKey === "arr" || lowerKey === "array" || lowerKey === "nums")) {
+            if (currentState.array && [
+              "arr", "array", "nums", 
+              "ans", "answer", "result", "results", "output", 
+              "prefix", "suffix", "temp", "count", "freq", 
+              "distance", "dist", "parent", "indegree"
+            ].includes(lowerKey)) {
               resolvedValue = `[${currentState.array.join(", ")}]`;
             } else if (currentState.matrix && (lowerKey === "matrix" || lowerKey === "grid" || lowerKey === "board" || lowerKey === "dp")) {
               resolvedValue = JSON.stringify(currentState.matrix).replace(/],/g, "],\n ");
@@ -732,6 +738,16 @@ function InnerWorkspace({ currentState, result, activeSourceStep }) {
           tempVars={tempVars} 
         />
       </div>
+
+      {/* ══════════════════════════════════════════════════════════ */}
+      {/* OPERATION PANEL                                           */}
+      {/* ══════════════════════════════════════════════════════════ */}
+      <OperationPanel 
+        activeMicroSteps={activeMicroSteps}
+        variables={variables}
+        collections={currentState?.collections}
+        array={currentState?.array}
+      />
 
       {/* ══════════════════════════════════════════════════════════ */}
       {/* STRUCTURAL VISUALIZERS                                    */}

@@ -563,6 +563,17 @@ function parseExecutionOutput(rawOutput) {
       });
     } else if (type === "COLLECTION_MUT") {
       trace.push({ type: "COLLECTION_MUT", name: parts[2], value: parts[3] });
+    } else if (type === "ARRAY2D") {
+      const name = parts[2];
+      const row = parts[3];
+      const col = parts[4];
+      const value = parts[5];
+      trace.push({ type: "ARRAY2D", name, row, col, value });
+    } else if (type === "ASSIGN") {
+      const name = parts[2];
+      const op = parts[3];
+      const rhs = parts.slice(4).join("|") || "";
+      trace.push({ type: "ASSIGN", name, op, rhs });
     }
   }
 
@@ -670,26 +681,40 @@ function injectTraceIntoBody(mappedLines, methodName = "solve", methodParams = [
     out += `System.out.println("TRACE|LINE|${lineNumber}");\n`;
     out += trimmed + "\n";
 
-    const arrayMatch = trimmed.match(/(\w+)\s*\[(.*?)\]\s*=\s*(.*);/);
-    if (arrayMatch) {
-      const arrayName = arrayMatch[1];
-      const index = arrayMatch[2];
-      out += `System.out.println("TRACE|ARRAY|${arrayName}|" + (${index}) + "|" + ${arrayName}[${index}]);\n`;
+    const array2DMatch = trimmed.match(/(\w+)\s*\[(.*?)\]\s*\[(.*?)\]\s*=\s*(.*);/);
+    if (array2DMatch) {
+      const arrayName = array2DMatch[1];
+      const row = array2DMatch[2];
+      const col = array2DMatch[3];
+      out += `System.out.println("TRACE|ARRAY2D|${arrayName}|" + (${row}) + "|" + (${col}) + "|" + ${arrayName}[${row}][${col}]);\n`;
+      out += `System.out.println("TRACE|VAR|${arrayName}|" + ${formatter}(${arrayName}));\n`;
+    } else {
+      const arrayMatch = trimmed.match(/(\w+)\s*\[([^\]]+)\]\s*=\s*(.*);/);
+      if (arrayMatch) {
+        const arrayName = arrayMatch[1];
+        const index = arrayMatch[2];
+        out += `System.out.println("TRACE|ARRAY|${arrayName}|" + (${index}) + "|" + ${arrayName}[${index}]);\n`;
+        // Emit full array state so the variable panel stays in sync for locally-created arrays
+        out += `System.out.println("TRACE|VAR|${arrayName}|" + ${formatter}(${arrayName}));\n`;
+      }
     }
 
     // ── VAR detection: use (?<!\.) so field accesses like `tail.next = ...`
     // are never mistaken for a variable named `next` being assigned.
-    let match = trimmed.match(/(?<!\.)(\b[a-zA-Z_][a-zA-Z0-9_]*)\s*(\+|-|\*|\/|%)?=(?!=)/);
+    let match = trimmed.match(/(?<!\.)(\b[a-zA-Z_][a-zA-Z0-9_]*)\s*(=|\+=|-=|\*=\|\/=)\s*(.*);/);
     if (!match) {
       match = trimmed.match(/\b([a-zA-Z_][a-zA-Z0-9_]*)\s*(\+\+|--)/);
     }
     if (!match) {
       match = trimmed.match(/(\+\+|--)\s*([a-zA-Z_][a-zA-Z0-9_]*)\b/);
-      if (match) match = [match[0], match[2]];
+      if (match) match = [match[0], match[2], ""];
     }
     if (match) {
       const varName = match[1];
+      const op = match[2];
+      const rhs = (match[3] || "").trim().replace(/"/g, '\\"');
       if (/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(varName)) {
+        out += `System.out.println("TRACE|ASSIGN|${varName}|${op}|${rhs}");\n`;
         out += `System.out.println("TRACE|VAR|${varName}|" + ${formatter}(${varName}));\n`;
       }
     }
@@ -976,11 +1001,22 @@ function injectTraceIntoBody(mappedLines, methodName = "solve", methodParams = [
     tracedBody += line + "\n";
 
     // ARRAY TRACE
-    const arrayMatch = line.match(/(\w+)\s*\[(.*?)\]\s*=\s*(.*);/);
-    if (arrayMatch) {
-      const arrayName = arrayMatch[1];
-      const index = arrayMatch[2];
-      tracedBody += `System.out.println("TRACE|ARRAY|${arrayName}|" + (${index}) + "|" + ${arrayName}[${index}]);\n`;
+    const array2DMatch = line.match(/(\w+)\s*\[(.*?)\]\s*\[(.*?)\]\s*=\s*(.*);/);
+    if (array2DMatch) {
+      const arrayName = array2DMatch[1];
+      const row = array2DMatch[2];
+      const col = array2DMatch[3];
+      tracedBody += `System.out.println("TRACE|ARRAY2D|${arrayName}|" + (${row}) + "|" + (${col}) + "|" + ${arrayName}[${row}][${col}]);\n`;
+      tracedBody += `System.out.println("TRACE|VAR|${arrayName}|" + ${formatter}(${arrayName}));\n`;
+    } else {
+      const arrayMatch = line.match(/(\w+)\s*\[([^\]]+)\]\s*=\s*(.*);/);
+      if (arrayMatch) {
+        const arrayName = arrayMatch[1];
+        const index = arrayMatch[2];
+        tracedBody += `System.out.println("TRACE|ARRAY|${arrayName}|" + (${index}) + "|" + ${arrayName}[${index}]);\n`;
+        // Emit full array state so the variable panel stays in sync for locally-created arrays
+        tracedBody += `System.out.println("TRACE|VAR|${arrayName}|" + ${formatter}(${arrayName}));\n`;
+      }
     }
 
     // PTR_MOVE: detect var = var.next pattern

@@ -62,6 +62,7 @@ class StateEngineContext {
         this.pendingExprByDepth = new Map();
         this.lastChildReturnValue = null;
         this.currentLoops = {};
+        this.pendingAssign = null;
     }
 
     topVars() {
@@ -111,11 +112,17 @@ function buildState(traceEvents, initialArray) {
         } else if (event.type === "LINE") {
             ctx.stack[ctx.stack.length - 1].currentLine = event.line;
             currentStep = ctx.createStep(event.type);
+        } else if (event.type === "ASSIGN") {
+            ctx.pendingAssign = event;
         } else if (event.type === "VAR") {
             if (event.name === "__return__") continue;
             const parsedVal = parseValue(event.value);
             ctx.stack[ctx.stack.length - 1].variables[event.name] = parsedVal;
             currentStep = ctx.createStep(event.type, { name: event.name, value: parsedVal });
+            if (ctx.pendingAssign && ctx.pendingAssign.name === event.name) {
+                currentStep.traceEvent = { ...ctx.pendingAssign, value: parsedVal };
+                ctx.pendingAssign = null;
+            }
         } else if (event.type === "EXPR") {
             ctx.pendingExprByDepth.set(ctx.stack.length, {
                 left:      event.left,
