@@ -220,7 +220,19 @@ function buildHelperCode({ userCode, wantsListNode, wantsTreeNode, wantsGraphLis
   return parts.join("\n");
 }
 
-const { buildInt, buildIntArray, buildIntMatrix } = require("../../structures/arrays/arrayInputBuilder");
+const { 
+  buildInt, 
+  buildIntArray, 
+  buildIntMatrix,
+  buildGenericNumericArray,
+  buildGenericNumericMatrix,
+  buildStringArray,
+  buildStringMatrix,
+  buildBooleanArray,
+  buildBooleanMatrix,
+  buildCharArray,
+  buildCharMatrix
+} = require("../../structures/arrays/arrayInputBuilder");
 const { buildLinkedList } = require("../../structures/linkedlist/linkedListInputBuilder");
 const { buildTree } = require("../../structures/tree/treeInputBuilder");
 const { 
@@ -234,6 +246,18 @@ const builders = {
   int: buildInt,
   "int[]": buildIntArray,
   "int[][]": buildIntMatrix,
+  "long[]": buildGenericNumericArray("long"),
+  "long[][]": buildGenericNumericMatrix("long"),
+  "double[]": buildGenericNumericArray("double"),
+  "double[][]": buildGenericNumericMatrix("double"),
+  "float[]": buildGenericNumericArray("float"),
+  "float[][]": buildGenericNumericMatrix("float"),
+  "String[]": buildStringArray,
+  "String[][]": buildStringMatrix,
+  "boolean[]": buildBooleanArray,
+  "boolean[][]": buildBooleanMatrix,
+  "char[]": buildCharArray,
+  "char[][]": buildCharMatrix,
   ListNode: buildLinkedList,
   TreeNode: buildTree,
   "List<Integer>": buildIntegerList,
@@ -315,7 +339,7 @@ function buildJavaInputsFromSignature({ userCode, methodName, methodParams, inpu
     decls.push(built.decl);
     args.push(built.arg);
 
-    if (idx === 0 && (p.type === "int[]" || p.type === "int[][]" || p.type === "ListNode" || p.type === "TreeNode" || built.wantsGraphList)) {
+    if (idx === 0 && (["int[]", "int[][]", "long[]", "long[][]", "double[]", "double[][]", "float[]", "float[][]", "String[]", "String[][]", "boolean[]", "boolean[][]", "char[]", "char[][]"].includes(p.type) || p.type === "ListNode" || p.type === "TreeNode" || built.wantsGraphList)) {
       // Preserve existing array/matrix visualization behavior, and add linked list/tree/graph initial state.
       initialValueForState = built.initialValue;
     }

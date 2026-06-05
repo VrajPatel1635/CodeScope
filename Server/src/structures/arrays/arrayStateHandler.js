@@ -1,3 +1,14 @@
+function parseTraceValue(rawVal) {
+    if (rawVal === undefined || rawVal === null || rawVal === "null") return null;
+    const s = String(rawVal).trim();
+    if (s === "") return s;
+    if (s.toLowerCase() === "true") return true;
+    if (s.toLowerCase() === "false") return false;
+    const n = Number(s);
+    if (!Number.isNaN(n)) return n;
+    return s;
+}
+
 function handleArrayTrace(event, ctx) {
     if (event.type === "ARRAY") {
         return ctx.createStep(event.type, {
@@ -14,13 +25,13 @@ function handleArrayTrace(event, ctx) {
 function applyArrayMutation(currentStep, ctx) {
     if (currentStep.arrayEvent && ctx.currentArrayState) {
         const index = parseInt(currentStep.arrayEvent.index);
-        const value = parseInt(currentStep.arrayEvent.value);
+        const value = parseTraceValue(currentStep.arrayEvent.value);
         ctx.currentArrayState[index] = value;
     }
     if (currentStep.array2dEvent && ctx.currentMatrixState) {
         const row = parseInt(currentStep.array2dEvent.row);
         const col = parseInt(currentStep.array2dEvent.col);
-        const value = parseInt(currentStep.array2dEvent.value);
+        const value = parseTraceValue(currentStep.array2dEvent.value);
         if (ctx.currentMatrixState[row]) {
             ctx.currentMatrixState[row][col] = value;
         }

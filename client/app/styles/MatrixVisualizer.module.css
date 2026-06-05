@@ -1,0 +1,95 @@
+/* =========================================
+   MATRIX VISUALIZER — V1
+   Visual debugger styles for 2D arrays.
+   Uses existing design tokens.
+   ========================================= */
+
+/* ── CONTAINER ───────────────────────────── */
+.container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  padding: var(--space-md) 0;
+}
+
+.label {
+  font-family: var(--font-ui);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+/* ── GRID CONTAINER ─────────────────────── */
+.grid {
+  display: inline-grid;
+  gap: 6px;
+  padding: var(--space-sm);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  width: fit-content;
+}
+
+/* ── ROW ────────────────────────────────── */
+.row {
+  display: contents;
+}
+
+/* ── CELL ────────────────────────────────── */
+.cell {
+  width: var(--matrix-cell-size, 44px);
+  height: var(--matrix-cell-size, 44px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-elevated);
+  border: 1.5px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-code);
+  font-size: var(--matrix-font-size, 14px);
+  font-weight: 600;
+  color: var(--text-primary);
+  transition: border-color var(--transition-fast),
+              box-shadow var(--transition-fast),
+              background-color var(--transition-fast);
+  user-select: none;
+  flex-shrink: 0;
+}
+
+/* Active cell highlight */
+.cellActive {
+  border-color: var(--exec-active);
+  box-shadow: 0 0 0 1px rgba(79, 140, 255, 0.3),
+              0 0 8px rgba(79, 140, 255, 0.15);
+  background: rgba(79, 140, 255, 0.08);
+}
+
+/* Mutated cell highlight */
+.cellMutated {
+  border-color: var(--exec-mutation);
+  box-shadow: 0 0 0 1px rgba(255, 176, 32, 0.4),
+              0 0 10px rgba(255, 176, 32, 0.15);
+  background: rgba(255, 176, 32, 0.08);
+}
+
+/* Active + Mutated (mutation takes visual priority) */
+.cellActive.cellMutated {
+  border-color: var(--exec-mutation);
+  box-shadow: 0 0 0 1px rgba(255, 176, 32, 0.4),
+              0 0 10px rgba(255, 176, 32, 0.15),
+              0 0 0 3px rgba(79, 140, 255, 0.15);
+  background: rgba(255, 176, 32, 0.08);
+}
+
+/* ── COORDINATE LABEL (beneath active cell) ─ */
+.coordinateText {
+  font-family: var(--font-code);
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--exec-active);
+  margin-top: 3px;
+  white-space: nowrap;
+}

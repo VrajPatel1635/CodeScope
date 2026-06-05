@@ -13,11 +13,12 @@ import ArrayCell from "@/app/components/visualizers/array/ArrayCell";
  * LAYER 3: Execution focus highlighting
  *
  * Props:
- *   currentStep        — current execution state object
- *   pointers           — array of { name, index } for variable ownership (matrix only)
- *   mutationEvents     — array of { index, oldValue, newValue } (for css hook)
- *   comparisonIndices  — [indexA, indexB] | [indexA] | null (for css hook)
- *   executionFocus     — Set<number> of focused cell indices
+ *   currentStep              — current execution state object
+ *   pointers                 — array of { name, index } for variable ownership
+ *   mutationEvents           — array of { index, oldValue, newValue } (for css hook)
+ *   comparisonIndices        — [indexA, indexB] | [indexA] | null (for css hook)
+ *   executionFocus           — Set<number> of focused cell indices
+ *   matrixVisualizationData  — { matrix, mutationEvents, activeCell } data contract
  */
 export default function ArrayVisualizer({
   currentStep,
@@ -25,27 +26,29 @@ export default function ArrayVisualizer({
   mutationEvents = [],
   comparisonIndices = null,
   executionFocus = null,
+  matrixVisualizationData = null,
 }) {
   const array = currentStep?.array || [];
   const matrix = currentStep?.matrix || null;
 
-  // For matrix: keep last valid (i,j) so highlight doesn't flicker
+  // For matrix: keep last valid cell so highlight doesn't flicker
   const lastValidMatrixPtrRef = useRef(null);
-  const rawI = matrix ? pointers.find((p) => p.name.toLowerCase() === "i")?.index : undefined;
-  const rawJ = matrix ? pointers.find((p) => p.name.toLowerCase() === "j")?.index : undefined;
-  const hasValidIJ = Boolean(matrix) && typeof rawI === "number" && typeof rawJ === "number";
+
+  // Use coordinate model from data contract (no hardcoded i/j)
+  const activeCell = matrixVisualizationData?.activeCell ?? null;
+  const hasValidCell = Boolean(matrix) && activeCell !== null;
 
   useEffect(() => {
-    if (hasValidIJ) {
-      lastValidMatrixPtrRef.current = { i: rawI, j: rawJ };
+    if (hasValidCell) {
+      lastValidMatrixPtrRef.current = { row: activeCell.row, col: activeCell.col };
     }
-  }, [hasValidIJ, rawI, rawJ]);
+  }, [hasValidCell, activeCell]);
 
   if (!matrix && (!array || array.length === 0)) return null;
 
   // ── 2D MATRIX RENDERER ──────────────────────────────────────────
   if (matrix) {
-    return renderMatrix(matrix, hasValidIJ, rawI, rawJ, lastValidMatrixPtrRef);
+    return renderMatrix(matrix, hasValidCell, activeCell, lastValidMatrixPtrRef, matrixVisualizationData);
   }
 
   // ── Responsive cell sizing ──────────────────────────────────────
@@ -103,9 +106,17 @@ function getCellDimensions(length) {
   return { cellSize: 28, fontSize: 10, gap: 4 };
 }
 
-function renderMatrix(matrix, hasValidIJ, rawI, rawJ, lastValidMatrixPtrRef) {
-  const iVar = hasValidIJ ? rawI : lastValidMatrixPtrRef.current?.i;
-  const jVar = hasValidIJ ? rawJ : lastValidMatrixPtrRef.current?.j;
+function renderMatrix(matrix, hasValidCell, activeCell, lastValidMatrixPtrRef, matrixVisualizationData) {
+  const cellRow = hasValidCell ? activeCell.row : lastValidMatrixPtrRef.current?.row;
+  const cellCol = hasValidCell ? activeCell.col : lastValidMatrixPtrRef.current?.col;
+
+  // Build a set of mutating cells for O(1) lookup
+  const mutatingCells = new Set();
+  if (matrixVisualizationData?.mutationEvents) {
+    matrixVisualizationData.mutationEvents.forEach(m => {
+      mutatingCells.add(`${m.row},${m.col}`);
+    });
+  }
 
   return (
     <div className={styles.container}>
@@ -115,7 +126,8 @@ function renderMatrix(matrix, hasValidIJ, rawI, rawJ, lastValidMatrixPtrRef) {
         {matrix.map((row, rIdx) => (
           <div key={`row-${rIdx}`} className={styles.matrixRow}>
             {row.map((val, cIdx) => {
-              const isActive = rIdx === iVar && cIdx === jVar;
+              const isActive = rIdx === cellRow && cIdx === cellCol;
+              const isMutating = mutatingCells.has(`${rIdx},${cIdx}`);
               const cellClasses = [
                 styles.matrixCell,
                 isActive && styles.matrixCellActive,
@@ -124,12 +136,12 @@ function renderMatrix(matrix, hasValidIJ, rawI, rawJ, lastValidMatrixPtrRef) {
                 .join(" ");
 
               return (
-                <div key={`col-${cIdx}`} style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+                <div key={`col-${cIdx}`} id={`matrix-cell-${rIdx}-${cIdx}`} style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
                   <div className={cellClasses}>{val}</div>
                   {isActive && (
                     <div className={styles.matrixPointer}>
                       <span className={styles.matrixPointerText}>
-                        i={iVar}, j={jVar}
+                        [{cellRow}, {cellCol}]
                       </span>
                     </div>
                   )}
@@ -142,3 +154,4 @@ function renderMatrix(matrix, hasValidIJ, rawI, rawJ, lastValidMatrixPtrRef) {
     </div>
   );
 }
+

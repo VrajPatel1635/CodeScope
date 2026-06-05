@@ -2,6 +2,7 @@
 
 import React, { useMemo } from "react";
 import ArrayVisualizer from "@/app/components/visualizers/array/ArrayVisualizer";
+import MatrixVisualizer from "@/app/components/visualizers/matrix/MatrixVisualizer";
 import LinkedListVisualizer from "@/app/components/visualizers/linked-list/LinkedListVisualizer";
 import TreeVisualizer from "@/app/components/visualizers/tree/TreeVisualizer";
 import GraphVisualizer from "@/app/components/visualizers/graph/GraphVisualizer";
@@ -147,7 +148,8 @@ function InnerWorkspace({ currentState, result, activeSourceStep }) {
   const { containerRef } = useNodeRegistry();
   const variables = currentState?.currentFrameVariables || {};
   const isLinkedList = !!currentState?.linkedList;
-  const isArray = !!currentState?.array || !!currentState?.matrix;
+  const isArray = !!currentState?.array;
+  const isMatrix = !!currentState?.matrix;
   const isTree = !!currentState?.tree;
   const isGraph = !!currentState?.graph;
 
@@ -174,6 +176,94 @@ function InnerWorkspace({ currentState, result, activeSourceStep }) {
     }
     return ptrs;
   }, [variables, isArray]);
+
+  // ══════════════════════════════════════════════════════════════════
+  // MATRIX: MUTATION EVENTS
+  // ══════════════════════════════════════════════════════════════════
+  const matrixMutationEvents = useMemo(() => {
+    const mutations = [];
+    if (!isMatrix) return mutations;
+    activeMicroSteps.forEach(step => {
+      if (step.array2dEvent) {
+        const row = Number(step.array2dEvent.row);
+        const col = Number(step.array2dEvent.col);
+        const newValue = step.matrix?.[row]?.[col];
+
+        const states = result?.states || [];
+        const stepIdx = states.indexOf(step);
+        let oldValue = "?";
+        if (stepIdx > 0) {
+          oldValue = states[stepIdx - 1].matrix?.[row]?.[col] ?? "?";
+        }
+        mutations.push({ row, col, oldValue, newValue, variable: step.array2dEvent.name });
+      }
+    });
+    return mutations;
+  }, [activeMicroSteps, result, isMatrix]);
+
+  // ══════════════════════════════════════════════════════════════════
+  // MATRIX: COORDINATE POINTER MODEL
+  // ══════════════════════════════════════════════════════════════════
+  // Derives the active cell from any two integer variables that are
+  // valid row/col indices into the current matrix. Does NOT hardcode
+  // variable names — it discovers the row pointer (value < matrix.length)
+  // and the col pointer (value < matrix[0].length) from all integer
+  // variables in scope that appear in the ARRAY_POINTER_NAMES whitelist.
+  const matrixActiveCell = useMemo(() => {
+    if (!isMatrix || !currentState?.matrix) return null;
+    const matrix = currentState.matrix;
+    const rows = matrix.length;
+    const cols = matrix[0]?.length ?? 0;
+    if (rows === 0 || cols === 0) return null;
+
+    // Collect all integer pointer candidates from scope
+    const candidates = [];
+    for (const [key, value] of Object.entries(variables)) {
+      if (typeof value === "number" && value >= 0 && ARRAY_POINTER_NAMES.includes(key.toLowerCase())) {
+        candidates.push({ name: key, value });
+      }
+    }
+
+    if (candidates.length < 2) return null;
+
+    // If a mutation happened this step, use its row/col directly
+    if (matrixMutationEvents.length > 0) {
+      const lastMut = matrixMutationEvents[matrixMutationEvents.length - 1];
+      return { row: lastMut.row, col: lastMut.col };
+    }
+
+    // Otherwise discover from variables: first valid row pointer, first valid col pointer
+    // Strategy: take the first two candidates ordered by declaration. 
+    // First candidate → row, second → col (matching typical loop nesting).
+    let rowPtr = null;
+    let colPtr = null;
+    for (const c of candidates) {
+      if (rowPtr === null && c.value < rows) {
+        rowPtr = c;
+      } else if (rowPtr !== null && colPtr === null && c.value < cols) {
+        colPtr = c;
+      }
+    }
+
+    if (rowPtr && colPtr) {
+      return { row: rowPtr.value, col: colPtr.value };
+    }
+    return null;
+  }, [isMatrix, currentState, variables, matrixMutationEvents]);
+
+  // ══════════════════════════════════════════════════════════════════
+  // MATRIX: VISUALIZATION DATA CONTRACT
+  // ══════════════════════════════════════════════════════════════════
+  // Bundles all matrix data into a single contract object for the
+  // future MatrixVisualizer component.
+  const matrixVisualizationData = useMemo(() => {
+    if (!isMatrix || !currentState?.matrix) return null;
+    return {
+      matrix: currentState.matrix,
+      mutationEvents: matrixMutationEvents,
+      activeCell: matrixActiveCell,
+    };
+  }, [isMatrix, currentState, matrixMutationEvents, matrixActiveCell]);
 
   // ══════════════════════════════════════════════════════════════════
   // LINKED LIST POINTER DETECTION
@@ -230,7 +320,7 @@ function InnerWorkspace({ currentState, result, activeSourceStep }) {
   // ARRAY: LAYER 5 — Comparison Detection
   // ══════════════════════════════════════════════════════════════════
   const comparisonIndices = useMemo(() => {
-    if (!isArray) return null;
+    if (!isArray && !isMatrix) return null;
     const allComparisons = new Set();
     activeMicroSteps.forEach(step => {
       if (step.type === "COND") {
@@ -240,7 +330,7 @@ function InnerWorkspace({ currentState, result, activeSourceStep }) {
       }
     });
     return allComparisons.size > 0 ? Array.from(allComparisons) : null;
-  }, [activeMicroSteps, variables, isArray]);
+  }, [activeMicroSteps, variables, isArray, isMatrix]);
 
   // ══════════════════════════════════════════════════════════════════
   // ARRAY: LAYER 3 — Execution Focus
@@ -753,11 +843,18 @@ function InnerWorkspace({ currentState, result, activeSourceStep }) {
       {/* STRUCTURAL VISUALIZERS                                    */}
       {/* ══════════════════════════════════════════════════════════ */}
 
-      {currentState?.array && (
+      {currentState?.array && !currentState?.matrix && (
         <ArrayVisualizer
           currentStep={currentState}
           pointers={arrayPointers}
           executionFocus={arrayExecutionFocus}
+        />
+      )}
+
+      {/* Matrix Visualizer — dedicated component-based 2D array visualizer */}
+      {currentState?.matrix && (
+        <MatrixVisualizer
+          matrixVisualizationData={matrixVisualizationData}
         />
       )}
 

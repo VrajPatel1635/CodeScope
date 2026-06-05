@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import styles from "./SourceTimelinePanel.module.css";
+import styles from "@/app/styles/SourceTimelinePanel.module.css";
 
 /**
  * SourceTimelinePanel

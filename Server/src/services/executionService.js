@@ -681,7 +681,7 @@ function injectTraceIntoBody(mappedLines, methodName = "solve", methodParams = [
     out += `System.out.println("TRACE|LINE|${lineNumber}");\n`;
     out += trimmed + "\n";
 
-    const array2DMatch = trimmed.match(/(\w+)\s*\[(.*?)\]\s*\[(.*?)\]\s*=\s*(.*);/);
+    const array2DMatch = trimmed.match(/(\w+)\s*\[(.*?)\]\s*\[(.*?)\]\s*[+\-*\/%]?=\s*(.*);/);
     if (array2DMatch) {
       const arrayName = array2DMatch[1];
       const row = array2DMatch[2];
@@ -689,7 +689,7 @@ function injectTraceIntoBody(mappedLines, methodName = "solve", methodParams = [
       out += `System.out.println("TRACE|ARRAY2D|${arrayName}|" + (${row}) + "|" + (${col}) + "|" + ${arrayName}[${row}][${col}]);\n`;
       out += `System.out.println("TRACE|VAR|${arrayName}|" + ${formatter}(${arrayName}));\n`;
     } else {
-      const arrayMatch = trimmed.match(/(\w+)\s*\[([^\]]+)\]\s*=\s*(.*);/);
+      const arrayMatch = trimmed.match(/(\w+)\s*\[([^\]]+)\]\s*[+\-*\/%]?=\s*(.*);/);
       if (arrayMatch) {
         const arrayName = arrayMatch[1];
         const index = arrayMatch[2];
@@ -1001,7 +1001,7 @@ function injectTraceIntoBody(mappedLines, methodName = "solve", methodParams = [
     tracedBody += line + "\n";
 
     // ARRAY TRACE
-    const array2DMatch = line.match(/(\w+)\s*\[(.*?)\]\s*\[(.*?)\]\s*=\s*(.*);/);
+    const array2DMatch = line.match(/(\w+)\s*\[(.*?)\]\s*\[(.*?)\]\s*[+\-*\/%]?=\s*(.*);/);
     if (array2DMatch) {
       const arrayName = array2DMatch[1];
       const row = array2DMatch[2];
@@ -1009,7 +1009,7 @@ function injectTraceIntoBody(mappedLines, methodName = "solve", methodParams = [
       tracedBody += `System.out.println("TRACE|ARRAY2D|${arrayName}|" + (${row}) + "|" + (${col}) + "|" + ${arrayName}[${row}][${col}]);\n`;
       tracedBody += `System.out.println("TRACE|VAR|${arrayName}|" + ${formatter}(${arrayName}));\n`;
     } else {
-      const arrayMatch = line.match(/(\w+)\s*\[([^\]]+)\]\s*=\s*(.*);/);
+      const arrayMatch = line.match(/(\w+)\s*\[([^\]]+)\]\s*[+\-*\/%]?=\s*(.*);/);
       if (arrayMatch) {
         const arrayName = arrayMatch[1];
         const index = arrayMatch[2];

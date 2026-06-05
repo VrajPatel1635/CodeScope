@@ -50,7 +50,7 @@ export default function ArrayCell({
     <div className={styles.cellColumn}>
       {/* Structural Cell */}
       <div ref={cellRef} className={cellClasses}>
-        {value}
+        {typeof value === "boolean" ? String(value) : value}
       </div>
 
       {/* Index label below cell */}
