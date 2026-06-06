@@ -1111,7 +1111,7 @@ function injectTraceIntoBody(mappedLines, methodName = "solve", methodParams = [
     }
 
     // COLLECTION MUTATION TRACE
-    const collectionMutationMatch = line.match(/\b([a-zA-Z_]\w*)\.(add|remove|set|push|pop|offer|poll|put|clear|pollFirst|pollLast|removeFirst|removeLast|addFirst|addLast|offerFirst|offerLast)\s*\(/);
+    const collectionMutationMatch = line.match(/\b([a-zA-Z_]\w*)\.(add|remove|set|push|pop|offer|poll|put|putIfAbsent|replace|clear|pollFirst|pollLast|removeFirst|removeLast|addFirst|addLast|offerFirst|offerLast)\s*\(/);
     if (collectionMutationMatch) {
       const varName = collectionMutationMatch[1];
       tracedBody += `System.out.println("TRACE|COLLECTION_MUT|${varName}|" + ${formatter}(${varName}));\n`;
@@ -1186,7 +1186,26 @@ function extractAllMethodsAndInstrument(userCode) {
 
       let methodParams = [];
       if (paramsStr && paramsStr.trim()) {
-          methodParams = paramsStr.split(",").map((p) => {
+          const rawParams = [];
+          let currentParam = "";
+          let genericDepth = 0;
+          for (let i = 0; i < paramsStr.length; i++) {
+              const char = paramsStr[i];
+              if (char === '<') genericDepth++;
+              else if (char === '>') genericDepth--;
+              
+              if (char === ',' && genericDepth === 0) {
+                  rawParams.push(currentParam);
+                  currentParam = "";
+              } else {
+                  currentParam += char;
+              }
+          }
+          if (currentParam.trim()) {
+              rawParams.push(currentParam);
+          }
+
+          methodParams = rawParams.map((p) => {
               const parts = p.trim().split(/\s+/).filter(Boolean);
               const paramName = parts[parts.length - 1];
               const typeTokens = parts.slice(0, -1).filter((t) => {

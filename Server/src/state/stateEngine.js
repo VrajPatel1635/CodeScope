@@ -58,6 +58,7 @@ class StateEngineContext {
         }
 
         this.frameCounter = 0;
+        this.declaredCollectionTypes = initialArray?.declaredCollectionTypes || {};
         this.stack = [{ function: "global", variables: {}, frameId: "F0", currentLine: null }];
         this.pendingExprByDepth = new Map();
         this.lastChildReturnValue = null;

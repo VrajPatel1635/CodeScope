@@ -236,10 +236,8 @@ const {
 const { buildLinkedList } = require("../../structures/linkedlist/linkedListInputBuilder");
 const { buildTree } = require("../../structures/tree/treeInputBuilder");
 const { 
-  buildIntegerList, 
-  buildIntegerStack, 
-  buildIntegerQueue, 
-  buildIntegerDeque 
+  buildGenericCollection, 
+  buildGenericMap 
 } = require("../../structures/collections/collectionInputBuilder");
 
 const builders = {
@@ -260,20 +258,6 @@ const builders = {
   "char[][]": buildCharMatrix,
   ListNode: buildLinkedList,
   TreeNode: buildTree,
-  "List<Integer>": buildIntegerList,
-  "ArrayList<Integer>": buildIntegerList,
-  "java.util.List<Integer>": buildIntegerList,
-  "java.util.ArrayList<Integer>": buildIntegerList,
-  "Stack<Integer>": buildIntegerStack,
-  "java.util.Stack<Integer>": buildIntegerStack,
-  "Queue<Integer>": buildIntegerQueue,
-  "java.util.Queue<Integer>": buildIntegerQueue,
-  "LinkedList<Integer>": buildIntegerQueue, // For execution as a collection
-  "java.util.LinkedList<Integer>": buildIntegerQueue,
-  "Deque<Integer>": buildIntegerDeque,
-  "java.util.Deque<Integer>": buildIntegerDeque,
-  "ArrayDeque<Integer>": buildIntegerDeque,
-  "java.util.ArrayDeque<Integer>": buildIntegerDeque,
   "List<List<Integer>>": require("../../structures/graph/graphInputBuilder").buildGraphList,
   "ArrayList<ArrayList<Integer>>": require("../../structures/graph/graphInputBuilder").buildGraphList
 };
@@ -281,16 +265,25 @@ const builders = {
 function getBuilderForType(paramType) {
   const normalized = normalizeType(paramType);
   if (builders[normalized]) return builders[normalized];
-  if (/^(java\.util\.)?(Hash)?Map<.*>$/.test(normalized)) {
-    return require("../../structures/collections/collectionInputBuilder").buildMap;
+  
+  const genericMatch = normalized.match(/^(java\.util\.)?(List|ArrayList|Stack|Queue|Deque|ArrayDeque|LinkedList|Set|HashSet|PriorityQueue)<([a-zA-Z0-9_]+)>$/);
+  if (genericMatch) {
+    const collectionType = genericMatch[2];
+    const elementType = genericMatch[3];
+    return function(args) {
+      return buildGenericCollection(collectionType, elementType, args);
+    };
   }
-  if (/^(java\.util\.)?(Hash)?Set<.*>$/.test(normalized)) {
-    return require("../../structures/collections/collectionInputBuilder").buildSet;
+
+  const mapMatch = normalized.match(/^(java\.util\.)?(Map|HashMap)<([a-zA-Z0-9_]+),\s*([a-zA-Z0-9_]+)>$/);
+  if (mapMatch) {
+    const mapType = mapMatch[2];
+    const keyType = mapMatch[3];
+    const valType = mapMatch[4];
+    return function(args) {
+      return buildGenericMap(mapType, keyType, valType, args);
+    };
   }
-  if (/^(java\.util\.)?PriorityQueue<.*>$/.test(normalized)) {
-    return require("../../structures/collections/collectionInputBuilder").buildPriorityQueue;
-  }
-  return null;
 }
 
 function buildJavaInputsFromSignature({ userCode, methodName, methodParams, inputRaw }) {
@@ -348,6 +341,14 @@ function buildJavaInputsFromSignature({ userCode, methodName, methodParams, inpu
     wantsTreeNode = wantsTreeNode || Boolean(built.wantsTreeNode);
     wantsGraphList = wantsGraphList || Boolean(built.wantsGraphList);
   });
+  const declaredCollectionTypes = {};
+  params.forEach(p => declaredCollectionTypes[p.name] = p.type);
+
+  if (initialValueForState) {
+    initialValueForState.declaredCollectionTypes = declaredCollectionTypes;
+  } else {
+    initialValueForState = { type: "Collections", declaredCollectionTypes };
+  }
 
   const helperCode = buildHelperCode({ userCode, wantsListNode, wantsTreeNode, wantsGraphList });
 

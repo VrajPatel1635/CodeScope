@@ -281,5 +281,9 @@ module.exports = {
   buildBooleanMatrix,
   buildCharArray,
   buildCharMatrix,
-  parseIntArrayLoose: parseNumericArrayLoose // Export under old name so LinkedLists/Collections don't break
+  parseIntArrayLoose: parseNumericArrayLoose, // Export under old name so LinkedLists/Collections don't break
+  parseNumericArrayLoose,
+  parseStringArrayLoose,
+  parseBooleanArrayLoose,
+  parseCharArrayLoose
 };

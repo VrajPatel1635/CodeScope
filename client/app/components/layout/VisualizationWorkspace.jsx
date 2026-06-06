@@ -6,6 +6,10 @@ import MatrixVisualizer from "@/app/components/visualizers/matrix/MatrixVisualiz
 import LinkedListVisualizer from "@/app/components/visualizers/linked-list/LinkedListVisualizer";
 import TreeVisualizer from "@/app/components/visualizers/tree/TreeVisualizer";
 import GraphVisualizer from "@/app/components/visualizers/graph/GraphVisualizer";
+import StackVisualizer from "@/app/components/visualizers/StackVisualizer/StackVisualizer";
+import QueueVisualizer from "@/app/components/visualizers/QueueVisualizer/QueueVisualizer";
+import DequeVisualizer from "@/app/components/visualizers/DequeVisualizer/DequeVisualizer";
+import HashMapVisualizer from "@/app/components/visualizers/HashMapVisualizer/HashMapVisualizer";
 
 import VariableSemanticsLayer from "@/app/components/variables/VariableSemanticsLayer";
 
@@ -152,6 +156,42 @@ function InnerWorkspace({ currentState, result, activeSourceStep }) {
   const isMatrix = !!currentState?.matrix;
   const isTree = !!currentState?.tree;
   const isGraph = !!currentState?.graph;
+
+  // ══════════════════════════════════════════════════════════════════
+  // COLLECTION CONTRACTS — Stack Detection
+  // ══════════════════════════════════════════════════════════════════
+  const stackContracts = useMemo(() => {
+    const contracts = currentState?.collectionContracts;
+    if (!contracts) return [];
+    return Object.values(contracts).filter(c => c.collectionType === "stack");
+  }, [currentState?.collectionContracts]);
+
+  // ══════════════════════════════════════════════════════════════════
+  // COLLECTION CONTRACTS — Queue Detection
+  // ══════════════════════════════════════════════════════════════════
+  const queueContracts = useMemo(() => {
+    const contracts = currentState?.collectionContracts;
+    if (!contracts) return [];
+    return Object.values(contracts).filter(c => c.collectionType === "queue");
+  }, [currentState?.collectionContracts]);
+
+  // ══════════════════════════════════════════════════════════════════
+  // COLLECTION CONTRACTS — Deque Detection
+  // ══════════════════════════════════════════════════════════════════
+  const dequeContracts = useMemo(() => {
+    const contracts = currentState?.collectionContracts;
+    if (!contracts) return [];
+    return Object.values(contracts).filter(c => c.collectionType === "deque");
+  }, [currentState?.collectionContracts]);
+
+  // ══════════════════════════════════════════════════════════════════
+  // COLLECTION CONTRACTS — HashMap Detection
+  // ══════════════════════════════════════════════════════════════════
+  const hashmapContracts = useMemo(() => {
+    const contracts = currentState?.collectionContracts;
+    if (!contracts) return [];
+    return Object.values(contracts).filter(c => c.collectionType === "hashmap");
+  }, [currentState?.collectionContracts]);
 
   // ── Source Mode Aggregation ──────────────────────────────────────
   const activeMicroSteps = useMemo(() => {
@@ -903,6 +943,42 @@ function InnerWorkspace({ currentState, result, activeSourceStep }) {
           activeNodeId={graphActiveNodeId}
         />
       )}
+
+      {/* ══════════════════════════════════════════════════════════ */}
+      {/* COLLECTION VISUALIZERS (Contract-Based)                   */}
+      {/* ══════════════════════════════════════════════════════════ */}
+
+      {/* Stack Visualizer — renders from collectionContracts */}
+      {stackContracts.map(contract => (
+        <StackVisualizer
+          key={`stack-viz-${contract.name}`}
+          contract={contract}
+        />
+      ))}
+
+      {/* Queue Visualizer — renders from collectionContracts */}
+      {queueContracts.map(contract => (
+        <QueueVisualizer
+          key={`queue-viz-${contract.name}`}
+          contract={contract}
+        />
+      ))}
+
+      {/* Deque Visualizer — renders from collectionContracts */}
+      {dequeContracts.map(contract => (
+        <DequeVisualizer
+          key={`deque-viz-${contract.name}`}
+          contract={contract}
+        />
+      ))}
+
+      {/* HashMap Visualizer — renders from collectionContracts */}
+      {hashmapContracts.map(contract => (
+        <HashMapVisualizer
+          key={`hashmap-viz-${contract.name}`}
+          contract={contract}
+        />
+      ))}
     </div>
   );
 }

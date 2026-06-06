@@ -1,123 +1,103 @@
 const { parseJsonLoose } = require("../../execution/runtime/inputUtils");
-const { parseIntArrayLoose } = require("../arrays/arrayInputBuilder");
+const { 
+  parseNumericArrayLoose, 
+  parseStringArrayLoose, 
+  parseBooleanArrayLoose, 
+  parseCharArrayLoose 
+} = require("../arrays/arrayInputBuilder");
 
-function buildIntegerList({ paramName, inputRaw }) {
+function getParserForType(type) {
+  switch (type) {
+    case "Integer":
+    case "Long":
+    case "Double":
+    case "Float":
+      return parseNumericArrayLoose;
+    case "String":
+      return parseStringArrayLoose;
+    case "Boolean":
+      return parseBooleanArrayLoose;
+    case "Character":
+      return parseCharArrayLoose;
+    default:
+      return parseNumericArrayLoose;
+  }
+}
+
+function formatJavaValue(val, type) {
+  if (type === "Integer") return String(Math.trunc(val));
+  if (type === "Long") return `${val}L`;
+  if (type === "Float") return `${val}f`;
+  if (type === "Double") return String(val);
+  if (type === "Boolean") return String(val);
+  if (type === "String") {
+    const escaped = String(val).replace(/\\/g, "\\\\").replace(/"/g, '\\"').replace(/\n/g, "\\n").replace(/\r/g, "\\r");
+    return `"${escaped}"`;
+  }
+  if (type === "Character") {
+     const escaped = String(val).replace(/\\/g, "\\\\").replace(/'/g, "\\'").replace(/\n/g, "\\n").replace(/\r/g, "\\r").replace(/\t/g, "\\t");
+     return `'${escaped}'`;
+  }
+  return String(val);
+}
+
+function buildGenericCollection(collectionType, elementType, { paramName, inputRaw }) {
+  const parser = getParserForType(elementType);
   let values = [];
   try {
-    values = parseIntArrayLoose(inputRaw);
+    values = parser(inputRaw);
   } catch (e) {
-    // default to empty if parsing fails
   }
-  const valsString = values.join(",");
-  const decl = `java.util.List<Integer> ${paramName} = new java.util.ArrayList<>(java.util.Arrays.asList(${valsString}));`;
+  
+  const formattedVals = values.map(v => formatJavaValue(v, elementType)).join(",");
+  let decl = "";
+  let baseClass = collectionType;
+  if (collectionType === "List") baseClass = "ArrayList";
+  if (collectionType === "Queue") baseClass = "LinkedList";
+  if (collectionType === "Deque") baseClass = "ArrayDeque";
+  if (collectionType === "Set") baseClass = "HashSet";
+
+  if (values.length === 0) {
+    decl = `java.util.${collectionType}<${elementType}> ${paramName} = new java.util.${baseClass}<>();`;
+  } else if (["List", "ArrayList", "Set", "HashSet", "PriorityQueue"].includes(collectionType)) {
+    decl = `java.util.${collectionType}<${elementType}> ${paramName} = new java.util.${baseClass}<>(java.util.Arrays.asList(${formattedVals}));`;
+  } else {
+    decl = `java.util.${collectionType}<${elementType}> ${paramName} = new java.util.${baseClass}<>();\n` +
+           `    ${paramName}.addAll(java.util.Arrays.asList(${formattedVals}));`;
+  }
   return { decl, arg: paramName, initialValue: values };
 }
 
-function buildIntegerStack({ paramName, inputRaw }) {
-  let values = [];
-  try {
-    values = parseIntArrayLoose(inputRaw);
-  } catch (e) {
-    // default to empty if parsing fails
-  }
-  const valsString = values.join(",");
-  const decl = `java.util.Stack<Integer> ${paramName} = new java.util.Stack<>();\n` +
-               `    for(int _v : new int[]{${valsString}}) { ${paramName}.push(_v); }`;
-  return { decl, arg: paramName, initialValue: values };
-}
-
-function buildIntegerQueue({ paramName, inputRaw }) {
-  let values = [];
-  try {
-    values = parseIntArrayLoose(inputRaw);
-  } catch (e) {
-  }
-  const valsString = values.join(",");
-  const decl = `java.util.Queue<Integer> ${paramName} = new java.util.LinkedList<>();\n` +
-               `    for(int _v : new int[]{${valsString}}) { ${paramName}.offer(_v); }`;
-  return { decl, arg: paramName, initialValue: values };
-}
-
-function buildIntegerDeque({ paramName, inputRaw }) {
-  let values = [];
-  try {
-    values = parseIntArrayLoose(inputRaw);
-  } catch (e) {
-  }
-  const valsString = values.join(",");
-  const decl = `java.util.Deque<Integer> ${paramName} = new java.util.ArrayDeque<>();\n` +
-               `    for(int _v : new int[]{${valsString}}) { ${paramName}.offerLast(_v); }`;
-  return { decl, arg: paramName, initialValue: values };
-}
-
-function buildMap({ paramName, inputRaw }) {
+function buildGenericMap(mapType, keyType, valueType, { paramName, inputRaw }) {
   let values = {};
   try {
     values = JSON.parse(inputRaw);
     if (typeof values !== 'object' || Array.isArray(values)) {
-      values = {}; // Fallback to empty map if it's not a valid object
+      values = {};
     }
   } catch (e) {
-    // Default to empty if parsing fails
   }
 
-  let decl = `java.util.Map<Object, Object> ${paramName} = new java.util.HashMap<>();\n`;
+  let baseClass = mapType;
+  if (mapType === "Map") baseClass = "HashMap";
+
+  let decl = `java.util.${mapType}<${keyType}, ${valueType}> ${paramName} = new java.util.${baseClass}<>();\n`;
   for (const [key, val] of Object.entries(values)) {
-    // Format keys and values. Assume numbers are Integers, strings are Strings
-    const formattedKey = isNaN(Number(key)) ? `"${key}"` : Number(key);
-    const formattedVal = typeof val === 'string' ? `"${val}"` : val;
+    // Some keys like numbers might come as strings from Object.entries. 
+    // formatJavaValue takes the value. If keyType is Integer, we should parse it to a number first.
+    let parsedKey = key;
+    if (["Integer", "Long", "Float", "Double"].includes(keyType)) {
+      parsedKey = Number(key);
+    }
+    const formattedKey = formatJavaValue(parsedKey, keyType);
+    const formattedVal = formatJavaValue(val, valueType);
     decl += `    ${paramName}.put(${formattedKey}, ${formattedVal});\n`;
   }
 
   return { decl, arg: paramName, initialValue: values };
 }
 
-function buildSet({ paramName, inputRaw }) {
-  let values = [];
-  try {
-    values = JSON.parse(inputRaw);
-    if (!Array.isArray(values)) {
-      values = [];
-    }
-  } catch (e) {
-    // Default to empty if parsing fails
-  }
-
-  let decl = `java.util.Set<Object> ${paramName} = new java.util.HashSet<>();\n`;
-  for (const v of values) {
-    const formattedVal = typeof v === 'string' ? `"${v}"` : v;
-    decl += `    ${paramName}.add(${formattedVal});\n`;
-  }
-
-  return { decl, arg: paramName, initialValue: values };
-}
-
-function buildPriorityQueue({ paramName, inputRaw }) {
-  let values = [];
-  try {
-    values = JSON.parse(inputRaw);
-    if (!Array.isArray(values)) {
-      values = [];
-    }
-  } catch (e) {
-    // Default to empty if parsing fails
-  }
-
-  let decl = `java.util.PriorityQueue<Object> ${paramName} = new java.util.PriorityQueue<>();\n`;
-  for (const v of values) {
-    const formattedVal = typeof v === 'string' ? `"${v}"` : v;
-    decl += `    ${paramName}.offer(${formattedVal});\n`;
-  }
-
-  return { decl, arg: paramName, initialValue: values };
-}
-
 module.exports = {
-  buildIntegerList,
-  buildIntegerStack,
-  buildIntegerQueue,
-  buildIntegerDeque,
-  buildMap,
-  buildSet,
-  buildPriorityQueue
+  buildGenericCollection,
+  buildGenericMap
 };

@@ -1,0 +1,175 @@
+/* =========================================
+   HASHMAP VISUALIZER — V1
+   Visual debugger styles for hashmap collections
+   Uses design-system tokens for consistency
+   ========================================= */
+
+/* ── CONTAINER ───────────────────────────── */
+.container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-md);
+  padding: var(--space-md) 0;
+}
+
+.label {
+  font-family: var(--font-ui);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.mapName {
+  font-family: var(--font-code);
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin-left: var(--space-xs);
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+/* ── HASHMAP BODY (vertical) ─────────────── */
+.mapBody {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  background: var(--bg-elevated);
+  border: 1.5px solid var(--border-color);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  min-width: 200px;
+}
+
+/* ── HASHMAP ENTRY ───────────────────────── */
+.entryRow {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: 44px;
+  border-bottom: 1px solid var(--border-color);
+  font-family: var(--font-code);
+  font-size: 13px;
+  color: var(--text-primary);
+  transition: background-color var(--transition-fast);
+}
+
+.entryRow:last-child {
+  border-bottom: none;
+}
+
+.keyBox {
+  flex: 1;
+  min-width: 80px;
+  padding: 0 var(--space-md);
+  font-weight: 600;
+  color: var(--accent-primary);
+  border-right: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.arrowBox {
+  padding: 0 var(--space-sm);
+  color: var(--text-muted);
+  font-size: 12px;
+  opacity: 0.5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.valueBox {
+  flex: 1;
+  min-width: 80px;
+  padding: 0 var(--space-md);
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  font-weight: 500;
+}
+
+/* ── OPERATION HIGHLIGHTS ────────────────── */
+
+/* put: entry inserted/updated */
+.entryPut {
+  background: rgba(107, 191, 160, 0.15);
+}
+
+/* remove: entry removed (if still rendered) */
+.entryRemove {
+  background: rgba(255, 93, 93, 0.15);
+}
+
+/* replace: entry modified */
+.entryReplace {
+  background: rgba(79, 140, 255, 0.15);
+}
+
+/* ── SIZE INDICATOR ──────────────────────── */
+.sizeLabel {
+  font-family: var(--font-code);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-muted);
+  margin-top: var(--space-sm);
+}
+
+/* ── OPERATION BADGE ─────────────────────── */
+.operationBadge {
+  font-family: var(--font-code);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+  line-height: 1.4;
+}
+
+.operationPut {
+  color: var(--accent-highlight);
+  background: rgba(107, 191, 160, 0.1);
+  border: 1px solid rgba(107, 191, 160, 0.25);
+}
+
+.operationRemove {
+  color: var(--exec-error);
+  background: rgba(255, 93, 93, 0.1);
+  border: 1px solid rgba(255, 93, 93, 0.25);
+}
+
+.operationReplace {
+  color: var(--exec-active);
+  background: rgba(79, 140, 255, 0.1);
+  border: 1px solid rgba(79, 140, 255, 0.25);
+}
+
+/* ── EMPTY STATE ─────────────────────────── */
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  padding: var(--space-lg) var(--space-xl);
+  border: 1.5px dashed var(--border-color);
+  border-radius: var(--radius-lg);
+  min-width: 160px;
+}
+
+.emptyIcon {
+  font-size: 24px;
+  opacity: 0.4;
+}
+
+.emptyText {
+  font-family: var(--font-ui);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-muted);
+}

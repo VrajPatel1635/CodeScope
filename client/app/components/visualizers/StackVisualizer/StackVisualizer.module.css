@@ -1,0 +1,214 @@
+/* =========================================
+   STACK VISUALIZER — V1
+   Visual debugger styles for stack collections
+   Uses design-system tokens for consistency
+   with Array, Matrix, Tree, Graph visualizers
+   ========================================= */
+
+/* ── CONTAINER ───────────────────────────── */
+.container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-md);
+  padding: var(--space-md) 0;
+}
+
+.label {
+  font-family: var(--font-ui);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.stackName {
+  font-family: var(--font-code);
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin-left: var(--space-xs);
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+/* ── STACK BODY ──────────────────────────── */
+.stackBody {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0;
+  width: fit-content;
+  min-width: 120px;
+}
+
+/* ── STACK ELEMENT ───────────────────────── */
+.elementRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  width: 100%;
+}
+
+.element {
+  width: 100%;
+  min-width: 100px;
+  max-width: 200px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-elevated);
+  border: 1.5px solid var(--border-color);
+  font-family: var(--font-code);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  transition: border-color var(--transition-fast),
+              box-shadow var(--transition-fast),
+              background-color var(--transition-fast);
+  position: relative;
+  user-select: none;
+  flex-shrink: 0;
+}
+
+/* First element (top of stack) — rounded top corners */
+.elementFirst {
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
+}
+
+/* Last element (bottom of stack) — rounded bottom corners */
+.elementLast {
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
+}
+
+/* Only element — all corners rounded */
+.elementOnly {
+  border-radius: var(--radius-md);
+}
+
+/* Middle elements share top border with element above */
+.element + .elementRow .element,
+.elementRow + .elementRow .element {
+  border-top: none;
+}
+
+/* ── OPERATION HIGHLIGHTS ────────────────── */
+
+/* Push: element being inserted */
+.elementPush {
+  border-color: var(--accent-highlight);
+  box-shadow: 0 0 0 1px rgba(107, 191, 160, 0.35),
+              0 0 10px rgba(107, 191, 160, 0.15);
+  background: rgba(107, 191, 160, 0.08);
+}
+
+/* Pop: element being removed */
+.elementPop {
+  border-color: var(--exec-error);
+  box-shadow: 0 0 0 1px rgba(255, 93, 93, 0.35),
+              0 0 10px rgba(255, 93, 93, 0.15);
+  background: rgba(255, 93, 93, 0.08);
+}
+
+/* Peek: element being viewed */
+.elementPeek {
+  border-color: var(--exec-active);
+  box-shadow: 0 0 0 1px rgba(79, 140, 255, 0.3),
+              0 0 8px rgba(79, 140, 255, 0.15);
+  background: rgba(79, 140, 255, 0.08);
+}
+
+/* ── TOP INDICATOR ───────────────────────── */
+.topIndicator {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  flex-shrink: 0;
+}
+
+.topBadge {
+  font-family: var(--font-ui);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--accent-primary);
+  padding: 2px 8px;
+  background: rgba(232, 164, 74, 0.1);
+  border: 1px solid rgba(232, 164, 74, 0.25);
+  border-radius: var(--radius-sm);
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+.topArrow {
+  font-size: 14px;
+  color: var(--accent-primary);
+  line-height: 1;
+}
+
+/* ── SIZE INDICATOR ──────────────────────── */
+.sizeLabel {
+  font-family: var(--font-code);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-muted);
+  margin-top: var(--space-sm);
+}
+
+/* ── OPERATION BADGE ─────────────────────── */
+.operationBadge {
+  font-family: var(--font-code);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+  line-height: 1.4;
+}
+
+.operationPush {
+  color: var(--accent-highlight);
+  background: rgba(107, 191, 160, 0.1);
+  border: 1px solid rgba(107, 191, 160, 0.25);
+}
+
+.operationPop {
+  color: var(--exec-error);
+  background: rgba(255, 93, 93, 0.1);
+  border: 1px solid rgba(255, 93, 93, 0.25);
+}
+
+.operationPeek {
+  color: var(--exec-active);
+  background: rgba(79, 140, 255, 0.1);
+  border: 1px solid rgba(79, 140, 255, 0.25);
+}
+
+/* ── EMPTY STATE ─────────────────────────── */
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  padding: var(--space-lg) var(--space-xl);
+  border: 1.5px dashed var(--border-color);
+  border-radius: var(--radius-lg);
+  min-width: 120px;
+}
+
+.emptyIcon {
+  font-size: 24px;
+  opacity: 0.4;
+}
+
+.emptyText {
+  font-family: var(--font-ui);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-muted);
+}

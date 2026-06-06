@@ -1,0 +1,225 @@
+/* =========================================
+   DEQUE VISUALIZER — V1
+   Visual debugger styles for deque collections
+   Uses design-system tokens for consistency
+   ========================================= */
+
+/* ── CONTAINER ───────────────────────────── */
+.container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-md);
+  padding: var(--space-md) 0;
+}
+
+.label {
+  font-family: var(--font-ui);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.dequeName {
+  font-family: var(--font-code);
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin-left: var(--space-xs);
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+/* ── DEQUE BODY (horizontal) ─────────────── */
+.dequeBody {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0;
+  width: fit-content;
+}
+
+/* ── DEQUE ELEMENT ───────────────────────── */
+.elementColumn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+}
+
+.element {
+  width: 64px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-elevated);
+  border: 1.5px solid var(--border-color);
+  font-family: var(--font-code);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  transition: border-color var(--transition-fast),
+              box-shadow var(--transition-fast),
+              background-color var(--transition-fast);
+  position: relative;
+  user-select: none;
+  flex-shrink: 0;
+}
+
+/* First element (left end) — rounded left corners */
+.elementFirst {
+  border-radius: var(--radius-md) 0 0 var(--radius-md);
+}
+
+/* Last element (right end) — rounded right corners */
+.elementLast {
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+}
+
+/* Only element — all corners rounded */
+.elementOnly {
+  border-radius: var(--radius-md);
+}
+
+/* Adjacent elements share left border */
+.elementColumn + .elementColumn .element {
+  border-left: none;
+}
+
+/* ── CONNECTOR ARROW (between elements) ──── */
+.connector {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  flex-shrink: 0;
+  color: var(--text-muted);
+  font-size: 14px;
+  opacity: 0.5;
+}
+
+/* ── OPERATION HIGHLIGHTS ────────────────── */
+
+/* addFirst / addLast: element being inserted */
+.elementAdd {
+  border-color: var(--accent-highlight);
+  box-shadow: 0 0 0 1px rgba(107, 191, 160, 0.35),
+              0 0 10px rgba(107, 191, 160, 0.15);
+  background: rgba(107, 191, 160, 0.08);
+}
+
+/* removeFirst / removeLast: element being removed */
+.elementRemove {
+  border-color: var(--exec-error);
+  box-shadow: 0 0 0 1px rgba(255, 93, 93, 0.35),
+              0 0 10px rgba(255, 93, 93, 0.15);
+  background: rgba(255, 93, 93, 0.08);
+}
+
+/* ── FRONT / REAR INDICATORS ─────────────── */
+.positionIndicator {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-height: 24px;
+  padding-top: var(--space-xs);
+}
+
+.positionBadge {
+  font-family: var(--font-ui);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+.frontBadge {
+  color: var(--accent-primary);
+  background: rgba(232, 164, 74, 0.1);
+  border: 1px solid rgba(232, 164, 74, 0.25);
+}
+
+.rearBadge {
+  color: var(--accent-secondary);
+  background: rgba(74, 143, 212, 0.1);
+  border: 1px solid rgba(74, 143, 212, 0.25);
+}
+
+.positionArrow {
+  font-size: 10px;
+  line-height: 1;
+}
+
+.frontArrow {
+  color: var(--accent-primary);
+}
+
+.rearArrow {
+  color: var(--accent-secondary);
+}
+
+/* ── SIZE INDICATOR ──────────────────────── */
+.sizeLabel {
+  font-family: var(--font-code);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-muted);
+  margin-top: var(--space-sm);
+}
+
+/* ── OPERATION BADGE ─────────────────────── */
+.operationBadge {
+  font-family: var(--font-code);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+  line-height: 1.4;
+}
+
+.operationAdd {
+  color: var(--accent-highlight);
+  background: rgba(107, 191, 160, 0.1);
+  border: 1px solid rgba(107, 191, 160, 0.25);
+}
+
+.operationRemove {
+  color: var(--exec-error);
+  background: rgba(255, 93, 93, 0.1);
+  border: 1px solid rgba(255, 93, 93, 0.25);
+}
+
+/* ── EMPTY STATE ─────────────────────────── */
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  padding: var(--space-lg) var(--space-xl);
+  border: 1.5px dashed var(--border-color);
+  border-radius: var(--radius-lg);
+  min-width: 120px;
+}
+
+.emptyIcon {
+  font-size: 24px;
+  opacity: 0.4;
+}
+
+.emptyText {
+  font-family: var(--font-ui);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-muted);
+}
