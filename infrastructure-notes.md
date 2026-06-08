@@ -55,19 +55,22 @@
 * **Successful Validation Results:** Legitimate code perfectly maintains frame and loop ownership, while hostile infinite loops correctly trip the 30s timeout and 5MB TRACE overflow limits safely.
 
 ## 7. Current Supported Runtime Features
-* **Arrays:** 1D integer array mutations and access tracing.
+* **Arrays & Matrices:** Registry-based structural state model supporting dynamic variable discovery, live-sync state propagation, and full multi-variable `for` loop instrumentation.
+* **Strings:** Comprehensive String data type support for tracking string allocations and operations.
+* **Collections (Contract Layer):** Standardized, schema-defined visualizer-ready contracts for generic collections (Stack, Queue, Deque, HashSet, PriorityQueue, HashMap) via declared type-based resolution with real-time `COLLECTION_MUT` tracking.
 * **Linked Lists:** Head pointer tracking, cyclic detection, `var = var.next` movements, and node structural mutations.
 * **Recursion & Frame-Ownership:** Deep call stack tracing with flawless frame-local variable isolation and multi-return unwinding.
 * **Control-Flow Stability:** Safe tracking of terminal paths (`break`, `continue`) and nested loop flow (`do-while`, `for`) without trace corruption.
 * **Condition Introspection:** Runtime trace extraction of native boolean evaluations (`if`, `while`, `for`), respecting short-circuiting limits without throwing exceptions.
-* **Topology Reconstruction:** Real-time JVM memory heap mapping to frontend graph representations.
+* **Topology Reconstruction:** Coordinate-based Node Registry decoupled from semantic overlays, enabling generic real-time JVM memory heap mapping.
 * **Concurrent Sandbox Execution:** Safe orchestration of multi-tenant execution requests.
 
 ## 8. Architectural Principles
 * **Backend is Source of Truth:** The execution engine dictates what happened.
 * **Visualization Must Never Fake Runtime:** No CSS tricks or mock animations. If the pointer didn't move in Java, it doesn't move on the screen.
 * **Semantics are Derived/Non-Authoritative:** Semantic analyzers run purely as a read-only pass over the immutable canonical state array.
-* **State Remains Canonical Runtime Truth:** The `buildState` output is mathematically reproducible from the TRACE logs.
+* **Decoupled Visualization & Registry-Driven State:** Structural state resolves dynamically from a centralized runtime registry rather than hardcoded frontend whitelists, providing unified tracking for arrays, matrices, and collections.
+* **State Remains Canonical Runtime Truth:** The `buildState` output is mathematically reproducible from the TRACE logs, leveraging standardized Visualization Contracts to normalize state.
 * **Sandbox Must Survive Hostile Execution:** The backend architecture assumes every piece of user code is a denial-of-service attempt.
 
 ## 9. Known Limitations

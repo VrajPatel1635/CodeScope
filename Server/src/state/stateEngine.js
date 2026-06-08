@@ -3,6 +3,7 @@ const { handleLinkedListTrace, applyLinkedListMutation, attachLinkedListState } 
 const { handleTreeTrace, applyTreeMutation, attachTreeState } = require("../structures/tree/treeStateHandler");
 const { handleGraphTrace, applyGraphMutation, attachGraphState } = require("../structures/graph/graphStateHandler");
 const { handleCollectionTrace, applyCollectionMutation, attachCollectionState } = require("../structures/collections/collectionStateHandler");
+const { generateStringContracts } = require("../structures/strings/stringContractBuilder");
 
 function parseValue(value) {
     if (typeof value === "number") return value;
@@ -27,6 +28,8 @@ class StateEngineContext {
         let isMatrix = Array.isArray(initialArray) && Array.isArray(initialArray[0]);
         this.currentArrayState = (!isMatrix && Array.isArray(initialArray)) ? [...initialArray] : null;
         this.currentMatrixState = isMatrix ? initialArray.map(row => [...row]) : null;
+        this.primaryArrayName = null;
+        this.primaryMatrixName = null;
         this.currentLinkedListState = null;
         this.currentTreeState = null;
 
@@ -119,6 +122,19 @@ function buildState(traceEvents, initialArray) {
             if (event.name === "__return__") continue;
             const parsedVal = parseValue(event.value);
             ctx.stack[ctx.stack.length - 1].variables[event.name] = parsedVal;
+            
+            // Detect primary array/matrix name from the first matching VAR trace
+            if (!ctx.primaryArrayName && ctx.currentArrayState && Array.isArray(parsedVal)) {
+                if (JSON.stringify(parsedVal) === JSON.stringify(ctx.currentArrayState)) {
+                    ctx.primaryArrayName = event.name;
+                }
+            }
+            if (!ctx.primaryMatrixName && ctx.currentMatrixState && Array.isArray(parsedVal) && Array.isArray(parsedVal[0])) {
+                if (JSON.stringify(parsedVal) === JSON.stringify(ctx.currentMatrixState)) {
+                    ctx.primaryMatrixName = event.name;
+                }
+            }
+
             currentStep = ctx.createStep(event.type, { name: event.name, value: parsedVal });
             if (ctx.pendingAssign && ctx.pendingAssign.name === event.name) {
                 currentStep.traceEvent = { ...ctx.pendingAssign, value: parsedVal };
@@ -215,6 +231,7 @@ function buildState(traceEvents, initialArray) {
             attachCollectionState(currentStep, ctx);
 
             currentStep.currentFrameVariables = ctx.topVars();
+            currentStep.stringContracts = generateStringContracts(ctx, currentStep);
             currentStep.stack = ctx.cloneStack();
             currentStep.loopContext = { ...ctx.currentLoops };
 

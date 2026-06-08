@@ -222,6 +222,8 @@ function buildHelperCode({ userCode, wantsListNode, wantsTreeNode, wantsGraphLis
 
 const { 
   buildInt, 
+  buildString,
+  buildChar,
   buildIntArray, 
   buildIntMatrix,
   buildGenericNumericArray,
@@ -242,6 +244,8 @@ const {
 
 const builders = {
   int: buildInt,
+  String: buildString,
+  char: buildChar,
   "int[]": buildIntArray,
   "int[][]": buildIntMatrix,
   "long[]": buildGenericNumericArray("long"),

@@ -12,6 +12,7 @@ import DequeVisualizer from "@/app/components/visualizers/DequeVisualizer/DequeV
 import HashMapVisualizer from "@/app/components/visualizers/HashMapVisualizer/HashMapVisualizer";
 import HashSetVisualizer from "@/app/components/visualizers/HashSetVisualizer/HashSetVisualizer";
 import PriorityQueueVisualizer from "@/app/components/visualizers/PriorityQueueVisualizer/PriorityQueueVisualizer";
+import StringVisualizer from "@/app/components/visualizers/StringVisualizer/StringVisualizer";
 
 import VariableSemanticsLayer from "@/app/components/variables/VariableSemanticsLayer";
 
@@ -158,6 +159,15 @@ function InnerWorkspace({ currentState, result, activeSourceStep }) {
   const isMatrix = !!currentState?.matrix;
   const isTree = !!currentState?.tree;
   const isGraph = !!currentState?.graph;
+
+  // ══════════════════════════════════════════════════════════════════
+  // STRING CONTRACTS — String Detection
+  // ══════════════════════════════════════════════════════════════════
+  const stringContracts = useMemo(() => {
+    const contracts = currentState?.stringContracts;
+    if (!contracts) return [];
+    return Object.values(contracts).filter(c => c.visualizationType === "string");
+  }, [currentState?.stringContracts]);
 
   // ══════════════════════════════════════════════════════════════════
   // COLLECTION CONTRACTS — Stack Detection
@@ -678,16 +688,7 @@ function InnerWorkspace({ currentState, result, activeSourceStep }) {
         // ══════════════════════════════════════════════════════════════
         if (currentState) {
           try {
-            if (currentState.array && [
-              "arr", "array", "nums", 
-              "ans", "answer", "result", "results", "output", 
-              "prefix", "suffix", "temp", "count", "freq", 
-              "distance", "dist", "parent", "indegree"
-            ].includes(lowerKey)) {
-              resolvedValue = `[${currentState.array.join(", ")}]`;
-            } else if (currentState.matrix && (lowerKey === "matrix" || lowerKey === "grid" || lowerKey === "board" || lowerKey === "dp")) {
-              resolvedValue = JSON.stringify(currentState.matrix).replace(/],/g, "],\n ");
-            } else if (currentState.graph && typeof value === "string" && value.startsWith("[")) {
+            if (currentState.graph && typeof value === "string" && value.startsWith("[")) {
               if (lowerKey === "visited" && currentState.graph.visitedState) {
                 const parsed = JSON.parse(value);
                 for (let i = 0; i < parsed.length; i++) {
@@ -967,6 +968,14 @@ function InnerWorkspace({ currentState, result, activeSourceStep }) {
       {/* ══════════════════════════════════════════════════════════ */}
       {/* COLLECTION VISUALIZERS (Contract-Based)                   */}
       {/* ══════════════════════════════════════════════════════════ */}
+
+      {/* String Visualizer — renders from stringContracts */}
+      {stringContracts.map(contract => (
+        <StringVisualizer
+          key={`string-viz-${contract.name}`}
+          contract={contract}
+        />
+      ))}
 
       {/* Stack Visualizer — renders from collectionContracts */}
       {stackContracts.map(contract => (

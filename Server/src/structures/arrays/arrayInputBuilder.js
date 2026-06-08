@@ -269,8 +269,21 @@ function buildCharMatrix({ paramName, inputRaw }) {
   return { decl: `char[][] ${paramName} = ${toJavaCharMatrixLiteral(values)};`, arg: paramName, initialValue: values };
 }
 
+function buildString({ paramName, inputRaw }) {
+  let value = String(inputRaw ?? "").trim();
+  if (value.startsWith('"') && value.endsWith('"')) value = value.slice(1, -1);
+  return { decl: `String ${paramName} = "${escapeJavaString(value)}";`, arg: paramName, initialValue: value };
+}
+
+function buildChar({ paramName, inputRaw }) {
+  let value = parseCharLoose(inputRaw);
+  return { decl: `char ${paramName} = '${escapeJavaChar(value)}';`, arg: paramName, initialValue: value };
+}
+
 module.exports = {
   buildInt,
+  buildString,
+  buildChar,
   buildIntArray,
   buildIntMatrix,
   buildGenericNumericArray,

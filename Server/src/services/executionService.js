@@ -471,7 +471,7 @@ function parseExecutionOutput(rawOutput) {
       const varName = parts[2];
       const validIdentifierRegex = /^[a-zA-Z_][a-zA-Z0-9_]*$/;
       if (validIdentifierRegex.test(varName)) {
-        trace.push({ type: "VAR", name: varName, value: parts[3] });
+        trace.push({ type: "VAR", name: varName, value: parts.slice(3).join("|") });
       }
     } else if (type === "CALL") {
       trace.push({ type: "CALL", function: parts[2] });
@@ -807,9 +807,15 @@ function injectTraceIntoBody(mappedLines, methodName = "solve", methodParams = [
           tracedBody += `System.out.println("TRACE|LOOP_ITER|loop_${pendingForTrace.lineNumber}");\n`;
           forVarScopeStack.push({ isWhile: true, lineId: pendingForTrace.lineNumber, depth: braceDepth, isInfinite: pendingForTrace.isInfinite });
         } else {
-          tracedBody += `System.out.println("TRACE|VAR|${pendingForTrace.loopVar}|" + ${pendingForTrace.loopVar});\n`;
+          if (pendingForTrace.loopVars) {
+            for (let v of pendingForTrace.loopVars) {
+              tracedBody += `System.out.println("TRACE|VAR|${v}|" + ${v});\n`;
+            }
+          } else if (pendingForTrace.loopVar) {
+            tracedBody += `System.out.println("TRACE|VAR|${pendingForTrace.loopVar}|" + ${pendingForTrace.loopVar});\n`;
+          }
           tracedBody += `System.out.println("TRACE|LOOP|loop_${pendingForTrace.lineNumber}|" + ${pendingForTrace.loopVar});\n`;
-          forVarScopeStack.push({ varName: pendingForTrace.loopVar, depth: braceDepth });
+          forVarScopeStack.push({ loopVars: pendingForTrace.loopVars, varName: pendingForTrace.loopVar, depth: braceDepth });
         }
         pendingForTrace = null;
       }
@@ -831,7 +837,13 @@ function injectTraceIntoBody(mappedLines, methodName = "solve", methodParams = [
           tracedBody += `System.out.println("TRACE|LOOP_END|loop_${scopeItem.lineId}");\n`;
         } else {
           tracedBody += `System.out.println("TRACE|LINE|${lineNumber}");\n`;
-          tracedBody += `System.out.println("TRACE|VAR|${scopeItem.varName}|null");\n`;
+          if (scopeItem.loopVars) {
+            for (let v of scopeItem.loopVars) {
+              tracedBody += `System.out.println("TRACE|VAR|${v}|null");\n`;
+            }
+          } else if (scopeItem.varName) {
+            tracedBody += `System.out.println("TRACE|VAR|${scopeItem.varName}|null");\n`;
+          }
         }
       }
       continue;
@@ -872,14 +884,23 @@ function injectTraceIntoBody(mappedLines, methodName = "solve", methodParams = [
 
         tracedBody += forHeader + "\n";
 
-        const match = line.match(/for\s*\(\s*int\s+(\w+)/);
+        const match = line.match(/for\s*\(\s*int\s+([^;]+);/);
         if (match) {
-          currentLoopVar = match[1];
+          const loopVarsStr = match[1];
+          const declarations = loopVarsStr.split(",");
+          const loopVars = [];
+          for (let d of declarations) {
+            const vName = d.trim().split("=")[0].trim().split(/\s+/).pop();
+            if (vName) loopVars.push(vName);
+          }
+          currentLoopVar = loopVars[0];
           braceDepth += 1;
           tracedBody += `System.out.println("TRACE|LINE|${lineNumber}");\n`;
-          tracedBody += `System.out.println("TRACE|VAR|${currentLoopVar}|" + ${currentLoopVar});\n`;
+          for (let v of loopVars) {
+            tracedBody += `System.out.println("TRACE|VAR|${v}|" + ${v});\n`;
+          }
           tracedBody += `System.out.println("TRACE|LOOP|loop_${lineNumber}|" + ${currentLoopVar});\n`;
-          forVarScopeStack.push({ varName: currentLoopVar, depth: braceDepth });
+          forVarScopeStack.push({ loopVars, varName: currentLoopVar, depth: braceDepth });
         } else {
           // Still entering a brace scope even if loop var isn't detected.
           braceDepth += 1;
@@ -908,7 +929,13 @@ function injectTraceIntoBody(mappedLines, methodName = "solve", methodParams = [
             tracedBody += `System.out.println("TRACE|LOOP_END|loop_${scopeItem.lineId}");\n`;
           } else {
             tracedBody += `System.out.println("TRACE|LINE|${lineNumber}");\n`;
-            tracedBody += `System.out.println("TRACE|VAR|${scopeItem.varName}|null");\n`;
+            if (scopeItem.loopVars) {
+              for (let v of scopeItem.loopVars) {
+                tracedBody += `System.out.println("TRACE|VAR|${v}|null");\n`;
+              }
+            } else if (scopeItem.varName) {
+              tracedBody += `System.out.println("TRACE|VAR|${scopeItem.varName}|null");\n`;
+            }
           }
         }
 
@@ -917,24 +944,33 @@ function injectTraceIntoBody(mappedLines, methodName = "solve", methodParams = [
 
       tracedBody += line + "\n";
 
-      const match = line.match(/for\s*\(\s*int\s+(\w+)/);
+      const match = line.match(/for\s*\(\s*int\s+([^;]+);/);
 
       if (match) {
-        currentLoopVar = match[1];
+        const loopVarsStr = match[1];
+        const declarations = loopVarsStr.split(",");
+        const loopVars = [];
+        for (let d of declarations) {
+          const vName = d.trim().split("=")[0].trim().split(/\s+/).pop();
+          if (vName) loopVars.push(vName);
+        }
+        currentLoopVar = loopVars[0];
 
         // Log loop-variable once per iteration.
         // If the '{' is on the same line, we can inject immediately (inside the loop body).
         // Otherwise, inject right after the next standalone '{' line.
         if (line.includes("{") && !line.includes("}")) {
           tracedBody += `System.out.println("TRACE|LINE|${lineNumber}");\n`;
-          tracedBody += `System.out.println("TRACE|VAR|${currentLoopVar}|" + ${currentLoopVar});\n`;
+          for (let v of loopVars) {
+            tracedBody += `System.out.println("TRACE|VAR|${v}|" + ${v});\n`;
+          }
           tracedBody += `System.out.println("TRACE|LOOP|loop_${lineNumber}|" + ${currentLoopVar});\n`;
 
           // The loop body opened on this line.
           braceDepth += 1;
-          forVarScopeStack.push({ varName: currentLoopVar, depth: braceDepth });
+          forVarScopeStack.push({ loopVars, varName: currentLoopVar, depth: braceDepth });
         } else {
-          pendingForTrace = { lineNumber, loopVar: currentLoopVar };
+          pendingForTrace = { lineNumber, loopVar: currentLoopVar, loopVars };
         }
       }
 
