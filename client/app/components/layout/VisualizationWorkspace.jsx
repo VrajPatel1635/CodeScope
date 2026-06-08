@@ -10,6 +10,8 @@ import StackVisualizer from "@/app/components/visualizers/StackVisualizer/StackV
 import QueueVisualizer from "@/app/components/visualizers/QueueVisualizer/QueueVisualizer";
 import DequeVisualizer from "@/app/components/visualizers/DequeVisualizer/DequeVisualizer";
 import HashMapVisualizer from "@/app/components/visualizers/HashMapVisualizer/HashMapVisualizer";
+import HashSetVisualizer from "@/app/components/visualizers/HashSetVisualizer/HashSetVisualizer";
+import PriorityQueueVisualizer from "@/app/components/visualizers/PriorityQueueVisualizer/PriorityQueueVisualizer";
 
 import VariableSemanticsLayer from "@/app/components/variables/VariableSemanticsLayer";
 
@@ -191,6 +193,24 @@ function InnerWorkspace({ currentState, result, activeSourceStep }) {
     const contracts = currentState?.collectionContracts;
     if (!contracts) return [];
     return Object.values(contracts).filter(c => c.collectionType === "hashmap");
+  }, [currentState?.collectionContracts]);
+
+  // ══════════════════════════════════════════════════════════════════
+  // COLLECTION CONTRACTS — HashSet Detection
+  // ══════════════════════════════════════════════════════════════════
+  const hashsetContracts = useMemo(() => {
+    const contracts = currentState?.collectionContracts;
+    if (!contracts) return [];
+    return Object.values(contracts).filter(c => c.collectionType === "hashset");
+  }, [currentState?.collectionContracts]);
+
+  // ══════════════════════════════════════════════════════════════════
+  // COLLECTION CONTRACTS — PriorityQueue Detection
+  // ══════════════════════════════════════════════════════════════════
+  const priorityQueueContracts = useMemo(() => {
+    const contracts = currentState?.collectionContracts;
+    if (!contracts) return [];
+    return Object.values(contracts).filter(c => c.collectionType === "priorityqueue");
   }, [currentState?.collectionContracts]);
 
   // ── Source Mode Aggregation ──────────────────────────────────────
@@ -976,6 +996,22 @@ function InnerWorkspace({ currentState, result, activeSourceStep }) {
       {hashmapContracts.map(contract => (
         <HashMapVisualizer
           key={`hashmap-viz-${contract.name}`}
+          contract={contract}
+        />
+      ))}
+
+      {/* HashSet Visualizer — renders from collectionContracts */}
+      {hashsetContracts.map(contract => (
+        <HashSetVisualizer
+          key={`hashset-viz-${contract.name}`}
+          contract={contract}
+        />
+      ))}
+
+      {/* PriorityQueue Visualizer — renders from collectionContracts */}
+      {priorityQueueContracts.map(contract => (
+        <PriorityQueueVisualizer
+          key={`pq-viz-${contract.name}`}
           contract={contract}
         />
       ))}
