@@ -5,6 +5,8 @@ import CodeInput from "@/app/components/layout/CodeInput";
 import Controls from "@/app/components/controls/Controls";
 import VisualizationWorkspace from "@/app/components/layout/VisualizationWorkspace";
 import CallStackPanel from "@/app/components/stack/CallStackPanel";
+import ExecutionMetricsPanel from "@/app/components/metrics/ExecutionMetricsPanel";
+import ExecutionIntelligencePanel from "@/app/components/intelligence/ExecutionIntelligencePanel";
 
 export default function VisualizerLayout() {
   const [result, setResult] = useState(null);
@@ -133,11 +135,11 @@ export default function VisualizerLayout() {
       )}
 
       {/* MAIN CONTENT AREA: LEFT / RIGHT */}
-      <div className="flex flex-col lg:flex-row gap-6 flex-1 min-h-0">
+      <div className="flex flex-col lg:flex-row gap-6 flex-1 min-h-[600px]">
         
         {/* LEFT SIDE: Editor & Controls */}
         <div className="flex flex-col gap-4 lg:w-[45%] xl:w-[40%] shrink-0">
-          <div className="flex-1 rounded-lg overflow-hidden border shadow-sm flex flex-col" style={{ borderColor: 'var(--border-color)', backgroundColor: 'var(--bg-surface)' }}>
+          <div className="flex-1 rounded-lg overflow-hidden border shadow-sm flex flex-col min-h-[400px]" style={{ borderColor: 'var(--border-color)', backgroundColor: 'var(--bg-surface)' }}>
             <CodeInput
               onRun={(data, inputValue, codeValue) => {
                 setResult(data);
@@ -172,7 +174,7 @@ export default function VisualizerLayout() {
         {/* RIGHT SIDE: Visualizer & Call Stack */}
         <div className="flex-1 flex flex-col min-w-0">
           {/* Visualizations (Array/LinkedList/Tree/Graph) */}
-          <div className="flex-1 flex flex-col gap-4 rounded-lg border shadow-sm overflow-hidden relative" style={{ borderColor: 'var(--border-color)', backgroundColor: 'var(--bg-surface)' }}>
+          <div className="flex-1 flex flex-col gap-4 rounded-lg border shadow-sm overflow-hidden relative min-h-[400px]" style={{ borderColor: 'var(--border-color)', backgroundColor: 'var(--bg-surface)' }}>
             <div className="p-4 flex-1 overflow-auto">
               {states.length > 0 ? (
                 <VisualizationWorkspace 
@@ -215,18 +217,31 @@ export default function VisualizerLayout() {
 
       </div>
 
-      {/* BOTTOM SECTION: Complexity Analysis */}
-      <div className="rounded-lg border shadow-sm p-4" style={{ borderColor: 'var(--border-color)', backgroundColor: 'var(--bg-surface)' }}>
-        <h2 className="text-lg font-semibold mb-2" style={{ color: 'var(--text-secondary)' }}>Complexity Analysis</h2>
-        <div style={{ color: 'var(--text-muted)' }}>
-          {/* Output text here if applicable, or placeholder */}
-          {result?.output ? (
-            <div className="font-mono text-sm mt-2 p-2 rounded" style={{ backgroundColor: 'var(--bg-elevated)', color: 'var(--text-primary)' }}>
-              <strong>Program Output:</strong> {result.output}
-            </div>
-          ) : (
-            <p className="text-sm">Run code to analyze complexity and view output.</p>
-          )}
+      {/* BOTTOM SECTION: Execution Metrics & Output */}
+      <div className="flex flex-col gap-6 rounded-lg border shadow-sm p-5" style={{ borderColor: 'var(--border-color)', backgroundColor: 'var(--bg-surface)' }}>
+        
+        {/* Execution Intelligence Phase */}
+        <div>
+          <ExecutionIntelligencePanel states={states} intelligence={result?.intelligence} />
+        </div>
+
+        {/* Execution Metrics Phase */}
+        <div className="border-t border-opacity-10 pt-4" style={{ borderColor: 'var(--border-color)' }}>
+          <h2 className="text-sm font-semibold uppercase tracking-wider mb-2" style={{ color: 'var(--text-muted)' }}>Raw Execution Metrics</h2>
+          <ExecutionMetricsPanel states={states} />
+        </div>
+
+        <div>
+          <h2 className="text-lg font-semibold mb-2" style={{ color: 'var(--text-secondary)' }}>Program Output</h2>
+          <div style={{ color: 'var(--text-muted)' }}>
+            {result?.output ? (
+              <div className="font-mono text-sm p-3 rounded overflow-x-auto" style={{ backgroundColor: 'var(--bg-elevated)', color: 'var(--text-primary)' }}>
+                <pre className="m-0 whitespace-pre-wrap">{result.output}</pre>
+              </div>
+            ) : (
+              <p className="text-sm">Run code to view execution metrics and output.</p>
+            )}
+          </div>
         </div>
       </div>
     </div>
