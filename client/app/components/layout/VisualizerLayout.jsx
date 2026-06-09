@@ -7,6 +7,7 @@ import VisualizationWorkspace from "@/app/components/layout/VisualizationWorkspa
 import CallStackPanel from "@/app/components/stack/CallStackPanel";
 import ExecutionMetricsPanel from "@/app/components/metrics/ExecutionMetricsPanel";
 import ExecutionIntelligencePanel from "@/app/components/intelligence/ExecutionIntelligencePanel";
+import DiagnosticBanner from "@/app/components/layout/DiagnosticBanner";
 
 export default function VisualizerLayout() {
   const [result, setResult] = useState(null);
@@ -128,11 +129,13 @@ export default function VisualizerLayout() {
         DSA Visualizer
       </h1>
 
-      {result?.error && (
+      {result?.diagnostic ? (
+        <DiagnosticBanner diagnostic={result.diagnostic} />
+      ) : result?.error ? (
         <div style={{ color: 'var(--exec-error)' }} className="p-3 bg-red-950 rounded border border-red-900">
           {result.error}
         </div>
-      )}
+      ) : null}
 
       {/* MAIN CONTENT AREA: LEFT / RIGHT */}
       <div className="flex flex-col lg:flex-row gap-6 flex-1 min-h-[600px]">
