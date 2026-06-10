@@ -1,5 +1,5 @@
 import React from "react";
-import styles from "../../styles/variable-semantics.module.css";
+import styles from "@/app/styles/variable-semantics.module.css";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function AccumulatorCard({ name, value, prevValue }) {
@@ -42,3 +42,4 @@ export default function AccumulatorCard({ name, value, prevValue }) {
     </motion.div>
   );
 }
+

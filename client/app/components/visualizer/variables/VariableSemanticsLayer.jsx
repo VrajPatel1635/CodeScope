@@ -1,5 +1,5 @@
 import React from "react";
-import styles from "../../styles/variable-semantics.module.css";
+import styles from "@/app/styles/variable-semantics.module.css";
 import StateVariableCard from "./StateVariableCard";
 import AccumulatorCard from "./AccumulatorCard";
 import TemporaryVariableCard from "./TemporaryVariableCard";
@@ -26,3 +26,4 @@ export default function VariableSemanticsLayer({ stateVars = [], accumulators = 
     </div>
   );
 }
+

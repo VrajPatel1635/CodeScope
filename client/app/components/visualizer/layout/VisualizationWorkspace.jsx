@@ -14,15 +14,15 @@ import HashSetVisualizer from "@/app/components/visualizers/HashSetVisualizer/Ha
 import PriorityQueueVisualizer from "@/app/components/visualizers/PriorityQueueVisualizer/PriorityQueueVisualizer";
 import StringVisualizer from "@/app/components/visualizers/StringVisualizer/StringVisualizer";
 
-import VariableSemanticsLayer from "@/app/components/variables/VariableSemanticsLayer";
+import VariableSemanticsLayer from "@/app/components/visualizer/variables/VariableSemanticsLayer";
 
 import { NodeRegistryProvider, useNodeRegistry } from "@/app/components/shared/NodeRegistryContext";
-import ComparisonOverlay from "@/app/components/overlays/ComparisonOverlay";
-import PointerOverlay from "@/app/components/overlays/PointerOverlay";
-import MutationOverlay from "@/app/components/overlays/MutationOverlay";
-import RewireOverlay from "@/app/components/overlays/RewireOverlay";
-import SemanticChipOverlay from "@/app/components/overlays/SemanticChipOverlay";
-import OperationPanel from "@/app/components/operations/OperationPanel";
+import ComparisonOverlay from "@/app/components/visualizer/overlays/ComparisonOverlay";
+import PointerOverlay from "@/app/components/visualizer/overlays/PointerOverlay";
+import MutationOverlay from "@/app/components/visualizer/overlays/MutationOverlay";
+import RewireOverlay from "@/app/components/visualizer/overlays/RewireOverlay";
+import SemanticChipOverlay from "@/app/components/visualizer/overlays/SemanticChipOverlay";
+import OperationPanel from "@/app/components/visualizer/operations/OperationPanel";
 
 /**
  * Array index pointer name whitelist.

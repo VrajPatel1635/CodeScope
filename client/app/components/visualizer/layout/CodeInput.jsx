@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import CodeEditor from "@/app/components/layout/CodeEditor";
+import CodeEditor from "@/app/components/visualizer/layout/CodeEditor";
 
 export default function CodeInput({ onRun, activeLine }) {
   const [code, setCode] = useState(`class Solution {

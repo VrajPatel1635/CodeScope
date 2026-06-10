@@ -1,13 +1,13 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import CodeInput from "@/app/components/layout/CodeInput";
-import Controls from "@/app/components/controls/Controls";
-import VisualizationWorkspace from "@/app/components/layout/VisualizationWorkspace";
-import CallStackPanel from "@/app/components/stack/CallStackPanel";
-import ExecutionMetricsPanel from "@/app/components/metrics/ExecutionMetricsPanel";
-import ExecutionIntelligencePanel from "@/app/components/intelligence/ExecutionIntelligencePanel";
-import DiagnosticBanner from "@/app/components/layout/DiagnosticBanner";
+import CodeInput from "@/app/components/visualizer/layout/CodeInput";
+import Controls from "@/app/components/visualizer/controls/Controls";
+import VisualizationWorkspace from "@/app/components/visualizer/layout/VisualizationWorkspace";
+import CallStackPanel from "@/app/components/visualizer/stack/CallStackPanel";
+import ExecutionMetricsPanel from "@/app/components/visualizer/metrics/ExecutionMetricsPanel";
+import ExecutionIntelligencePanel from "@/app/components/visualizer/intelligence/ExecutionIntelligencePanel";
+import DiagnosticBanner from "@/app/components/visualizer/diagnostics/DiagnosticBanner";
 
 export default function VisualizerLayout() {
   const [result, setResult] = useState(null);

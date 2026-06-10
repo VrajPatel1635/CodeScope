@@ -1,5 +1,5 @@
 import React from "react";
-import styles from "../../styles/variable-semantics.module.css";
+import styles from "@/app/styles/variable-semantics.module.css";
 import { motion } from "framer-motion";
 
 export default function TemporaryVariableCard({ name, value, isActive }) {
@@ -26,3 +26,4 @@ export default function TemporaryVariableCard({ name, value, isActive }) {
     </motion.div>
   );
 }
+
