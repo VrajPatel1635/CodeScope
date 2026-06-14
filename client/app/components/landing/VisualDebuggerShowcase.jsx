@@ -1,232 +1,239 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { motion } from "framer-motion";
 
 export default function VisualDebuggerShowcase() {
-  const features = [
-    "Step-by-step playback",
-    "Variable tracking",
-    "Call stack visualization",
-    "Live structure mutations",
-    "Source-level execution"
+  const [activeFeature, setActiveFeature] = useState(null);
+
+  const capabilities = [
+    {
+      label: "Step-by-step playback",
+      detail: "Deterministic forward and backward traversal",
+      icon: "M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z M21 12a9 9 0 11-18 0 9 9 0 0118 0z",
+      targetPanel: 0
+    },
+    {
+      label: "Variable tracking",
+      detail: "Watch every mutation in real-time",
+      icon: "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4",
+      targetPanel: 1
+    },
+    {
+      label: "Call stack visualization",
+      detail: "Full recursive depth awareness",
+      icon: "M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10",
+      targetPanel: 2
+    },
+    {
+      label: "Live structure mutations",
+      detail: "See arrays, trees, and graphs transform",
+      icon: "M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z",
+      targetPanel: 3
+    },
+    {
+      label: "Source-level execution",
+      detail: "Exact line-by-line correspondence",
+      icon: "M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4",
+      targetPanel: 4
+    }
   ];
 
+  const Panel = ({ index, children, className }) => {
+    const isHoveringAny = activeFeature !== null;
+    const isActive = activeFeature === index;
+    const isDimmed = isHoveringAny && !isActive;
+
+    return (
+      <motion.div
+        animate={{
+          scale: isActive ? 1.02 : isDimmed ? 0.97 : 1,
+          opacity: isDimmed ? 0.35 : 1,
+          filter: isDimmed ? "blur(3px)" : "blur(0px)",
+          borderColor: isActive ? "rgba(255,255,255,0.15)" : "rgba(255,255,255,0.03)",
+        }}
+        transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+        className={`rounded-2xl border bg-white/1 overflow-hidden relative ${className}`}
+      >
+        {isActive && (
+          <motion.div 
+            initial={{ opacity: 0 }} 
+            animate={{ opacity: 1 }} 
+            transition={{ duration: 0.5 }}
+            className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,var(--tw-gradient-stops))] from-white/8 via-transparent to-transparent pointer-events-none"
+          />
+        )}
+        {children}
+      </motion.div>
+    );
+  };
+
   return (
-    <section className="relative py-24 md:py-32 bg-background overflow-hidden border-t border-white/2">
-      {/* Premium Background Glows (Reduced) */}
-      <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-linear-to-bl from-(--accent-secondary)/20 via-(--accent-secondary)/5 to-transparent blur-[120px] rounded-full pointer-events-none mix-blend-screen opacity-20" />
-      <div className="absolute bottom-[-20%] left-[-10%] w-[600px] h-[600px] bg-linear-to-tr from-(--exec-return)/10 to-transparent blur-[100px] rounded-full pointer-events-none mix-blend-screen opacity-20" />
+    <section className="relative py-24 lg:py-48 bg-background">
+      {/* Background ambience */}
+      <div className="absolute top-10 right-[5%] w-[800px] h-[800px] bg-(--accent-secondary) blur-[200px] opacity-[0.02] rounded-full pointer-events-none" />
+      <div className="absolute bottom-[10%] left-[-10%] w-[600px] h-[600px] bg-(--exec-return) blur-[180px] opacity-[0.02] rounded-full pointer-events-none" />
 
       <div className="max-w-[1400px] mx-auto px-6 md:px-12 relative z-10">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 lg:gap-16 items-center">
-          
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 lg:gap-12 items-start relative">
+
           {/* Content (Left) */}
-          <div className="lg:col-span-5 flex flex-col order-1">
-            <motion.div 
-              initial={{ opacity: 0, y: 10 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="flex items-center gap-4 mb-6"
-            >
-              <div className="h-px w-8 bg-linear-to-r from-(--accent-secondary) to-transparent" />
-              <span className="text-(--accent-secondary) uppercase tracking-[0.25em] text-xs font-semibold">Visual Debugger</span>
-            </motion.div>
-            
-            <motion.h2 
-              initial={{ opacity: 0, y: 10 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.1 }}
-              className="text-5xl md:text-6xl lg:text-[4.5rem] font-display font-medium leading-[1.05] tracking-tight mb-8 text-white"
-            >
-              See every step.<br />
-              <span className="text-(--accent-secondary)">Understand every change.</span>
-            </motion.h2>
+          <div className="col-span-1 lg:col-span-5 flex flex-col relative z-20">
+            {/* Section label */}
+            <div className="flex items-center gap-3 mb-10">
+              <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-(--accent-secondary)/5 border border-(--accent-secondary)/10 backdrop-blur-md">
+                <span className="w-1.5 h-1.5 rounded-full bg-(--accent-secondary) shadow-[0_0_8px_var(--accent-secondary)]" />
+                <span className="text-(--accent-secondary) uppercase tracking-[0.25em] text-[10px] font-semibold">Visual Debugger</span>
+              </div>
+            </div>
 
-            <motion.p 
-              initial={{ opacity: 0, y: 10 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.2 }}
-              className="text-white/40 text-lg md:text-xl leading-relaxed max-w-lg mb-12 font-light"
-            >
-              Track variables, pointers, mutations, recursive calls, and memory state through a <span className="text-white font-medium">deterministic execution timeline</span>.
-            </motion.p>
+            {/* Headline */}
+            <h2 className="mb-8 flex flex-col gap-1">
+              <span className="text-[clamp(3.5rem,6vw,5.5rem)] font-display font-medium leading-[0.95] tracking-tighter text-white">
+                See every step.
+              </span>
+              <span className="text-[clamp(3.5rem,6vw,5.5rem)] font-serif italic font-light leading-none tracking-tight text-(--accent-secondary)">
+                Understand every change.
+              </span>
+            </h2>
 
-            <ul className="flex flex-col gap-5">
-              {features.map((feat, i) => (
-                <motion.li 
-                  key={i} 
-                  initial={{ opacity: 0, x: -10 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: 0.3 + (i * 0.1), duration: 0.5 }}
-                  className="flex items-center gap-4 text-white/80 text-base md:text-lg font-light"
-                >
-                  <div className="shrink-0 w-5 h-5 rounded bg-white/5 flex items-center justify-center border border-white/10 shadow-inner">
-                    <svg className="w-3 h-3 text-(--accent-secondary)" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                    </svg>
+            {/* Description */}
+            <p className="text-white/40 text-lg md:text-xl leading-[1.7] max-w-md mb-14 font-light tracking-wide">
+              Track variables, pointers, mutations, recursive calls, and memory state through a{" "}
+              <span className="text-white/80 font-normal">deterministic execution timeline</span>.
+            </p>
+
+            {/* Capability List */}
+            <div className="flex flex-col gap-3 relative" onMouseLeave={() => setActiveFeature(null)}>
+              {/* Connecting line */}
+              <div className="absolute left-[27px] top-6 bottom-6 w-px bg-[linear-gradient(to_bottom,transparent,rgba(255,255,255,0.1),transparent)] hidden md:block" />
+              
+              {capabilities.map((cap, i) => {
+                const isActive = activeFeature === cap.targetPanel;
+                return (
+                  <div 
+                    key={i} 
+                    onMouseEnter={() => setActiveFeature(cap.targetPanel)}
+                    className={`group flex items-start gap-5 cursor-pointer p-3 rounded-2xl transition-all duration-500 relative z-10 ${isActive ? 'bg-white/3' : 'hover:bg-white/1'}`}
+                  >
+                    <div className={`shrink-0 w-14 h-14 rounded-xl flex items-center justify-center transition-all duration-500 relative ${isActive ? 'bg-(--accent-secondary)/10 border border-(--accent-secondary)/30 text-(--accent-secondary) shadow-[0_0_20px_var(--accent-secondary)]' : 'bg-[#0A0A0C] border border-white/5 text-white/30'}`}>
+                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d={cap.icon} /></svg>
+                    </div>
+                    <div className="flex flex-col pt-1.5">
+                      <span className={`text-[17px] font-medium tracking-wide transition-colors duration-500 ${isActive ? 'text-white' : 'text-white/60 group-hover:text-white/90'}`}>{cap.label}</span>
+                      <span className={`text-[14px] mt-1 leading-relaxed transition-colors duration-500 font-light ${isActive ? 'text-white/60' : 'text-white/30'}`}>{cap.detail}</span>
+                    </div>
                   </div>
-                  {feat}
-                </motion.li>
-              ))}
-            </ul>
+                );
+              })}
+            </div>
           </div>
 
-          {/* Product Preview (Right) */}
-          <div className="lg:col-span-7 order-2 relative lg:ml-8 mt-12 lg:mt-0">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.98, y: 30 }}
-              whileInView={{ opacity: 1, scale: 1, y: 0 }}
-              viewport={{ once: true, margin: "-100px" }}
-              transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
-              whileHover={{ y: -6, transition: { duration: 0.5, ease: "easeOut" } }}
-              className="relative w-full rounded-3xl p-px bg-linear-to-b from-white/20 via-white/5 to-transparent shadow-[0_40px_100px_-20px_rgba(79,140,255,0.15)] group"
-            >
-              <div className="w-full rounded-3xl bg-[#090A0F] overflow-hidden flex flex-col font-mono relative z-10 backdrop-blur-3xl">
-                
-                {/* Header Chrome */}
-                <div className="flex items-center justify-between px-5 py-3 border-b border-white/5 bg-white/2">
+          {/* Product Preview Bento Box (Right) */}
+          <div className="col-span-1 lg:col-span-7 relative h-full w-full">
+            <div className="lg:sticky lg:top-24 w-full lg:w-[105%] lg:ml-[-2.5%] transition-all duration-700 z-10">
+              <div className="relative w-full rounded-[2.5rem] border border-white/5 bg-[#0A0A0C]/90 shadow-[0_40px_100px_-20px_rgba(79,140,255,0.08)] overflow-hidden backdrop-blur-3xl">
+
+                {/* Window Chrome */}
+                <div className="flex items-center justify-between px-6 py-4 border-b border-white/5 bg-white/2">
                   <div className="flex gap-2">
-                    <div className="w-3 h-3 rounded-full bg-white/20 group-hover:bg-[#FF5D5D] transition-colors duration-300" />
-                    <div className="w-3 h-3 rounded-full bg-white/20 group-hover:bg-[#FFB020] transition-colors duration-300" />
-                    <div className="w-3 h-3 rounded-full bg-white/20 group-hover:bg-[#00D084] transition-colors duration-300" />
+                    <div className="w-3 h-3 rounded-full bg-white/10 hover:bg-[#FF5D5D] transition-colors duration-300 cursor-pointer" />
+                    <div className="w-3 h-3 rounded-full bg-white/10 hover:bg-[#FFB020] transition-colors duration-300 cursor-pointer" />
+                    <div className="w-3 h-3 rounded-full bg-white/10 hover:bg-[#00D084] transition-colors duration-300 cursor-pointer" />
                   </div>
-                  <div className="flex items-center gap-2 text-white/50 text-[11px] font-medium px-4 py-1.5 rounded-md bg-white/5 border border-white/5 shadow-inner uppercase tracking-wider">
-                    <svg className="w-3.5 h-3.5 text-(--accent-secondary)" fill="currentColor" viewBox="0 0 24 24"><path d="M4 22H2V2h2v20zM22 2v20h-2V2h2zm-4 16H6V6h12v12z"/></svg>
-                    <span>QuickSort.java</span>
+                  <div className="flex items-center gap-2 px-4 py-1.5 rounded-lg bg-white/5 border border-white/5">
+                    <svg className="w-3 h-3 text-(--accent-secondary) opacity-60" fill="currentColor" viewBox="0 0 24 24"><path d="M4 22H2V2h2v20zM22 2v20h-2V2h2zm-4 16H6V6h12v12z" /></svg>
+                    <span className="text-[10px] text-white/40 font-mono tracking-widest uppercase">QuickSort.java</span>
                   </div>
-                  <div className="w-12" /> {/* Spacer for centering */}
+                  <div className="w-14" />
                 </div>
 
-                {/* Main content grid */}
-                <div className="flex flex-col md:flex-row min-h-[460px]">
-                  
-                  {/* Code Editor */}
-                  <div className="w-full md:w-[45%] border-b md:border-b-0 md:border-r border-white/5 bg-[#050508]/50 relative flex flex-col py-6">
-                    <div className="text-[10px] text-white/30 uppercase tracking-[0.2em] font-sans mb-6 px-6 font-medium">Source Code</div>
-                    <pre className="text-white/60 leading-loose text-[12px] md:text-[13px] overflow-x-auto flex-1 font-mono custom-scrollbar">
-                      <code className="block px-6">
-                        <span className="text-(--exec-return)">public void</span> <span className="text-[#F0F1F3]">quickSort</span>(int[] arr, int left, int right) {"{\n"}
-                      </code>
-                      <code className="block px-6">
-                        {"    "}<span className="text-(--exec-return)">if</span> (left {"<"} right) {"{\n"}
-                      </code>
-                      <code className="block relative bg-linear-to-r from-(--accent-secondary)/15 to-transparent text-white border-l-[3px] border-(--accent-secondary) px-6 py-1 ml-px md:ml-[-3px] shadow-[inset_20px_0_40px_-20px_rgba(79,140,255,0.1)]">
-                        {"        "}int pivot = <span className="text-[#F0F1F3]">partition</span>(arr, left, right);{"\n"}
-                      </code>
-                      <code className="block px-6 opacity-40">
-                        {"        "}quickSort(arr, left, pivot - 1);{"\n"}
-                      </code>
-                      <code className="block px-6 opacity-40">
-                        {"        "}quickSort(arr, pivot + 1, right);{"\n"}
-                      </code>
-                      <code className="block px-6 opacity-40">
-                        {"    }\n"}
-                      </code>
-                      <code className="block px-6 opacity-40">
-                        {"}"}
-                      </code>
-                    </pre>
-                  </div>
-
-                  {/* Visualization & State */}
-                  <div className="w-full md:w-[55%] flex flex-col bg-white/1">
+                {/* Bento Grid */}
+                <div className="p-4 sm:p-5 bg-[#050507]/80">
+                  <div className="grid grid-cols-12 gap-4">
                     
-                    {/* Visualizer Workspace */}
-                    <div className="flex-1 p-6 flex flex-col items-center justify-center border-b border-white/5 relative min-h-[240px]">
-                      <div className="absolute top-6 left-6 text-[10px] text-white/30 uppercase tracking-[0.2em] font-sans font-medium">Workspace</div>
+                    {/* Source Code Panel */}
+                    <Panel index={4} className="col-span-12 lg:col-span-5 h-[260px] lg:h-[320px] flex flex-col p-5">
+                      <div className="text-[10px] text-white/30 uppercase tracking-[0.2em] font-sans font-medium mb-4 shrink-0">Source Code</div>
+                      <pre className="font-mono text-[11px] leading-[2.2] text-white/40 overflow-x-auto flex-1">
+                        <code className="block"><span className="text-(--exec-return)">public void</span> <span className="text-white/80">quickSort</span>(...) {"{"}</code>
+                        <code className="block pl-4"><span className="text-(--exec-return)">if</span> (left {"<"} right) {"{"}</code>
+                        <code className="block pl-8 relative text-white/90">
+                          <div className="absolute -left-5 top-0 bottom-0 w-[3px] bg-(--accent-secondary) rounded-r-sm" />
+                          <div className="absolute inset-0 -left-5 bg-(--accent-secondary)/10" />
+                          int pivot = partition();
+                        </code>
+                        <code className="block pl-8 opacity-60">quickSort(arr, left, pivot-1);</code>
+                        <code className="block pl-8 opacity-60">quickSort(arr, pivot+1, right);</code>
+                        <code className="block pl-4 opacity-40">{"}"}</code>
+                        <code className="block opacity-40">{"}"}</code>
+                      </pre>
+                    </Panel>
+
+                    {/* Workspace Panel */}
+                    <Panel index={3} className="col-span-12 lg:col-span-7 h-[260px] lg:h-[320px] flex flex-col p-6 items-center justify-center">
+                      <div className="absolute top-5 left-5 text-[10px] text-white/30 uppercase tracking-[0.2em] font-sans font-medium">Memory Workspace</div>
                       
-                      {/* Array Representation */}
-                      <div className="flex gap-3 sm:gap-4 relative mt-4">
-                        {[4, 2, 7, 1, 9].map((val, idx) => (
-                          <div key={idx} className={`w-12 h-12 sm:w-14 sm:h-14 flex items-center justify-center rounded-xl border ${idx === 2 ? 'bg-linear-to-b from-(--exec-mutation)/20 to-(--exec-mutation)/5 border-(--exec-mutation)/50 text-(--exec-mutation) shadow-[0_0_25px_rgba(255,176,32,0.15)]' : 'bg-linear-to-b from-white/10 to-white/2 border-white/10 text-white/90 shadow-inner'} relative transition-all`}>
-                            <span className={idx === 2 ? "font-bold text-xl" : "font-medium text-lg"}>{val}</span>
-                            
-                            {/* Pointers */}
-                            {idx === 0 && (
-                              <div className="absolute -bottom-8 text-[11px] text-(--exec-node-active) flex flex-col items-center font-bold tracking-widest">
-                                <svg className="w-3.5 h-3.5 mb-1 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 10l7-7m0 0l7 7m-7-7v18"/></svg>
-                                L
-                              </div>
-                            )}
-                            {idx === 4 && (
-                              <div className="absolute -bottom-8 text-[11px] text-(--accent-secondary) flex flex-col items-center font-bold tracking-widest">
-                                <svg className="w-3.5 h-3.5 mb-1 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 10l7-7m0 0l7 7m-7-7v18"/></svg>
-                                R
-                              </div>
-                            )}
-                            {idx === 2 && (
-                              <div className="absolute -top-8 text-[10px] text-(--exec-mutation) flex flex-col items-center px-2 py-0.5 rounded border border-(--exec-mutation)/30 bg-(--exec-mutation)/10 whitespace-nowrap font-medium tracking-wide">
-                                Evaluating
-                              </div>
-                            )}
+                      <div className="flex gap-3 sm:gap-4 mt-6">
+                        {[4, 2, 7, 1, 9].map((v, i) => (
+                          <div key={i} className={`w-12 h-12 sm:w-14 sm:h-14 rounded-xl flex items-center justify-center font-mono text-lg border ${i===2 ? 'border-(--exec-mutation)/40 bg-(--exec-mutation)/10 text-(--exec-mutation) shadow-[0_0_20px_rgba(255,176,32,0.15)] scale-105' : 'border-white/10 bg-[#050507] text-white/60'} relative transition-all duration-300`}>
+                            {v}
+                            {i === 0 && <div className="absolute -bottom-8 flex flex-col items-center text-[10px] text-(--exec-node-active) font-bold"><svg className="w-3 h-3 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 10l7-7m0 0l7 7m-7-7v18" /></svg>L</div>}
+                            {i === 4 && <div className="absolute -bottom-8 flex flex-col items-center text-[10px] text-(--accent-secondary) font-bold"><svg className="w-3 h-3 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 10l7-7m0 0l7 7m-7-7v18" /></svg>R</div>}
+                            {i === 2 && <div className="absolute -top-9 flex items-center gap-1.5 text-[9px] text-(--exec-mutation) px-2 py-1 rounded-md border border-(--exec-mutation)/30 bg-(--exec-mutation)/10 tracking-widest uppercase"><span className="w-1.5 h-1.5 rounded-full bg-(--exec-mutation) animate-pulse shadow-[0_0_5px_var(--exec-mutation)]" />Eval</div>}
                           </div>
                         ))}
                       </div>
-                    </div>
+                    </Panel>
 
-                    {/* State Panels */}
-                    <div className="flex border-b border-white/5 h-[140px]">
-                      {/* Variables */}
-                      <div className="w-1/2 p-6 border-r border-white/5">
-                        <div className="text-[10px] text-white/30 uppercase tracking-[0.2em] font-sans mb-4 font-medium">Variables</div>
-                        <div className="flex flex-col gap-3 text-[13px]">
-                          <div className="flex justify-between items-center">
-                            <span className="text-(--exec-node-active) font-medium">left</span>
-                            <span className="text-white/90 font-mono bg-white/5 px-2 py-0.5 rounded border border-white/5 text-xs">0</span>
-                          </div>
-                          <div className="flex justify-between items-center">
-                            <span className="text-(--accent-secondary) font-medium">right</span>
-                            <span className="text-white/90 font-mono bg-white/5 px-2 py-0.5 rounded border border-white/5 text-xs">4</span>
-                          </div>
-                          <div className="flex justify-between items-center">
-                            <span className="text-(--exec-mutation) font-medium">pivot</span>
-                            <span className="text-white/30 italic font-mono text-xs px-2 py-0.5">pending</span>
-                          </div>
-                        </div>
+                    {/* Variables Panel */}
+                    <Panel index={1} className="col-span-12 lg:col-span-5 h-[160px] lg:h-[180px] flex flex-col p-5">
+                      <div className="text-[10px] text-white/30 uppercase tracking-[0.2em] font-sans font-medium mb-4">Registers</div>
+                      <div className="flex flex-col gap-3 font-mono text-[12px]">
+                         <div className="flex justify-between items-center"><span className="text-(--exec-node-active) font-medium">left</span><span className="bg-white/5 border border-white/5 px-2.5 py-0.5 rounded-md text-white/80">0</span></div>
+                         <div className="flex justify-between items-center"><span className="text-(--accent-secondary) font-medium">right</span><span className="bg-white/5 border border-white/5 px-2.5 py-0.5 rounded-md text-white/80">4</span></div>
+                         <div className="flex justify-between items-center"><span className="text-(--exec-mutation) font-medium">pivot</span><span className="text-white/30 italic">pending</span></div>
                       </div>
+                    </Panel>
 
-                      {/* Call Stack */}
-                      <div className="w-1/2 p-6">
-                        <div className="text-[10px] text-white/30 uppercase tracking-[0.2em] font-sans mb-4 flex justify-between font-medium">
-                          Call Stack
-                          <span className="text-white/40 bg-white/5 px-1.5 rounded border border-white/5">3</span>
-                        </div>
-                        <div className="flex flex-col gap-2.5 text-[13px] text-white/50">
-                          <div className="truncate text-white/90 flex items-center gap-2.5 bg-white/5 px-2 py-1.5 rounded border border-white/5 shadow-inner">
-                            <span className="w-1.5 h-1.5 rounded-full bg-(--accent-secondary) shadow-[0_0_8px_var(--accent-secondary)]" /> partition(...)
-                          </div>
-                          <div className="truncate pl-4 font-light">quickSort(arr, 0, 4)</div>
-                          <div className="truncate pl-4 opacity-40 font-light">main(args)</div>
-                        </div>
+                    {/* Call Stack Panel */}
+                    <Panel index={2} className="col-span-12 lg:col-span-7 h-[160px] lg:h-[180px] flex flex-col p-5">
+                      <div className="text-[10px] text-white/30 uppercase tracking-[0.2em] font-sans font-medium mb-4 flex justify-between items-center">
+                        Call Stack 
+                        <span className="bg-white/10 px-1.5 py-0.5 rounded text-[9px] text-white/60">3</span>
                       </div>
-                    </div>
+                      <div className="flex flex-col gap-2.5 font-mono text-[11px]">
+                        <div className="bg-(--accent-secondary)/10 border border-(--accent-secondary)/20 text-white px-3 py-1.5 rounded-lg flex items-center gap-2 shadow-[0_0_10px_rgba(79,140,255,0.05)]">
+                          <span className="w-1.5 h-1.5 bg-(--accent-secondary) rounded-full shadow-[0_0_5px_var(--accent-secondary)]"/>partition(...)
+                        </div>
+                        <div className="text-white/40 pl-3">quickSort(arr, 0, 4)</div>
+                        <div className="text-white/20 pl-3">main(args)</div>
+                      </div>
+                    </Panel>
 
-                    {/* Timeline Bar */}
-                    <div className="px-6 py-5 bg-[#050508]/40 flex items-center gap-5">
-                      {/* Play button */}
-                      <div className="w-10 h-10 rounded-full bg-linear-to-b from-(--accent-secondary) to-[#3A6BCC] flex items-center justify-center text-white pl-0.5 shrink-0 shadow-[0_8px_20px_rgba(79,140,255,0.3)] border border-white/20 cursor-pointer hover:scale-105 transition-transform duration-300">
-                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
-                      </div>
-                      {/* Track */}
-                      <div className="flex-1 flex flex-col gap-2 min-w-0">
-                        <div className="flex justify-between text-[10px] text-white/40 uppercase tracking-widest font-sans font-medium">
-                          <span className="truncate">Phase: Partitioning</span>
-                          <span className="shrink-0 ml-2">Step 14/32</span>
-                        </div>
-                        <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden relative shadow-inner">
-                          <div className="absolute top-0 left-0 h-full w-[45%] bg-linear-to-r from-(--accent-secondary)/30 via-(--accent-secondary) to-[#82B1FF] rounded-full shadow-[0_0_10px_var(--accent-secondary)]" />
-                        </div>
-                      </div>
-                    </div>
+                    {/* Timeline Panel */}
+                    <Panel index={0} className="col-span-12 h-[80px] flex flex-col justify-center px-5 relative">
+                       <div className="absolute inset-0 bg-[linear-gradient(to_right,transparent,rgba(255,255,255,0.02),transparent)] pointer-events-none" />
+                       <div className="flex items-center gap-5">
+                         <div className="w-10 h-10 shrink-0 rounded-xl bg-(--accent-secondary)/10 border border-(--accent-secondary)/20 flex items-center justify-center text-(--accent-secondary) cursor-pointer hover:bg-(--accent-secondary)/20 hover:scale-105 transition-all">
+                           <svg className="w-4 h-4 ml-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
+                         </div>
+                         <div className="flex-1 flex flex-col gap-2 min-w-0">
+                           <div className="flex justify-between text-[9px] text-white/40 uppercase tracking-[0.2em] font-sans font-medium">
+                             <span className="truncate">Phase: Partitioning</span>
+                             <span className="font-mono text-white/30 shrink-0 ml-2">14/32</span>
+                           </div>
+                           <div className="h-1.5 bg-white/5 rounded-full overflow-hidden relative">
+                             <div className="absolute top-0 left-0 w-[45%] h-full bg-[linear-gradient(to_right,rgba(79,140,255,0.3),rgba(79,140,255,1))] rounded-full shadow-[0_0_10px_var(--accent-secondary)]" />
+                           </div>
+                         </div>
+                       </div>
+                    </Panel>
 
                   </div>
                 </div>
               </div>
-            </motion.div>
+            </div>
           </div>
 
         </div>

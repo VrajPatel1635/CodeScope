@@ -22,9 +22,9 @@ export default function Home() {
       <VisualDebuggerShowcase />
       <InteractiveDemoExperience />
       <ExecutionIntelligenceShowcase />
-      <DiagnosticEngineShowcase />
-      <PhilosophyQuoteSection />
+      {/* <PhilosophyQuoteSection /> */}
       <DataStructuresShowcase />
+      <DiagnosticEngineShowcase />
       <FAQSection />
       <CTASection />
       <Footer />

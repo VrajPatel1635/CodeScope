@@ -256,3 +256,80 @@ body {
 .monaco-active-line-highlight {
   background-color: rgba(79, 140, 255, 0.15) !important;
 }
+
+/* =========================================
+   CAPSULE BUTTON COMPONENT STYLES
+   ========================================= */
+
+.btn-capsule {
+  position: relative;
+  overflow: hidden;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 9999px;
+  cursor: pointer;
+}
+
+.btn-capsule .bg-sweep {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  transform-origin: right;
+  transform: scaleX(0);
+  transition: transform 0.5s cubic-bezier(0.76, 0, 0.24, 1);
+  z-index: 1;
+}
+
+.btn-capsule:hover .bg-sweep {
+  transform-origin: left;
+  transform: scaleX(1);
+}
+
+.btn-capsule .text-wrapper {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  perspective: 1000px; 
+}
+
+.btn-capsule .text-cube {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transform-style: preserve-3d;
+  transform: translateZ(-10px);
+  transition: transform 0.5s cubic-bezier(0.76, 0, 0.24, 1);
+}
+
+.btn-capsule:hover .text-cube {
+  transform: translateZ(-10px) rotateX(90deg);
+}
+
+.btn-capsule .text-front,
+.btn-capsule .text-back {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  line-height: 1;
+}
+
+.btn-capsule .text-front {
+  transform: translateZ(10px);
+}
+
+.btn-capsule .text-back {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  transform: rotateX(-90deg) translateZ(10px);
+}

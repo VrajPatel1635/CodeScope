@@ -1,141 +1,152 @@
 "use client";
 
 import { motion } from "framer-motion";
-import Link from "next/link";
-import Button from "@/app/components/landing/ui/Button";
+import Button from "./ui/Button";
+import ThreeBackground from "./ThreeBackground";
 
 export default function Hero() {
   return (
-    <section className="relative min-h-screen pt-32 pb-20 flex items-center overflow-hidden">
-      {/* Background Glow (Reduced) */}
-      <div 
-        className="absolute inset-0 z-0 pointer-events-none opacity-20" 
-        style={{ background: "var(--hero-glow)" }} 
-      />
+    <section className="relative min-h-screen pt-32 md:pt-40 pb-20 flex items-center overflow-hidden">
+      <ThreeBackground />
 
-      <div className="max-w-7xl mx-auto px-6 md:px-12 w-full relative z-10">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-8 items-center">
+      <div className="max-w-[1400px] mx-auto px-6 md:px-12 w-full relative z-10">
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-16 lg:gap-8">
           
-          {/* Left Column: Copy & CTAs */}
           <motion.div 
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
-            className="flex flex-col items-start"
+            transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+            className="flex flex-col items-start lg:w-7/12 pt-10"
           >
-            {/* Trust Badges */}
-            <div className="flex flex-wrap gap-3 mb-8">
-              {["Real Java Engine", "Execution Intelligence", "Diagnostics Engine"].map((badge, i) => (
-                <motion.div
-                  key={badge}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.2 + i * 0.1, duration: 0.4 }}
-                  className="px-3 py-1 text-xs font-medium uppercase tracking-widest rounded-full border border-[#2A2D3E] bg-[#1F2130]/50 text-[#A8AABB] backdrop-blur-sm"
-                >
-                  {badge}
-                </motion.div>
-              ))}
-            </div>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.3, duration: 0.8 }}
+              className="mb-8"
+            >
+              <span className="text-[10px] md:text-[11px] font-mono text-white/40 uppercase tracking-[0.3em] pl-1">
+                Real-Time Diagnostics Framework
+              </span>
+            </motion.div>
 
-            {/* Headline */}
-            <h1 className="display-lg text-[#F0F1F3] mb-6">
-              Execution, <br className="hidden md:block" />
-              <span className="text-accent text-[#E8A44A]">Illuminated.</span>
+            <h1 className="mb-10 relative">
+              <motion.span
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.2, duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
+                className="block text-[clamp(4rem,9vw,8rem)] font-display font-medium leading-[0.85] tracking-tighter text-white"
+              >
+                Execution,
+              </motion.span>
+              <motion.span
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.4, duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
+                className="block text-[clamp(4rem,9vw,8rem)] font-serif italic font-light leading-[0.9] tracking-tight text-(--accent-primary) ml-8 md:ml-16 mt-2"
+              >
+                Illuminated.
+              </motion.span>
             </h1>
 
-            {/* Supporting Text */}
-            <p className="body-lg max-w-lg mb-10 text-[#A8AABB]">
-              Stop guessing how your algorithms work. Experience real Java execution with step-by-step visual tracing, intelligent behavior detection, and actionable diagnostics.
-            </p>
+            <motion.p 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5, duration: 0.8 }}
+              className="text-lg md:text-xl leading-[1.8] text-white/50 max-w-xl mb-14 font-light pl-1 md:pl-2 border-l border-white/10"
+            >
+              Stop guessing how your algorithms work. Experience{" "}
+              <span className="text-white/80 font-medium">real Java execution</span> with 
+              step-by-step visual tracing and actionable diagnostics.
+            </motion.p>
 
-            {/* CTAs */}
-            <div className="flex flex-wrap items-center gap-4">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.6, duration: 0.8 }}
+              className="flex flex-wrap items-center gap-6"
+            >
               <Button 
                 href="/visualizer" 
                 variant="primary" 
                 accent="primary"
-                icon={<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>}
+                icon={
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                  </svg>
+                }
               >
                 Launch Visualizer
               </Button>
-              <Button 
+
+              <Button
                 onClick={() => document.getElementById('interactive-demo')?.scrollIntoView({ behavior: 'smooth' })}
-                variant="secondary" 
-                accent="primary"
-                icon={<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><polygon points="10 8 16 12 10 16 10 8"></polygon></svg>}
+                variant="secondary"
+                icon={
+                  <span className="flex items-center justify-center w-5 h-5 rounded-full bg-white/10">
+                    <svg className="w-2 h-2 ml-0.5" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M8 5v14l11-7z" />
+                    </svg>
+                  </span>
+                }
               >
-                Try Interactive Demo
+                Watch Demo
               </Button>
-            </div>
+            </motion.div>
           </motion.div>
 
-          {/* Right Column: Product Showcase */}
-          <div className="relative h-[400px] lg:h-[600px] mt-12 lg:mt-0 perspective-1000">
-            <motion.div
-              initial={{ opacity: 0, x: 50 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 1, delay: 0.2, ease: "easeOut" }}
-              className="relative w-full h-full"
-            >
-              {/* Layer 1: Code Editor */}
+          <motion.div
+            initial={{ opacity: 0, x: 40 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 1.4, delay: 0.5, ease: [0.16, 1, 0.3, 1] }}
+            className="lg:w-5/12 relative mt-16 lg:mt-0 right-0 lg:-right-12 w-full"
+          >
+            <div className="relative w-full aspect-square md:aspect-4/3 lg:aspect-auto lg:h-[650px]">
               <motion.div 
-                whileHover={{ y: -5, transition: { duration: 0.3 } }}
-                className="absolute top-[5%] lg:top-[10%] left-[5%] lg:left-[10%] w-[90%] lg:w-[80%] rounded-xl border border-[#2A2D3E] bg-[#161820]/90 shadow-2xl overflow-hidden backdrop-blur-md z-10 transition-transform"
+                whileHover={{ y: -8, transition: { duration: 0.5, ease: "easeOut" } }}
+                className="absolute top-0 right-0 w-[90%] rounded-2xl border border-white/10 bg-[#0E0F11]/80 shadow-[0_40px_80px_-20px_rgba(0,0,0,0.8)] overflow-hidden backdrop-blur-2xl z-10"
               >
-                <div className="flex items-center gap-2 px-4 py-3 border-b border-[#2A2D3E] bg-[#0E0F11]/80">
-                  <div className="w-3 h-3 rounded-full bg-[#FF5D5D]/20 border border-[#FF5D5D]/50" />
-                  <div className="w-3 h-3 rounded-full bg-[#FFB020]/20 border border-[#FFB020]/50" />
-                  <div className="w-3 h-3 rounded-full bg-[#00D084]/20 border border-[#00D084]/50" />
-                  <span className="ml-2 text-xs text-[#565869] font-code">Solution.java</span>
+                <div className="flex items-center gap-2 px-4 py-3 border-b border-white/5 bg-white/5">
+                  <div className="flex gap-1.5">
+                    <div className="w-2.5 h-2.5 rounded-full bg-white/20" />
+                    <div className="w-2.5 h-2.5 rounded-full bg-white/20" />
+                    <div className="w-2.5 h-2.5 rounded-full bg-white/20" />
+                  </div>
+                  <div className="flex-1 flex justify-center">
+                    <span className="text-[9px] text-white/30 font-mono tracking-widest uppercase">Solution.java</span>
+                  </div>
+                  <div className="w-12" />
                 </div>
-                <div className="p-5 font-code text-sm text-[#A8AABB] leading-relaxed overflow-x-hidden">
-                  <div className="flex gap-4"><span className="text-[#565869] w-4 text-right">1</span><span className="text-[#B388FF]">public void</span> <span className="text-[#4A8FD4]">process</span>() {'{'}</div>
-                  <div className="flex gap-4 bg-[#4F8CFF]/10 border-l-2 border-[#4F8CFF] -ml-px pl-4 py-1"><span className="text-[#565869] w-4 text-right">2</span><span>  <span className="text-[#B388FF]">for</span> (<span className="text-[#E8A44A]">int</span> i = 0; i {'<'} arr.length; i++) {'{'}</span></div>
-                  <div className="flex gap-4"><span className="text-[#565869] w-4 text-right">3</span><span>    sum += arr[i];</span></div>
-                  <div className="flex gap-4"><span className="text-[#565869] w-4 text-right">4</span><span>  {'}'}</span></div>
-                  <div className="flex gap-4"><span className="text-[#565869] w-4 text-right">5</span><span>{'}'}</span></div>
+                
+                <div className="p-6 font-mono text-[13px] text-white/50 leading-loose overflow-x-hidden">
+                  <div className="flex gap-4"><span className="text-white/20 w-5 text-right select-none">1</span><span><span className="text-[#B388FF]">public void</span> <span className="text-white/90">process</span>() {'{'}</span></div>
+                  <div className="flex gap-4 bg-(--accent-secondary)/10 border-l-2 border-(--accent-secondary) -ml-px pl-5 py-1 mt-1 rounded-r"><span className="text-white/20 w-5 text-right select-none">2</span><span className="text-white/80">  <span className="text-[#B388FF]">for</span> (<span className="text-(--accent-primary)">int</span> i = 0; i {'<'} arr.length; i++) {'{'}</span></div>
+                  <div className="flex gap-4 mt-1"><span className="text-white/20 w-5 text-right select-none">3</span><span>    sum += arr[i];</span></div>
+                  <div className="flex gap-4"><span className="text-white/20 w-5 text-right select-none">4</span><span>  {'}'}</span></div>
+                  <div className="flex gap-4"><span className="text-white/20 w-5 text-right select-none">5</span><span>{'}'}</span></div>
                 </div>
               </motion.div>
 
-              {/* Layer 2: Visualization Array */}
               <motion.div 
-                whileHover={{ y: -5, transition: { duration: 0.3 } }}
-                className="absolute bottom-[10%] lg:bottom-[20%] right-[0%] lg:right-[5%] w-[85%] lg:w-[75%] p-5 rounded-xl border border-[#2A2D3E] bg-[#1F2130]/95 shadow-[0_20px_50px_rgba(0,0,0,0.6)] backdrop-blur-xl z-20 transition-transform"
+                whileHover={{ y: -8, transition: { duration: 0.5, ease: "easeOut" } }}
+                className="absolute bottom-12 -left-8 md:bottom-24 md:-left-16 w-[85%] p-6 rounded-2xl border border-white/10 bg-[#0E0F11]/90 shadow-[0_30px_60px_rgba(0,0,0,0.7)] backdrop-blur-2xl z-20"
               >
-                <div className="flex justify-between items-center mb-4">
-                  <div className="text-[10px] uppercase tracking-widest text-[#565869] font-medium">Workspace State</div>
-                  <div className="flex items-center gap-1">
-                    <span className="w-2 h-2 rounded-full bg-[#00D084]"></span>
-                    <span className="text-[10px] text-[#A8AABB]">Active</span>
+                <div className="flex justify-between items-center mb-6">
+                  <div className="text-[10px] uppercase tracking-[0.25em] text-white/40 font-medium">Heap State</div>
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-[#00D084] shadow-[0_0_8px_rgba(0,208,132,0.6)]" />
+                    <span className="text-[10px] text-white/50 font-mono tracking-widest uppercase">Active</span>
                   </div>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-3">
                   {[12, 45, 89, 23, 56].map((num, i) => (
-                    <div key={i} className={`flex-1 aspect-square rounded-lg flex items-center justify-center font-code text-sm lg:text-base transition-all duration-300 ${i === 2 ? 'border border-[#00D084] bg-[#00D084]/10 text-[#00D084] shadow-[0_0_15px_rgba(0,208,132,0.15)] scale-105 z-10' : 'border border-[#2A2D3E] bg-[#161820] text-[#F0F1F3]'}`}>
+                    <div key={i} className={`flex-1 aspect-square rounded-xl flex items-center justify-center font-mono text-sm lg:text-lg transition-all duration-500 ${i === 2 ? 'border border-[#00D084]/50 bg-[#00D084]/10 text-[#00D084] shadow-[0_0_25px_rgba(0,208,132,0.15)] scale-[1.08] z-10' : 'border border-white/10 bg-white/5 text-white/60'}`}>
                       {num}
                     </div>
                   ))}
                 </div>
               </motion.div>
-
-              {/* Layer 3: Diagnostics Panel */}
-              <motion.div 
-                whileHover={{ y: -5, transition: { duration: 0.3 } }}
-                className="absolute top-[60%] lg:top-[40%] -left-[5%] lg:-left-[10%] w-[200px] lg:w-[240px] p-4 rounded-xl border border-[#2A2D3E] bg-[#161820]/90 shadow-2xl backdrop-blur-lg z-30 transition-transform"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-[#E8A44A]/10 border border-[#E8A44A]/20 flex items-center justify-center shrink-0">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E8A44A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
-                  </div>
-                  <div>
-                    <div className="text-sm font-medium text-[#F0F1F3]">O(N) Complexity</div>
-                    <div className="text-[11px] text-[#A8AABB] mt-0.5">Linear Traversal Detected</div>
-                  </div>
-                </div>
-              </motion.div>
-            </motion.div>
-          </div>
+            </div>
+          </motion.div>
 
         </div>
       </div>

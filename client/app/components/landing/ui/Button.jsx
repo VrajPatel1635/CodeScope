@@ -11,6 +11,8 @@ export default function Button({
   className = "",
   ...props
 }) {
+  const isPrimary = variant === "primary";
+
   // Map accent prop to CSS variable
   const accentVars = {
     primary: "var(--accent-primary)",
@@ -20,82 +22,77 @@ export default function Button({
   };
 
   const accentColor = accentVars[accent] || accentVars.primary;
+
+  // Base structural classes
+  const baseClasses = "btn-capsule cursor-pointer font-ui font-medium tracking-wide transition-all duration-300 ease-out outline-none active:scale-[0.98]";
   
-  // Inject dynamic properties for glowing borders/shadows
-  const style = {
-    "--btn-accent": accentColor,
-    "--btn-accent-glow": `color-mix(in srgb, ${accentColor} 30%, transparent)`,
+  // Sizing
+  const sizeClasses = "px-6 py-3 md:px-8 md:py-3.5 text-[13px] md:text-[14px]";
+
+  // Inline styles for dynamic theming based on variant
+  const primaryStyles = {
+    background: accentColor,
+    border: `2px solid ${accentColor}`,
+    color: "var(--bg-primary)",
+    boxShadow: `0 4px 20px -5px color-mix(in srgb, ${accentColor} 40%, transparent)`,
   };
 
-  const isPrimary = variant === "primary";
+  const primarySweepStyles = {
+    background: "var(--bg-primary)",
+  };
 
-  // Base premium structural classes
-  // Uses subtle flex layout, optimized tracking, and clean shape
-  const baseClasses = `
-    relative inline-flex items-center justify-center gap-2.5 
-    px-6 py-3 md:px-8 md:py-3.5 
-    text-[13px] md:text-[14px] font-medium tracking-wide
-    rounded-full transition-all duration-300 ease-out
-    overflow-hidden group outline-none
-    active:scale-[0.98]
-  `;
+  const primaryTextBackStyles = {
+    color: accentColor,
+  };
 
-  // Primary CTA: Object-like presence
-  // Features: Subtle inner highlight (inset shadow), soft outer shadow, white/light base
-  // Hover: Slight lift (-translate-y), intensified shadow with chapter accent color
-  const primaryClasses = `
-    bg-[#F0F1F3] text-[#0E0F11] 
-    border border-white/60
-    shadow-[0_2px_8px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,1)]
-    hover:bg-white hover:-translate-y-0.5
-    hover:shadow-[0_8px_16px_var(--btn-accent-glow),inset_0_1px_0_rgba(255,255,255,1)]
-  `;
+  const secondaryStyles = {
+    background: "transparent",
+    border: "1px solid rgba(255, 255, 255, 0.1)",
+    color: "rgba(255, 255, 255, 0.7)",
+  };
 
-  // Secondary CTA: Transparent and elegant
-  // Features: Hairline border, backdrop blur, soft background
-  // Hover: Increased opacity, border takes a hint of white, elegant shadow
-  const secondaryClasses = `
-    bg-[#161820]/30 text-[#F0F1F3] backdrop-blur-md
-    border border-white/10
-    shadow-[0_2px_4px_rgba(0,0,0,0.1)]
-    hover:bg-white/5 hover:border-white/20 hover:-translate-y-0.5
-    hover:shadow-[0_6px_12px_var(--btn-accent-glow)]
-  `;
+  const secondarySweepStyles = {
+    background: "rgba(255, 255, 255, 0.05)",
+  };
 
-  const classes = `${baseClasses} ${isPrimary ? primaryClasses : secondaryClasses} ${className}`;
+  const secondaryTextBackStyles = {
+    color: "#ffffff",
+  };
+
+  const containerStyles = isPrimary ? primaryStyles : secondaryStyles;
+  const sweepStyles = isPrimary ? primarySweepStyles : secondarySweepStyles;
+  const textBackStyles = isPrimary ? primaryTextBackStyles : secondaryTextBackStyles;
 
   const renderContent = () => (
     <>
-      <span className="relative z-10 flex items-center justify-center gap-2 w-full">
-        {children}
-        {icon && (
-          <span 
-            className={`
-              shrink-0 transition-all duration-300 group-hover:translate-x-0.5 
-              ${isPrimary ? 'opacity-70 group-hover:opacity-100' : 'opacity-60 group-hover:opacity-100 group-hover:text-(--btn-accent)'}
-            `}
-          >
-            {icon}
+      <span className="bg-sweep" style={sweepStyles}></span>
+      <span className="text-wrapper">
+        <span className="text-cube">
+          <span className="text-front gap-2">
+            {children}
+            {icon && <span className="opacity-80 shrink-0">{icon}</span>}
           </span>
-        )}
+          <span className="text-back gap-2" style={textBackStyles}>
+            {children}
+            {icon && <span className="opacity-90 shrink-0">{icon}</span>}
+          </span>
+        </span>
       </span>
-      {/* Micro-elevation detail for primary button object-feel */}
-      {isPrimary && (
-        <span className="absolute bottom-0 inset-x-4 h-px bg-black/5 opacity-50 blur-[1px]"></span>
-      )}
     </>
   );
 
+  const finalClassName = `${baseClasses} ${sizeClasses} ${className}`;
+
   if (href) {
     return (
-      <Link href={href} className={classes} style={style} {...props}>
+      <Link href={href} className={finalClassName} style={containerStyles} {...props}>
         {renderContent()}
       </Link>
     );
   }
 
   return (
-    <button onClick={onClick} className={classes} style={style} {...props}>
+    <button onClick={onClick} className={finalClassName} style={containerStyles} {...props}>
       {renderContent()}
     </button>
   );

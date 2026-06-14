@@ -1,52 +1,47 @@
 "use client";
 
-import React from "react";
-import { motion } from "framer-motion";
+import React, { useRef } from "react";
+import { motion, useScroll, useTransform, useSpring, useVelocity } from "framer-motion";
 
-// --- Mini Visualizers for Bento Grid ---
+// --- MICRO-VISUALIZATIONS ---
 
-const MiniTrees = () => (
-  <div className="relative w-full h-full flex flex-col items-center justify-center scale-90 md:scale-100">
-    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-(--accent-highlight) blur-[100px] opacity-[0.05] rounded-full pointer-events-none" />
-    <div className="flex flex-col items-center gap-6 z-10">
-      <div className="w-10 h-10 rounded-full border border-white/10 bg-[#090A0F] text-white/70 flex items-center justify-center font-mono text-xs relative z-10 shadow-inner group-hover:border-white/30 transition-colors duration-500">
-        8
-        <svg className="absolute top-full left-1/2 w-32 h-8 -translate-x-1/2 overflow-visible -z-10" viewBox="0 0 128 32">
-           <path d="M64 0 L16 32" stroke="rgba(255,255,255,0.05)" strokeWidth="2" fill="none" />
-           <path d="M64 0 L112 32" stroke="rgba(255,255,255,0.05)" strokeWidth="2" fill="none" />
-        </svg>
-      </div>
-      <div className="flex gap-20">
-         <div className="w-10 h-10 rounded-full border border-white/10 bg-[#090A0F] text-white/70 flex items-center justify-center font-mono text-xs relative z-10 shadow-inner group-hover:border-white/30 transition-colors duration-500">
-           3
-           <svg className="absolute top-full left-1/2 w-16 h-8 -translate-x-1/2 overflow-visible -z-10" viewBox="0 0 64 32">
-             <path d="M32 0 L16 32" stroke="rgba(255,255,255,0.05)" strokeWidth="2" fill="none" />
-             <path d="M32 0 L48 32" stroke="rgba(255,255,255,0.05)" strokeWidth="2" fill="none" />
-           </svg>
-         </div>
-         <div className="w-10 h-10 rounded-full border border-(--accent-highlight)/50 bg-(--accent-highlight)/10 text-(--accent-highlight) flex items-center justify-center font-mono text-xs relative z-10 shadow-[0_0_15px_rgba(107,191,160,0.2)] group-hover:scale-110 group-hover:bg-(--accent-highlight)/20 transition-all duration-500">
-           10
-           <svg className="absolute top-full left-1/2 w-16 h-8 -translate-x-1/2 overflow-visible -z-10" viewBox="0 0 64 32">
-             <path d="M32 0 L48 32" stroke="var(--accent-highlight)" strokeOpacity="0.3" strokeWidth="2" fill="none" className="group-hover:stroke-opacity-60 transition-opacity duration-500" />
-           </svg>
-         </div>
-      </div>
-      <div className="flex gap-4 ml-[-80px]">
-         <div className="w-10 h-10 rounded-full border border-white/10 bg-[#090A0F] text-white/70 flex items-center justify-center font-mono text-xs relative z-10 shadow-inner">1</div>
-         <div className="w-10 h-10 rounded-full border border-white/10 bg-[#090A0F] text-white/70 flex items-center justify-center font-mono text-xs relative z-10 shadow-inner">6</div>
-         <div className="w-16"></div>
-         <div className="w-10 h-10 rounded-full border border-(--accent-highlight) bg-(--accent-highlight) text-white flex items-center justify-center font-mono text-xs relative z-10 shadow-[0_0_20px_rgba(107,191,160,0.4)] group-hover:shadow-[0_0_30px_rgba(107,191,160,0.6)] transition-shadow duration-500">
-           14
-           <div className="absolute -inset-2 rounded-full border border-(--accent-highlight) opacity-20 animate-ping group-hover:opacity-40 transition-opacity" />
-         </div>
-      </div>
+const MiniArray = () => (
+  <div className="w-full h-full flex items-center justify-center p-4">
+    <div className="flex gap-0.5 group-hover:gap-1.5 transition-all duration-500">
+      {[4, 8, 15, 16, 23, 42].map((v, i) => (
+        <div key={i} className={`w-8 h-8 rounded-[4px] flex items-center justify-center font-mono text-[11px] border ${i === 2 ? 'bg-(--accent-secondary)/10 border-(--accent-secondary)/50 text-(--accent-secondary) shadow-[0_0_10px_rgba(74,143,212,0.15)] group-hover:bg-(--accent-secondary)/20 transition-colors duration-500 scale-110 relative z-10' : 'bg-[#090A0F] border-white/5 text-white/40 group-hover:border-white/10 transition-colors duration-500'}`}>
+           {v}
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
+const MiniMatrix = () => (
+  <div className="w-full h-full flex items-center justify-center p-4">
+    <div className="grid grid-cols-4 gap-[3px] group-hover:gap-[5px] transition-all duration-500">
+      {Array.from({length: 16}).map((_, i) => (
+        <div key={i} className={`w-6 h-6 rounded-[2px] border flex items-center justify-center text-[9px] font-mono transition-all duration-500 ${i === 5 || i === 10 ? 'bg-(--accent-highlight)/10 border-(--accent-highlight)/40 text-(--accent-highlight) shadow-[0_0_8px_rgba(107,191,160,0.2)] group-hover:bg-(--accent-highlight)/20 group-hover:scale-110 z-10 relative' : 'bg-[#090A0F] border-white/5 text-white/20'}`}>
+          {i}
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
+const MiniString = () => (
+  <div className="w-full h-full flex items-center justify-center p-4 relative">
+    <div className="flex gap-0.5 border-b border-white/5 pb-1 relative">
+       {['r','e','c','u','r','s','i','o','n'].map((c, i) => (
+         <div key={i} className={`w-5 h-6 flex items-center justify-center font-mono text-xs transition-colors duration-500 ${i >= 2 && i <= 5 ? 'text-(--accent-primary) group-hover:text-white' : 'text-white/30 group-hover:text-white/20'}`}>{c}</div>
+       ))}
+       <div className="absolute bottom-0 left-[44px] w-[84px] h-0.5 bg-(--accent-primary) rounded-full shadow-[0_0_8px_var(--accent-primary)] group-hover:w-[40px] group-hover:left-[130px] group-hover:bg-(--accent-secondary) group-hover:shadow-[0_0_8px_var(--accent-secondary)] transition-all duration-700 ease-in-out" />
     </div>
   </div>
 );
 
 const MiniLinkedList = () => (
   <div className="w-full h-full flex items-center justify-center gap-3 group-hover:gap-5 transition-all duration-700 ease-out p-4">
-    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-32 bg-(--accent-secondary) blur-[80px] opacity-[0.04] rounded-full pointer-events-none" />
     {[12, 99, 37].map((val, i) => (
       <React.Fragment key={i}>
         <div className="relative flex flex-col items-center">
@@ -65,234 +60,305 @@ const MiniLinkedList = () => (
   </div>
 );
 
-const MiniArray = () => (
-  <div className="w-full h-full flex items-center justify-center relative p-4">
-    <div className="flex gap-0.5 group-hover:gap-1.5 transition-all duration-500">
-      {[4, 8, 15, 16].map((v, i) => (
-        <div key={i} className={`w-7 h-7 rounded-[4px] flex items-center justify-center font-mono text-[11px] border ${i === 2 ? 'bg-(--accent-secondary)/10 border-(--accent-secondary)/50 text-(--accent-secondary) shadow-[0_0_10px_rgba(74,143,212,0.15)] group-hover:bg-(--accent-secondary)/20 transition-colors duration-500' : 'bg-[#090A0F] border-white/5 text-white/40'}`}>
+const MiniStack = () => (
+  <div className="w-full h-full flex flex-col items-center justify-center p-4">
+    <div className="flex flex-col items-center w-24 relative group-hover:-translate-y-2 transition-transform duration-500">
+       <div className="absolute -top-6 opacity-0 group-hover:opacity-100 group-hover:-top-8 transition-all duration-500 font-mono text-[9px] text-(--accent-secondary)">push(104)</div>
+       <div className="w-full h-8 border border-dashed border-white/20 text-white/30 flex items-center justify-center font-mono text-[10px] rounded mb-1 transition-colors duration-500 group-hover:border-(--accent-secondary)/40 group-hover:bg-(--accent-secondary)/10 group-hover:text-(--accent-secondary)">...</div>
+       {[104, 72, 19].map((v, i) => (
+         <div key={i} className={`w-full h-8 rounded border flex items-center justify-center font-mono text-xs ${i === 0 ? 'bg-(--accent-highlight)/10 border-(--accent-highlight)/40 text-(--accent-highlight) shadow-[0_0_15px_rgba(107,191,160,0.1)] group-hover:scale-105 transition-transform duration-500 z-10 relative mt-1' : 'bg-[#090A0F] border-white/5 text-white/40 mt-1'}`}>
            {v}
-        </div>
-      ))}
-    </div>
-  </div>
-);
-
-const MiniString = () => (
-  <div className="w-full h-full flex items-center justify-center relative p-4">
-    <div className="flex gap-0.5 border-b border-white/5 pb-1 relative">
-       {['a','b','c','a','b'].map((c, i) => (
-         <div key={i} className={`w-5 h-6 flex items-center justify-center font-mono text-xs transition-colors duration-500 ${i >= 1 && i <= 3 ? 'text-(--accent-highlight) group-hover:text-white' : 'text-white/30 group-hover:text-white/20'}`}>{c}</div>
+         </div>
        ))}
-       <div className="absolute bottom-0 left-[22px] w-[62px] h-0.5 bg-(--accent-highlight) rounded-full shadow-[0_0_8px_var(--accent-highlight)] group-hover:w-[40px] group-hover:left-[44px] group-hover:bg-(--accent-secondary) group-hover:shadow-[0_0_8px_var(--accent-secondary)] transition-all duration-700 ease-in-out" />
+       <div className="w-full h-2 border-b border-x border-white/20 rounded-b mt-1 opacity-50" />
     </div>
   </div>
 );
 
-const MiniCollections = () => (
-  <div className="w-full h-full flex items-center justify-center gap-10 sm:gap-16 relative p-4">
-     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-20 bg-(--accent-secondary) blur-[80px] opacity-[0.03] pointer-events-none" />
-     {/* Stack */}
-     <div className="flex flex-col items-center">
-       <div className="flex flex-col gap-1 w-14 items-center group-hover:-translate-y-2 transition-transform duration-500 ease-out relative">
-          <div className="w-12 h-5 rounded-[4px] bg-(--accent-secondary)/10 border border-(--accent-secondary)/40 text-(--accent-secondary) text-[10px] flex items-center justify-center font-mono absolute -top-7 opacity-0 group-hover:opacity-100 transition-all duration-500 delay-100 group-hover:translate-y-1 shadow-[0_0_10px_rgba(74,143,212,0.15)]">8</div>
-          <div className="w-12 h-5 rounded-[4px] bg-[#090A0F] border border-white/5 text-white/40 text-[10px] flex items-center justify-center font-mono">42</div>
-          <div className="w-12 h-5 rounded-[4px] bg-[#090A0F] border border-white/5 text-white/40 text-[10px] flex items-center justify-center font-mono">17</div>
-       </div>
-       <div className="w-16 h-2 border-b border-x border-white/20 rounded-b mt-1 opacity-50" />
-     </div>
-
-     {/* Queue */}
-     <div className="flex flex-col items-center">
-       <div className="flex items-center gap-1 h-6 px-2 border-y border-white/10 group-hover:gap-2 transition-all duration-500 ease-out relative">
-          <div className="absolute -left-5 opacity-0 group-hover:opacity-100 transition-all duration-500 delay-100 group-hover:translate-x-1 w-5 h-5 rounded-[3px] bg-(--accent-highlight)/10 border border-(--accent-highlight)/40 text-(--accent-highlight) text-[10px] flex items-center justify-center font-mono shadow-[0_0_10px_rgba(107,191,160,0.15)]">A</div>
-          <div className="w-5 h-5 rounded-[3px] bg-[#090A0F] border border-white/5 text-white/40 text-[10px] flex items-center justify-center font-mono">B</div>
-          <div className="w-5 h-5 rounded-[3px] bg-[#090A0F] border border-white/5 text-white/40 text-[10px] flex items-center justify-center font-mono">C</div>
-          <div className="w-5 h-5 rounded-[3px] bg-[#090A0F] border border-white/5 text-white/40 text-[10px] flex items-center justify-center font-mono opacity-100 group-hover:opacity-0 group-hover:translate-x-2 transition-all duration-500">D</div>
-       </div>
-     </div>
+const MiniQueue = () => (
+  <div className="w-full h-full flex items-center justify-center p-4">
+    <div className="flex items-center gap-1 relative pt-6 pb-6 group-hover:gap-2 transition-all duration-500">
+       <div className="absolute left-0 top-0 text-[9px] text-white/30 font-mono opacity-0 group-hover:opacity-100 transition-opacity duration-500">dequeue</div>
+       <div className="absolute right-0 bottom-0 text-[9px] text-(--accent-secondary) font-mono opacity-0 group-hover:opacity-100 transition-opacity duration-500">enqueue</div>
+       
+       <div className="h-10 w-4 border-l border-y border-white/20 rounded-l opacity-50" />
+       {[1, 2, 3, 4].map((v, i) => (
+         <div key={i} className={`w-10 h-10 rounded border flex items-center justify-center font-mono text-xs ${i === 3 ? 'bg-(--accent-secondary)/10 border-(--accent-secondary)/40 text-(--accent-secondary) shadow-[0_0_10px_rgba(74,143,212,0.15)] group-hover:scale-110 transition-transform duration-500 z-10' : 'bg-[#090A0F] border-white/5 text-white/40'}`}>
+           {v}
+         </div>
+       ))}
+       <div className="h-10 w-4 border-r border-y border-white/20 rounded-r opacity-50" />
+    </div>
   </div>
 );
 
-const MiniGraphs = () => (
-  <div className="w-full h-full relative flex items-center justify-center p-4 overflow-hidden">
-    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-(--accent-secondary) blur-[100px] opacity-[0.05] rounded-full pointer-events-none" />
-    <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ overflow: 'visible' }}>
-       <line x1="30%" y1="35%" x2="70%" y2="35%" stroke="rgba(255,255,255,0.05)" strokeWidth="2" />
-       <line x1="30%" y1="35%" x2="50%" y2="65%" stroke="var(--accent-secondary)" strokeWidth="2" strokeOpacity="0.3" strokeDasharray="4 2" className="group-hover:stroke-opacity-80 transition-all duration-700" />
-       <line x1="70%" y1="35%" x2="50%" y2="65%" stroke="rgba(255,255,255,0.05)" strokeWidth="2" />
-       <line x1="50%" y1="65%" x2="75%" y2="80%" stroke="rgba(255,255,255,0.05)" strokeWidth="2" />
-    </svg>
-    <div className="absolute top-[35%] left-[30%] -translate-x-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-[#090A0F] border border-white/10 flex items-center justify-center text-[9px] text-white/40 font-mono shadow-inner group-hover:scale-110 transition-transform duration-500">0</div>
-    <div className="absolute top-[35%] left-[70%] -translate-x-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-[#090A0F] border border-white/10 flex items-center justify-center text-[9px] text-white/40 font-mono shadow-inner group-hover:scale-110 transition-transform duration-500">1</div>
-    <div className="absolute top-[65%] left-[50%] -translate-x-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-(--accent-secondary)/10 border border-(--accent-secondary)/40 flex items-center justify-center text-[10px] text-(--accent-secondary) font-mono shadow-[0_0_15px_rgba(74,143,212,0.2)] z-10 group-hover:scale-110 group-hover:bg-(--accent-secondary)/20 transition-all duration-500">2</div>
-    <div className="absolute top-[80%] left-[75%] -translate-x-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-[#090A0F] border border-white/10 flex items-center justify-center text-[9px] text-white/40 font-mono shadow-inner group-hover:scale-110 transition-transform duration-500">3</div>
+const MiniDeque = () => (
+  <div className="w-full h-full flex items-center justify-center p-4">
+    <div className="flex items-center gap-1 relative pt-6 pb-6 group-hover:scale-105 transition-transform duration-500">
+       <div className="absolute left-0 top-0 text-[9px] text-(--accent-primary) font-mono text-center w-8 opacity-0 group-hover:opacity-100 transition-opacity duration-500">push<br/>pop</div>
+       <div className="absolute right-0 bottom-0 text-[9px] text-(--accent-secondary) font-mono text-center w-8 opacity-0 group-hover:opacity-100 transition-opacity duration-500">push<br/>pop</div>
+       
+       <div className="flex items-center gap-1">
+         <div className="text-(--accent-primary) text-xs opacity-50 group-hover:opacity-100 transition-opacity duration-500">↔</div>
+         {[1, 2, 3, 4].map((v, i) => (
+           <div key={i} className={`w-9 h-9 rounded-[4px] border flex items-center justify-center font-mono text-[11px] ${i === 0 ? 'bg-(--accent-primary)/10 border-(--accent-primary)/40 text-(--accent-primary) shadow-[0_0_10px_rgba(232,164,74,0.15)]' : i === 3 ? 'bg-(--accent-secondary)/10 border-(--accent-secondary)/40 text-(--accent-secondary) shadow-[0_0_10px_rgba(74,143,212,0.15)]' : 'bg-[#090A0F] border-white/5 text-white/40'}`}>
+             {v}
+           </div>
+         ))}
+         <div className="text-(--accent-secondary) text-xs opacity-50 group-hover:opacity-100 transition-opacity duration-500">↔</div>
+       </div>
+    </div>
   </div>
 );
 
-const MiniMatrix = () => (
-  <div className="w-full h-full flex items-center justify-center relative p-4">
-    <div className="grid grid-cols-3 gap-[3px]">
-      {Array.from({length: 9}).map((_, i) => (
-        <div key={i} className={`w-5 h-5 rounded-[2px] border flex items-center justify-center text-[9px] font-mono transition-all duration-500 ${i === 4 ? 'bg-(--accent-highlight)/10 border-(--accent-highlight)/40 text-(--accent-highlight) shadow-[0_0_8px_rgba(107,191,160,0.2)] group-hover:bg-(--accent-highlight)/20 group-hover:scale-110 z-10 relative' : 'bg-[#090A0F] border-white/5 text-white/20'}`}>
-          {i}
-        </div>
-      ))}
+const MiniPriorityQueue = () => (
+  <div className="w-full h-full flex flex-col items-center justify-center gap-4 p-4 group-hover:-translate-y-2 transition-transform duration-500">
+    <div className="w-11 h-11 rounded-full border border-(--accent-primary)/50 bg-(--accent-primary)/10 text-(--accent-primary) flex items-center justify-center font-mono text-xs shadow-[0_0_15px_rgba(232,164,74,0.2)] group-hover:scale-110 group-hover:bg-(--accent-primary)/20 transition-all duration-500 z-10 relative">99</div>
+    <div className="flex gap-10 relative">
+       <svg className="absolute bottom-full left-1/2 -translate-x-1/2 w-14 h-6 overflow-visible -z-10" viewBox="0 0 56 24">
+         <line x1="28" y1="0" x2="8" y2="24" stroke="rgba(255,255,255,0.1)" strokeWidth="2" className="group-hover:stroke-[rgba(255,255,255,0.2)] transition-colors duration-500" />
+         <line x1="28" y1="0" x2="48" y2="24" stroke="rgba(255,255,255,0.1)" strokeWidth="2" className="group-hover:stroke-[rgba(255,255,255,0.2)] transition-colors duration-500" />
+       </svg>
+       <div className="w-9 h-9 rounded-full border border-white/10 bg-[#090A0F] text-white/40 flex items-center justify-center font-mono text-[10px] shadow-inner">45</div>
+       <div className="w-9 h-9 rounded-full border border-white/10 bg-[#090A0F] text-white/40 flex items-center justify-center font-mono text-[10px] shadow-inner">72</div>
     </div>
   </div>
 );
 
 const MiniHashMap = () => (
-  <div className="w-full h-full flex flex-col items-center justify-center gap-2 relative p-4">
-     <div className="flex items-center gap-2">
-       <div className="w-8 h-5 border border-white/5 bg-[#090A0F] rounded-[3px] flex items-center justify-center text-[9px] font-mono text-white/30 shadow-inner">"id"</div>
-       <span className="text-white/10 text-xs font-mono">→</span>
-       <div className="w-5 h-5 border border-white/5 bg-[#090A0F] rounded-[3px] flex items-center justify-center text-[9px] font-mono text-white/30 shadow-inner">1</div>
-     </div>
-     <div className="flex items-center gap-2 group-hover:translate-x-1 transition-transform duration-500">
-       <div className="w-8 h-5 border border-(--accent-secondary)/20 bg-(--accent-secondary)/5 rounded-[3px] flex items-center justify-center text-[9px] font-mono text-(--accent-secondary) transition-colors duration-500 group-hover:bg-(--accent-secondary)/15">"v"</div>
-       <span className="text-(--accent-secondary)/30 text-xs font-mono group-hover:text-(--accent-secondary)/60 transition-colors duration-500">→</span>
-       <div className="w-5 h-5 border border-(--accent-secondary)/30 bg-(--accent-secondary)/10 rounded-[3px] flex items-center justify-center text-[9px] font-mono text-(--accent-secondary) shadow-[0_0_8px_rgba(74,143,212,0.15)] group-hover:scale-110 transition-transform duration-500">9</div>
+  <div className="w-full h-full flex flex-col items-center justify-center gap-3 p-4">
+     {[
+       {k: '"id"', v: '101', active: false},
+       {k: '"user"', v: '"vraj"', active: true},
+       {k: '"role"', v: '"admin"', active: false}
+     ].map((row, i) => (
+       <div key={i} className={`flex items-center gap-3 transition-transform duration-500 ${row.active ? 'group-hover:translate-x-2' : ''}`}>
+         <div className={`w-16 h-7 border rounded-[4px] flex items-center justify-center text-[10px] font-mono ${row.active ? 'bg-(--accent-secondary)/10 border-(--accent-secondary)/40 text-(--accent-secondary)' : 'bg-[#090A0F] border-white/5 text-white/30'}`}>{row.k}</div>
+         <span className={`text-[10px] font-mono transition-colors duration-500 ${row.active ? 'text-(--accent-secondary)/50 group-hover:text-(--accent-secondary)' : 'text-white/10'}`}>→</span>
+         <div className={`w-16 h-7 border rounded-[4px] flex items-center justify-center text-[10px] font-mono ${row.active ? 'bg-(--accent-secondary)/10 border-(--accent-secondary)/40 text-(--accent-secondary) shadow-[0_0_10px_rgba(74,143,212,0.15)] group-hover:scale-105 transition-transform duration-500' : 'bg-[#090A0F] border-white/5 text-white/30'}`}>{row.v}</div>
+       </div>
+     ))}
+  </div>
+);
+
+const MiniHashSet = () => (
+  <div className="w-full h-full flex items-center justify-center p-4">
+     <div className="w-28 h-28 rounded-full border border-dashed border-white/20 flex flex-wrap items-center justify-center p-3 relative group-hover:border-white/30 group-hover:bg-white/2 transition-all duration-700">
+        <div className="absolute -top-3 bg-[#030305] px-2 text-[9px] font-mono text-white/40">bucket</div>
+        <div className="w-7 h-7 rounded-full bg-[#090A0F] border border-white/10 text-[9px] font-mono text-white/50 flex items-center justify-center m-1">A</div>
+        <div className="w-7 h-7 rounded-full bg-(--accent-highlight)/10 border border-(--accent-highlight)/40 text-[9px] font-mono text-(--accent-highlight) flex items-center justify-center m-1 shadow-[0_0_15px_rgba(107,191,160,0.15)] group-hover:scale-110 transition-transform duration-500">B</div>
+        <div className="w-7 h-7 rounded-full bg-[#090A0F] border border-white/10 text-[9px] font-mono text-white/50 flex items-center justify-center m-1">C</div>
      </div>
   </div>
 );
 
-// --- Bento Card Container ---
-
-const BentoCard = ({ className, title, desc, children }) => (
-  <motion.div 
-    initial={{ opacity: 0, y: 20 }}
-    whileInView={{ opacity: 1, y: 0 }}
-    viewport={{ once: true, margin: "-50px" }}
-    className={`group relative rounded-3xl bg-[#030305] border border-white/5 overflow-hidden flex flex-col transition-all duration-500 hover:-translate-y-1 hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.5)] hover:border-white/10 ${className}`}
-  >
-    {/* Inner Ambient Glow */}
-    <div className="absolute inset-0 bg-linear-to-br from-white/0 via-white/2 to-white/0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none z-20" />
-    
-    {/* Content Area */}
-    <div className="absolute top-0 left-0 right-0 p-6 z-30 pointer-events-none">
-      <h3 className="text-white/90 text-[15px] sm:text-base font-medium tracking-wide mb-1">{title}</h3>
-      {desc && <p className="text-white/40 text-[12px] sm:text-[13px] font-light leading-snug">{desc}</p>}
+const MiniCallStack = () => (
+  <div className="w-full h-full flex items-center justify-center p-4">
+    <div className="flex flex-col gap-1.5 w-40 relative group-hover:translate-x-2 transition-transform duration-500">
+       <div className="absolute -left-6 top-2 bottom-2 w-px bg-white/10">
+         <div className="w-1.5 h-1.5 bg-(--accent-highlight) rounded-full absolute left-[-2.5px] top-0 shadow-[0_0_8px_var(--accent-highlight)]" />
+       </div>
+       {[
+         {name: 'dfs(node.left)', active: true},
+         {name: 'dfs(node)', active: false},
+         {name: 'main()', active: false}
+       ].map((frame, i) => (
+         <div key={i} className={`w-full p-2.5 border rounded-[4px] text-[10px] font-mono flex items-center justify-between transition-colors duration-500 ${frame.active ? 'bg-(--accent-highlight)/10 border-(--accent-highlight)/40 text-(--accent-highlight) group-hover:bg-(--accent-highlight)/20' : 'bg-[#090A0F] border-white/5 text-white/30'}`}>
+            <span>{frame.name}</span>
+            {frame.active && <span className="w-1.5 h-1.5 rounded-full bg-(--accent-highlight) animate-pulse" />}
+         </div>
+       ))}
     </div>
-    
-    {/* Visualizer Container */}
-    <div className="flex-1 w-full h-full relative z-10 flex items-center justify-center pt-16 pb-4 px-4 bg-linear-to-b from-transparent to-white/1">
-       {children}
-    </div>
-  </motion.div>
+  </div>
 );
 
-// --- Main Showcase Component ---
+const MiniVariables = () => (
+  <div className="w-full h-full flex items-center justify-center p-4">
+    <div className="w-full max-w-[220px] border border-white/10 rounded-xl bg-[#090A0F] overflow-hidden group-hover:border-white/20 group-hover:shadow-[0_10px_30px_-10px_rgba(0,0,0,0.5)] transition-all duration-700">
+       <div className="bg-white/5 border-b border-white/10 px-4 py-2 flex items-center gap-2">
+         <div className="w-2 h-2 rounded-full bg-white/20" />
+         <span className="text-[10px] uppercase tracking-wider text-white/40 font-mono">Watch</span>
+       </div>
+       <div className="p-4 flex flex-col gap-3">
+         <div className="flex justify-between items-center font-mono text-[11px]">
+           <span className="text-white/40">i</span>
+           <span className="text-white/80">42</span>
+         </div>
+         <div className="flex justify-between items-center font-mono text-[11px] bg-(--accent-secondary)/10 -mx-2 px-2 py-1 rounded-[4px] border border-(--accent-secondary)/20 relative overflow-hidden">
+           <div className="absolute inset-0 bg-(--accent-secondary)/5 opacity-0 group-hover:opacity-100 group-hover:animate-pulse transition-opacity duration-500" />
+           <span className="text-(--accent-secondary) relative z-10">curr</span>
+           <span className="text-(--accent-secondary) relative z-10">Node(12)</span>
+         </div>
+         <div className="flex justify-between items-center font-mono text-[11px]">
+           <span className="text-white/40">found</span>
+           <span className="text-white/80">false</span>
+         </div>
+       </div>
+    </div>
+  </div>
+);
+
+const MiniOperations = () => (
+  <div className="w-full h-full flex items-center justify-center p-4">
+    <div className="flex flex-col gap-2.5 font-mono text-[11px] w-full max-w-[240px]">
+       <div className="text-white/20 transition-colors duration-500 group-hover:text-white/30">Comparing A[1] and A[2]</div>
+       <div className="text-white/20 transition-colors duration-500 group-hover:text-white/30">A[1] &gt; A[2], proceeding</div>
+       <div className="text-(--accent-highlight) bg-(--accent-highlight)/10 border border-(--accent-highlight)/30 p-2 rounded-[4px] shadow-[0_0_15px_rgba(107,191,160,0.1)] group-hover:scale-105 transition-transform duration-500">swap(A[1], A[2])</div>
+       <div className="text-white/40 flex items-center gap-2 mt-1">
+         <span className="w-1.5 h-1.5 rounded-full bg-white/40 animate-pulse" />
+         Incrementing i
+       </div>
+    </div>
+  </div>
+);
+
+const MiniTimeline = () => (
+  <div className="w-full h-full flex items-center justify-center p-4">
+    <div className="w-full max-w-[260px] relative flex items-center">
+       <div className="w-full h-1.5 bg-white/5 rounded-full relative group-hover:bg-white/10 transition-colors duration-500">
+         <div className="absolute left-0 top-0 bottom-0 w-[60%] bg-linear-to-r from-(--accent-primary)/20 to-(--accent-primary) rounded-full" />
+         <div className="absolute left-[60%] top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-white border-[3px] border-(--accent-primary) shadow-[0_0_15px_var(--accent-primary)] group-hover:scale-125 transition-transform duration-500 cursor-pointer" />
+         
+         <div className="absolute left-[20%] top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-white/40 group-hover:bg-white/60 transition-colors duration-500" />
+         <div className="absolute left-[40%] top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-white/40 group-hover:bg-white/60 transition-colors duration-500" />
+         <div className="absolute left-[80%] top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-white/20 group-hover:bg-white/40 transition-colors duration-500" />
+       </div>
+       <div className="absolute -top-8 left-[60%] -translate-x-1/2 text-[10px] font-mono text-(--accent-primary) opacity-0 group-hover:opacity-100 group-hover:-top-10 transition-all duration-500">Step 42</div>
+    </div>
+  </div>
+);
+
+const MiniTree = () => (
+  <div className="relative w-full h-full flex items-center justify-center p-4">
+    <div className="absolute inset-0 z-20 flex items-center justify-center backdrop-blur-[1px] bg-[#030305]/40 rounded-3xl">
+      <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 shadow-xl group-hover:bg-white/10 group-hover:border-white/20 transition-all duration-500">
+         <span className="text-white/80 uppercase tracking-widest text-[10px] font-mono font-medium">In Development</span>
+      </div>
+    </div>
+    <div className="flex flex-col items-center gap-6 opacity-30 group-hover:opacity-40 transition-opacity duration-700">
+      <div className="w-10 h-10 rounded-full border border-dashed border-white/30 flex items-center justify-center font-mono text-[10px] text-white/30"></div>
+      <div className="flex gap-12 relative">
+         <svg className="absolute bottom-full left-1/2 -translate-x-1/2 w-16 h-6 overflow-visible" viewBox="0 0 64 24">
+           <line x1="32" y1="0" x2="8" y2="24" stroke="rgba(255,255,255,0.2)" strokeWidth="1" strokeDasharray="3 3" />
+           <line x1="32" y1="0" x2="56" y2="24" stroke="rgba(255,255,255,0.2)" strokeWidth="1" strokeDasharray="3 3" />
+         </svg>
+         <div className="w-10 h-10 rounded-full border border-dashed border-white/30 flex items-center justify-center font-mono text-[10px] text-white/30"></div>
+         <div className="w-10 h-10 rounded-full border border-dashed border-white/30 flex items-center justify-center font-mono text-[10px] text-white/30"></div>
+      </div>
+    </div>
+  </div>
+);
+
+// --- SHOWCASE DATA ---
+
+const STRUCTURES = [
+  { id: 'arrays', title: 'Arrays', desc: '1D continuous memory mapped natively.', Component: MiniArray },
+  { id: 'matrices', title: 'Matrices', desc: 'Multi-dimensional grids for spatial traversal.', Component: MiniMatrix },
+  { id: 'strings', title: 'Strings', desc: 'Character sequences tracked with sliding pointers.', Component: MiniString },
+  { id: 'linked-lists', title: 'Linked Lists', desc: 'Follow every reference pointer seamlessly.', Component: MiniLinkedList },
+  { id: 'stacks', title: 'Stacks', desc: 'LIFO execution collections monitored live.', Component: MiniStack },
+  { id: 'queues', title: 'Queues', desc: 'FIFO collections with enqueue/dequeue tracking.', Component: MiniQueue },
+  { id: 'deques', title: 'Deques', desc: 'Double-ended queues with bidirectional access.', Component: MiniDeque },
+  { id: 'priority-queues', title: 'Priority Queues', desc: 'Heap-based prioritization and sorting visualization.', Component: MiniPriorityQueue },
+  { id: 'hashmaps', title: 'Hash Maps', desc: 'Key-value relationships and collisions exposed.', Component: MiniHashMap },
+  { id: 'hashsets', title: 'Hash Sets', desc: 'Buckets of unique values organized automatically.', Component: MiniHashSet },
+  { id: 'call-stack', title: 'Call Stack', desc: 'Live recursion depth and frame tracking.', Component: MiniCallStack },
+  { id: 'variables', title: 'Variables', desc: 'Isolated scope watch panels updating per step.', Component: MiniVariables },
+  { id: 'operations', title: 'Operations', desc: 'Micro-step execution logging for absolute clarity.', Component: MiniOperations },
+  { id: 'timeline', title: 'Execution Timeline', desc: 'Time-travel debugging scrubber for complete control.', Component: MiniTimeline },
+  { id: 'trees', title: 'Trees & Tries', desc: 'Deep recursion visualized with full branch awareness.', Component: MiniTree },
+];
 
 export default function DataStructuresShowcase() {
+  const containerRef = useRef(null);
+  
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ["start start", "end end"]
+  });
+
+  // Smooth progress for horizontal translation to avoid jitter
+  const smoothProgress = useSpring(scrollYProgress, {
+    damping: 30,
+    stiffness: 100,
+    mass: 0.5
+  });
+
+  // Translate the flex container to the left by [0, -100% + 100vw]
+  // We use a callback function to return the complex calc string because
+  // Framer Motion cannot interpolate between mismatched string formats like "0%" and "calc(...)".
+  const x = useTransform(smoothProgress, (p) => `calc(${-p * 100}% + ${p * 100}vw)`);
+
+  const { scrollY } = useScroll();
+  const scrollVelocity = useVelocity(scrollY);
+  
+  // Smooth the velocity specifically for the morphing effect
+  const smoothVelocity = useSpring(scrollVelocity, {
+    damping: 50,
+    stiffness: 400
+  });
+
+  // Map vertical velocity to a subtle horizontal skew (-3deg to 3deg)
+  const skewX = useTransform(smoothVelocity, [-1000, 1000], [-3, 3]);
+
   return (
-    <section className="relative py-24 md:py-32 bg-background overflow-hidden border-t border-white/2">
-      <div className="max-w-[1200px] mx-auto px-6 md:px-8 relative z-10">
-        
-        {/* Editorial Section Header */}
-        <div className="text-center mb-16 md:mb-24 max-w-2xl mx-auto flex flex-col items-center">
-          <motion.div 
-            initial={{ opacity: 0, y: 10 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="flex items-center justify-center gap-4 mb-8"
-          >
-             <div className="h-px w-8 bg-linear-to-r from-transparent to-(--accent-secondary)" />
-             <span className="text-(--accent-secondary) uppercase tracking-[0.25em] text-xs font-semibold">Supported Structures</span>
-             <div className="h-px w-8 bg-linear-to-l from-transparent to-(--accent-secondary)" />
-          </motion.div>
-          
-          <motion.h2 
-            initial={{ opacity: 0, y: 10 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.1 }}
-            className="text-4xl sm:text-5xl md:text-6xl font-display font-medium leading-[1.1] tracking-tight mb-6 text-white"
-          >
-            Every structure.<br />
-            <span className="text-white/50">Every state.</span><br />
-            <span className="font-serif italic font-light text-(--accent-secondary) tracking-normal pr-2">Visible.</span>
-          </motion.h2>
-          
-          <motion.p 
-            initial={{ opacity: 0, y: 10 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.2 }}
-            className="text-white/40 text-[15px] md:text-[17px] leading-relaxed font-light"
-          >
-            Built for how algorithms actually work. The platform natively understands and visualizes standard data structures and complex topologies.
-          </motion.p>
+    <section ref={containerRef} className="relative bg-background h-[1000vh]">
+      <div className="sticky top-0 w-full h-screen overflow-hidden flex flex-col py-16 md:py-20 lg:py-24">
+        {/* Background glow */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1000px] h-[600px] bg-(--accent-secondary) blur-[200px] opacity-[0.03] rounded-full pointer-events-none" />
+
+        {/* Section Header */}
+        <div className="px-6 md:px-12 shrink-0 mb-10 md:mb-16 lg:mb-20 relative z-10 pointer-events-none">
+          <div className="flex flex-col lg:flex-row items-start lg:items-end justify-between gap-6 lg:gap-10">
+            <div className="max-w-2xl">
+              <div className="flex items-center gap-3 mb-4 lg:mb-6">
+                <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 backdrop-blur-md">
+                  <span className="w-1.5 h-1.5 rounded-full bg-(--accent-secondary) shadow-[0_0_8px_var(--accent-secondary)]" />
+                  <span className="text-white/80 uppercase tracking-[0.25em] text-[10px] font-semibold font-ui">Data Structures</span>
+                </div>
+              </div>
+              
+              <h2 className="text-[clamp(2.5rem,6vw,6.5rem)] font-display font-medium leading-[0.95] tracking-tighter text-white">
+                Every structure.<br />
+                <span className="font-serif italic font-light text-(--accent-secondary) tracking-normal pr-4">Visible.</span>
+              </h2>
+            </div>
+            <p className="text-white/40 text-base md:text-lg lg:text-xl leading-[1.7] max-w-md font-light tracking-wide lg:pb-4 font-ui">
+              Built for how algorithms actually work. The platform natively understands and visualizes <span className="text-white/80">standard data structures</span> and <span className="text-white/80">complex topologies</span> in real-time.
+            </p>
+          </div>
         </div>
 
-        {/* Asymmetrical Bento Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 auto-rows-[200px] md:auto-rows-[180px] lg:auto-rows-[200px]">
-          
-          {/* Row 1 & 2 */}
-          <BentoCard 
-            title="Trees & Tries" 
-            desc="Deep recursion visualized." 
-            className="md:col-span-2 md:row-span-2 lg:col-span-2 lg:row-span-2"
-          >
-             <MiniTrees />
-          </BentoCard>
-          
-          <BentoCard 
-            title="Linked Lists" 
-            desc="Follow every reference." 
-            className="md:col-span-2 md:row-span-1 lg:col-span-2 lg:row-span-1"
-          >
-             <MiniLinkedList />
-          </BentoCard>
-          
-          <BentoCard 
-            title="Arrays" 
-            desc="1D continuous memory." 
-            className="md:col-span-1 md:row-span-1 lg:col-span-1 lg:row-span-1"
-          >
-             <MiniArray />
-          </BentoCard>
-          
-          <BentoCard 
-            title="Strings" 
-            desc="Character sequences." 
-            className="md:col-span-1 md:row-span-1 lg:col-span-1 lg:row-span-1"
-          >
-             <MiniString />
-          </BentoCard>
-          
-          {/* Row 3 & 4 */}
-          <BentoCard 
-            title="Linear Collections" 
-            desc="Stacks, Queues, Deques & Priority Queues." 
-            className="md:col-span-2 md:row-span-1 lg:col-span-2 lg:row-span-1"
-          >
-             <MiniCollections />
-          </BentoCard>
-          
-          <BentoCard 
-            title="Graphs" 
-            desc="Topology mapped in real-time." 
-            className="md:col-span-2 md:row-span-2 lg:col-span-2 lg:row-span-2"
-          >
-             <MiniGraphs />
-          </BentoCard>
-          
-          <BentoCard 
-            title="Matrices" 
-            desc="Multi-dimensional grids." 
-            className="md:col-span-1 md:row-span-1 lg:col-span-1 lg:row-span-1"
-          >
-             <MiniMatrix />
-          </BentoCard>
-          
-          <BentoCard 
-            title="Hash Maps & Sets" 
-            desc="Key-value relationships." 
-            className="md:col-span-1 md:row-span-1 lg:col-span-1 lg:row-span-1"
-          >
-             <MiniHashMap />
-          </BentoCard>
-          
+        {/* Horizontal Gallery */}
+        <div className="flex-1 w-full relative z-10 flex items-center min-h-0 mt-16">
+          <motion.div style={{ x }} className="flex gap-4 md:gap-8 px-6 md:px-[10vw] pb-8 md:pb-12 w-max items-center h-full max-h-full">
+            {STRUCTURES.map((struct, idx) => (
+              <motion.div 
+                key={struct.id}
+                style={{ skewX }}
+                className="shrink-0 w-[80vw] sm:w-[45vw] lg:w-[32vw] xl:w-[24vw] h-[320px] md:h-[380px] lg:h-[400px] group relative rounded-[28px] bg-[#030305] border border-white/5 overflow-hidden flex flex-col transition-colors duration-700 hover:bg-[#090A0F] cursor-pointer"
+              >
+                {/* Hover gradient overlay */}
+                <div className="absolute inset-0 bg-linear-to-br from-white/0 via-white/2 to-white/0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none z-20" />
+                
+                {/* Large Background Index (Watermark) */}
+                <div className="absolute top-0 right-0 p-6 md:p-8 opacity-[0.04] pointer-events-none group-hover:opacity-[0.1] transition-opacity duration-700 z-0">
+                  <span className="text-[40px] md:text-[60px] leading-none font-display text-white">{String(idx + 1).padStart(2, '0')}</span>
+                </div>
+                
+                {/* Card Header */}
+                <div className="p-6 md:p-8 pr-24 md:pr-32 z-30 relative pointer-events-none border-b border-white/5 bg-white/2">
+                  <h3 className="text-white/90 text-xl md:text-2xl font-medium tracking-wide mb-2 font-ui">{struct.title}</h3>
+                  <p className="text-white/40 text-xs md:text-sm font-light leading-relaxed font-ui">{struct.desc}</p>
+                </div>
+                
+                {/* Live Micro-Visualization */}
+                <div className="flex-1 w-full h-full relative z-10 flex items-center justify-center p-6 overflow-hidden">
+                   <struct.Component />
+                </div>
+              </motion.div>
+            ))}
+          </motion.div>
         </div>
 
       </div>

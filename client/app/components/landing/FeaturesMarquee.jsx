@@ -13,9 +13,8 @@ const MarqueeRow = ({ items, direction = "left", speed = 40, className = "" }) =
         {[...items, ...items, ...items, ...items].map((item, i) => (
           <span
             key={i}
-            className={`text-lg md:text-3xl font-ui font-medium uppercase tracking-[0.2em] text-transparent bg-clip-text bg-linear-to-b from-white/50 via-white/20 to-white/5 select-none ${
-              item === "✦" ? "px-6 md:px-12 opacity-40 font-light text-white/30 text-sm md:text-xl" : ""
-            }`}
+            className={`text-lg md:text-3xl font-ui font-medium uppercase tracking-[0.2em] text-transparent bg-clip-text bg-linear-to-b from-white/50 via-white/20 to-white/5 select-none ${item === "✦" ? "px-6 md:px-12 opacity-40 font-light text-white/30 text-sm md:text-xl" : ""
+              }`}
           >
             {item}
           </span>
@@ -33,7 +32,7 @@ export default function FeaturesMarquee() {
   return (
     <section className="relative w-full py-8 md:py-12 flex flex-col items-center justify-center border-y border-white/4 bg-background">
       {/* Modern CSS Mask for smooth fade-out on the left and right edges */}
-      <div 
+      <div
         className="w-full flex flex-col gap-2 md:gap-4 relative"
         style={{
           maskImage: "linear-gradient(to right, transparent, black 15%, black 85%, transparent)",
