@@ -2,6 +2,7 @@
 
 import React from "react";
 import { motion } from "framer-motion";
+import SectionEyebrow from "./ui/SectionEyebrow";
 
 export default function DiagnosticEngineShowcase() {
   const journey = [
@@ -33,15 +34,7 @@ export default function DiagnosticEngineShowcase() {
 
           {/* Content (Left) */}
           <div className="lg:col-span-5 flex flex-col order-1">
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="flex items-center gap-4 mb-6"
-            >
-              <div className="h-px w-8 bg-linear-to-r from-emerald-400 to-transparent" />
-              <span className="text-emerald-400 uppercase tracking-[0.25em] text-xs font-semibold">Instant Clarity</span>
-            </motion.div>
+            <SectionEyebrow title="Instant Clarity" phase="SYS.DIAGNOSTICS" accentClass="text-emerald-400" />
 
             <motion.h2
               initial={{ opacity: 0, y: 10 }}
@@ -93,7 +86,7 @@ export default function DiagnosticEngineShowcase() {
                 whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true, margin: "-100px" }}
                 transition={{ duration: 0.7, ease: "easeOut" }}
-                className="w-full md:w-[40%] rounded-2xl bg-[#030305] border border-white/5 p-5 flex flex-col mt-0 md:mt-8 mb-0 md:mb-8 relative overflow-hidden opacity-60 mix-blend-luminosity"
+                className="w-full md:w-[40%] rounded-2xl bg-background border border-white/5 p-5 flex flex-col mt-0 md:mt-8 mb-0 md:mb-8 relative overflow-hidden opacity-60 mix-blend-luminosity"
               >
                 <div className="absolute top-0 left-0 w-full h-px bg-linear-to-r from-red-500/0 via-red-500/10 to-red-500/0" />
 
@@ -119,7 +112,7 @@ export default function DiagnosticEngineShowcase() {
                 transition={{ duration: 0.8, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
                 className="w-full md:w-[60%] rounded-3xl p-px bg-linear-to-b from-white/10 via-white/5 to-transparent shadow-2xl relative z-10"
               >
-                <div className="w-full h-full rounded-3xl bg-[#090A0F] flex flex-col relative overflow-hidden">
+                <div className="w-full h-full rounded-3xl bg-(--bg-surface) flex flex-col relative overflow-hidden">
 
                   {/* Resolution Glow */}
                   <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/2 h-px bg-linear-to-r from-transparent via-emerald-400/40 to-transparent" />

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import SectionEyebrow from "./ui/SectionEyebrow";
 
 // --- Mock Visualizers ---
 
@@ -27,14 +28,14 @@ const BinarySearchDemo = ({ step }) => {
           
           return (
             <div key={i} className="flex flex-col items-center">
-              <div className={`w-10 h-10 md:w-12 md:h-12 flex items-center justify-center rounded-xl border font-mono text-sm md:text-base transition-all duration-500 ${isM ? 'bg-(--accent-secondary)/20 border-(--accent-secondary) text-(--accent-secondary) shadow-[0_0_20px_rgba(79,140,255,0.3)] scale-110 z-10' : isOutOfRange ? 'bg-white/2 border-white/5 text-white/20' : 'bg-[#090A0F] border-white/10 text-white/80 shadow-inner'}`}>
+              <div className={`w-10 h-10 md:w-12 md:h-12 flex items-center justify-center rounded-xl border font-mono text-sm md:text-base transition-all duration-500 ${isM ? 'bg-(--accent-secondary)/20 border-(--accent-secondary) text-(--accent-secondary) shadow-[0_0_20px_rgba(79,140,255,0.3)] scale-110 z-10' : isOutOfRange ? 'bg-white/2 border-white/5 text-white/20' : 'bg-(--bg-surface) border-white/10 text-white/80 shadow-inner'}`}>
                 {val}
               </div>
               <div className="h-8 mt-3 relative w-full flex justify-center">
                 <AnimatePresence>
-                  {isL && <motion.span key="L" initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }} className="absolute text-[10px] text-(--accent-highlight) font-mono font-bold bg-[#050508] px-1 rounded">L</motion.span>}
-                  {isR && <motion.span key="R" initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }} className="absolute text-[10px] text-(--accent-secondary) font-mono font-bold bg-[#050508] px-1 rounded">R</motion.span>}
-                  {isM && <motion.span key="M" initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 5 }} className="absolute text-[10px] text-(--accent-secondary) font-mono font-bold top-4 bg-[#050508] px-1 rounded">M</motion.span>}
+                  {isL && <motion.span key="L" initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }} className="absolute text-[10px] text-(--accent-highlight) font-mono font-bold bg-background px-1 rounded">L</motion.span>}
+                  {isR && <motion.span key="R" initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }} className="absolute text-[10px] text-(--accent-secondary) font-mono font-bold bg-background px-1 rounded">R</motion.span>}
+                  {isM && <motion.span key="M" initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 5 }} className="absolute text-[10px] text-(--accent-secondary) font-mono font-bold top-4 bg-background px-1 rounded">M</motion.span>}
                 </AnimatePresence>
               </div>
             </div>
@@ -69,13 +70,13 @@ const ReverseListDemo = ({ step }) => {
 
           return (
             <div key={i} className="relative flex flex-col items-center">
-              <div className={`w-12 h-12 md:w-14 md:h-14 flex items-center justify-center rounded-2xl border font-mono text-sm md:text-base transition-all duration-500 z-10 ${isCurr ? 'bg-(--accent-secondary)/20 border-(--accent-secondary) text-(--accent-secondary) shadow-[0_0_20px_rgba(79,140,255,0.3)] scale-110' : isPrev ? 'bg-(--accent-highlight)/15 border-(--accent-highlight)/50 text-(--accent-highlight)' : 'bg-[#090A0F] border-white/10 text-white/80 shadow-inner'}`}>
+              <div className={`w-12 h-12 md:w-14 md:h-14 flex items-center justify-center rounded-2xl border font-mono text-sm md:text-base transition-all duration-500 z-10 ${isCurr ? 'bg-(--accent-secondary)/20 border-(--accent-secondary) text-(--accent-secondary) shadow-[0_0_20px_rgba(79,140,255,0.3)] scale-110' : isPrev ? 'bg-(--accent-highlight)/15 border-(--accent-highlight)/50 text-(--accent-highlight)' : 'bg-(--bg-surface) border-white/10 text-white/80 shadow-inner'}`}>
                 {val}
               </div>
               <div className="h-6 mt-3 relative w-full flex justify-center">
-                {isPrev && <motion.span key="prev" layoutId="prev" className="absolute text-[10px] text-(--accent-highlight) font-mono bg-[#050508] px-1 rounded">prev</motion.span>}
-                {isCurr && <motion.span key="curr" layoutId="curr" className="absolute text-[10px] text-(--accent-secondary) font-mono bg-[#050508] px-1 rounded">curr</motion.span>}
-                {isNext && <motion.span key="next" layoutId="next" className="absolute text-[10px] text-white/40 font-mono bg-[#050508] px-1 rounded">next</motion.span>}
+                {isPrev && <motion.span key="prev" layoutId="prev" className="absolute text-[10px] text-(--accent-highlight) font-mono bg-background px-1 rounded">prev</motion.span>}
+                {isCurr && <motion.span key="curr" layoutId="curr" className="absolute text-[10px] text-(--accent-secondary) font-mono bg-background px-1 rounded">curr</motion.span>}
+                {isNext && <motion.span key="next" layoutId="next" className="absolute text-[10px] text-white/40 font-mono bg-background px-1 rounded">next</motion.span>}
               </div>
               
               {/* Edge */}
@@ -132,7 +133,7 @@ const SlidingWindowDemo = ({ step }) => {
             transition={{ duration: 0.5, ease: "easeInOut" }}
             className="absolute top-2 bottom-4 border-2 border-(--accent-highlight)/50 bg-(--accent-highlight)/10 rounded-lg pointer-events-none shadow-[0_0_20px_rgba(0,208,132,0.15)] flex flex-col items-center"
          >
-            <span className="absolute -top-6 text-[9px] text-(--accent-highlight) font-mono tracking-widest uppercase bg-[#050508] px-2 py-0.5 rounded-full border border-(--accent-highlight)/20">Window</span>
+            <span className="absolute -top-6 text-[9px] text-(--accent-highlight) font-mono tracking-widest uppercase bg-background px-2 py-0.5 rounded-full border border-(--accent-highlight)/20">Window</span>
          </motion.div>
        </div>
        <div className="absolute bottom-6 px-5 py-2.5 bg-black/40 backdrop-blur-md border border-white/10 rounded-full text-xs text-white/60 font-mono shadow-xl">
@@ -182,7 +183,7 @@ const DFSTraversalDemo = ({ step }) => {
             const isCurr = s.curr === node.id;
             const isVisited = s.visited.includes(node.id);
             return (
-              <div key={node.id} className={`absolute -translate-x-1/2 -translate-y-1/2 w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center font-mono text-sm transition-all duration-500 z-10 ${isCurr ? 'bg-(--accent-secondary) text-white shadow-[0_0_25px_rgba(157,78,221,0.5)] scale-110 border-2 border-white' : isVisited ? 'bg-(--accent-secondary)/20 border border-(--accent-secondary)/50 text-(--accent-secondary)' : 'bg-[#090A0F] border border-white/20 text-white/50 shadow-inner'}`} style={{ top: node.y, left: node.x }}>
+              <div key={node.id} className={`absolute -translate-x-1/2 -translate-y-1/2 w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center font-mono text-sm transition-all duration-500 z-10 ${isCurr ? 'bg-(--accent-secondary) text-white shadow-[0_0_25px_rgba(157,78,221,0.5)] scale-110 border-2 border-white' : isVisited ? 'bg-(--accent-secondary)/20 border border-(--accent-secondary)/50 text-(--accent-secondary)' : 'bg-(--bg-surface) border border-white/20 text-white/50 shadow-inner'}`} style={{ top: node.y, left: node.x }}>
                 {node.id}
               </div>
             )
@@ -279,16 +280,7 @@ export default function InteractiveDemoExperience() {
         
         {/* Section Header */}
         <div className="text-center mb-12 md:mb-16">
-          <motion.div 
-            initial={{ opacity: 0, y: 10 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="flex items-center justify-center gap-4 mb-8"
-          >
-             <div className="h-px w-8 bg-linear-to-r from-transparent to-(--accent-secondary)" />
-             <span className="text-(--accent-secondary) uppercase tracking-[0.25em] text-xs font-semibold">Interactive Demo</span>
-             <div className="h-px w-8 bg-linear-to-l from-transparent to-(--accent-secondary)" />
-          </motion.div>
+          <SectionEyebrow title="Interactive Demo" phase="SYS.SANDBOX" accentClass="text-(--accent-secondary)" align="center" />
           
           <motion.h2 
             initial={{ opacity: 0, y: 10 }}
@@ -340,7 +332,7 @@ export default function InteractiveDemoExperience() {
 
           {/* Premium Player Chrome */}
           <div className="w-full rounded-4xl p-px bg-linear-to-b from-white/10 via-white/5 to-transparent shadow-[0_40px_100px_-20px_rgba(0,0,0,0.6)] group relative overflow-hidden">
-             <div className="w-full rounded-4xl bg-[#090A0F] border border-white/5 shadow-2xl flex flex-col relative z-10 backdrop-blur-3xl overflow-hidden">
+             <div className="w-full rounded-4xl bg-(--bg-surface) border border-white/5 shadow-2xl flex flex-col relative z-10 backdrop-blur-3xl overflow-hidden">
                 
                 {/* Window Header */}
                 <div className="flex items-center justify-between px-6 py-4 border-b border-white/5 bg-white/2">
@@ -349,7 +341,7 @@ export default function InteractiveDemoExperience() {
                     <div className="w-3 h-3 rounded-full bg-(--accent-highlight)/40 border border-(--accent-highlight)/20" />
                     <div className="w-3 h-3 rounded-full bg-(--accent-highlight)/40 border border-(--accent-highlight)/20" />
                   </div>
-                  <div className="flex items-center gap-2 border border-white/5 bg-[#050508] px-4 py-1.5 rounded-full shadow-inner">
+                  <div className="flex items-center gap-2 border border-white/5 bg-background px-4 py-1.5 rounded-full shadow-inner">
                      <span className="w-2 h-2 rounded-full bg-(--accent-secondary) animate-pulse" />
                      <span className="text-[10px] text-white/50 font-mono uppercase tracking-widest">{algorithms[activeTab].name}</span>
                   </div>
@@ -357,7 +349,7 @@ export default function InteractiveDemoExperience() {
                 </div>
 
                 {/* Main View Area */}
-                <div className="h-[350px] md:h-[450px] relative bg-[#050508] overflow-hidden">
+                <div className="h-[350px] md:h-[450px] relative bg-background overflow-hidden">
                    {/* Blueprint Grid Background */}
                    <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff03_1px,transparent_1px),linear-gradient(to_bottom,#ffffff03_1px,transparent_1px)] bg-size-[32px_32px]" />
                    

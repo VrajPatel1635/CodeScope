@@ -103,7 +103,7 @@ export default function Hero() {
             <div className="relative w-full aspect-square md:aspect-4/3 lg:aspect-auto lg:h-[650px]">
               <motion.div 
                 whileHover={{ y: -8, transition: { duration: 0.5, ease: "easeOut" } }}
-                className="absolute top-0 right-0 w-[90%] rounded-2xl border border-white/10 bg-[#0E0F11]/80 shadow-[0_40px_80px_-20px_rgba(0,0,0,0.8)] overflow-hidden backdrop-blur-2xl z-10"
+                className="absolute top-0 right-0 w-[90%] rounded-2xl border border-white/10 bg-(--bg-primary)/80 shadow-[0_40px_80px_-20px_rgba(0,0,0,0.8)] overflow-hidden backdrop-blur-2xl z-10"
               >
                 <div className="flex items-center gap-2 px-4 py-3 border-b border-white/5 bg-white/5">
                   <div className="flex gap-1.5">
@@ -118,8 +118,8 @@ export default function Hero() {
                 </div>
                 
                 <div className="p-6 font-mono text-[13px] text-white/50 leading-loose overflow-x-hidden">
-                  <div className="flex gap-4"><span className="text-white/20 w-5 text-right select-none">1</span><span><span className="text-[#B388FF]">public void</span> <span className="text-white/90">process</span>() {'{'}</span></div>
-                  <div className="flex gap-4 bg-(--accent-secondary)/10 border-l-2 border-(--accent-secondary) -ml-px pl-5 py-1 mt-1 rounded-r"><span className="text-white/20 w-5 text-right select-none">2</span><span className="text-white/80">  <span className="text-[#B388FF]">for</span> (<span className="text-(--accent-primary)">int</span> i = 0; i {'<'} arr.length; i++) {'{'}</span></div>
+                  <div className="flex gap-4"><span className="text-white/20 w-5 text-right select-none">1</span><span><span className="text-(--exec-return)">public void</span> <span className="text-white/90">process</span>() {'{'}</span></div>
+                  <div className="flex gap-4 bg-(--accent-secondary)/10 border-l-2 border-(--accent-secondary) -ml-px pl-5 py-1 mt-1 rounded-r"><span className="text-white/20 w-5 text-right select-none">2</span><span className="text-white/80">  <span className="text-(--exec-return)">for</span> (<span className="text-(--accent-primary)">int</span> i = 0; i {'<'} arr.length; i++) {'{'}</span></div>
                   <div className="flex gap-4 mt-1"><span className="text-white/20 w-5 text-right select-none">3</span><span>    sum += arr[i];</span></div>
                   <div className="flex gap-4"><span className="text-white/20 w-5 text-right select-none">4</span><span>  {'}'}</span></div>
                   <div className="flex gap-4"><span className="text-white/20 w-5 text-right select-none">5</span><span>{'}'}</span></div>
@@ -128,18 +128,18 @@ export default function Hero() {
 
               <motion.div 
                 whileHover={{ y: -8, transition: { duration: 0.5, ease: "easeOut" } }}
-                className="absolute bottom-12 -left-8 md:bottom-24 md:-left-16 w-[85%] p-6 rounded-2xl border border-white/10 bg-[#0E0F11]/90 shadow-[0_30px_60px_rgba(0,0,0,0.7)] backdrop-blur-2xl z-20"
+                className="absolute bottom-12 -left-8 md:bottom-24 md:-left-16 w-[85%] p-6 rounded-2xl border border-white/10 bg-(--bg-primary)/90 shadow-[0_30px_60px_rgba(0,0,0,0.7)] backdrop-blur-2xl z-20"
               >
                 <div className="flex justify-between items-center mb-6">
                   <div className="text-[10px] uppercase tracking-[0.25em] text-white/40 font-medium">Heap State</div>
                   <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-[#00D084] shadow-[0_0_8px_rgba(0,208,132,0.6)]" />
+                    <span className="w-2 h-2 rounded-full bg-(--exec-node-active) shadow-[0_0_8px_rgba(0,208,132,0.6)]" />
                     <span className="text-[10px] text-white/50 font-mono tracking-widest uppercase">Active</span>
                   </div>
                 </div>
                 <div className="flex gap-3">
                   {[12, 45, 89, 23, 56].map((num, i) => (
-                    <div key={i} className={`flex-1 aspect-square rounded-xl flex items-center justify-center font-mono text-sm lg:text-lg transition-all duration-500 ${i === 2 ? 'border border-[#00D084]/50 bg-[#00D084]/10 text-[#00D084] shadow-[0_0_25px_rgba(0,208,132,0.15)] scale-[1.08] z-10' : 'border border-white/10 bg-white/5 text-white/60'}`}>
+                    <div key={i} className={`flex-1 aspect-square rounded-xl flex items-center justify-center font-mono text-sm lg:text-lg transition-all duration-500 ${i === 2 ? 'border border-(--exec-node-active)/50 bg-(--exec-node-active)/10 text-(--exec-node-active) shadow-[0_0_25px_rgba(0,208,132,0.15)] scale-[1.08] z-10' : 'border border-white/10 bg-white/5 text-white/60'}`}>
                       {num}
                     </div>
                   ))}

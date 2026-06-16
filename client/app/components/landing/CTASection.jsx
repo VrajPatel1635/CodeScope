@@ -15,7 +15,7 @@ export default function CTASection() {
         {/* warm amber inner glow at top */}
         <div
           className="pointer-events-none absolute inset-x-0 top-0 h-72 opacity-60"
-          style={{ background: "radial-gradient(80% 100% at 50% 0%, rgba(232,164,74,0.15) 0%, transparent 70%)" }}
+          style={{ background: "radial-gradient(80% 100% at 50% 0%, rgba(var(--accent-primary-rgb, 211, 123, 80), 0.15) 0%, transparent 70%)" }}
         />
         
         {/* faint blueprint grid */}

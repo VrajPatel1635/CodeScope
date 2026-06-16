@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { motion } from "framer-motion";
+import SectionEyebrow from "./ui/SectionEyebrow";
 
 export default function VisualDebuggerShowcase() {
   const [activeFeature, setActiveFeature] = useState(null);
@@ -79,13 +80,7 @@ export default function VisualDebuggerShowcase() {
 
           {/* Content (Left) */}
           <div className="col-span-1 lg:col-span-5 flex flex-col relative z-20">
-            {/* Section label */}
-            <div className="flex items-center gap-3 mb-10">
-              <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-(--accent-secondary)/5 border border-(--accent-secondary)/10 backdrop-blur-md">
-                <span className="w-1.5 h-1.5 rounded-full bg-(--accent-secondary) shadow-[0_0_8px_var(--accent-secondary)]" />
-                <span className="text-(--accent-secondary) uppercase tracking-[0.25em] text-[10px] font-semibold">Visual Debugger</span>
-              </div>
-            </div>
+            <SectionEyebrow title="Visual Debugger" phase="SYS.DEBUG" accentClass="text-(--accent-secondary)" />
 
             {/* Headline */}
             <h2 className="mb-8 flex flex-col gap-1">
@@ -116,7 +111,7 @@ export default function VisualDebuggerShowcase() {
                     onMouseEnter={() => setActiveFeature(cap.targetPanel)}
                     className={`group flex items-start gap-5 cursor-pointer p-3 rounded-2xl transition-all duration-500 relative z-10 ${isActive ? 'bg-white/3' : 'hover:bg-white/1'}`}
                   >
-                    <div className={`shrink-0 w-14 h-14 rounded-xl flex items-center justify-center transition-all duration-500 relative ${isActive ? 'bg-(--accent-secondary)/10 border border-(--accent-secondary)/30 text-(--accent-secondary) shadow-[0_0_20px_var(--accent-secondary)]' : 'bg-[#0A0A0C] border border-white/5 text-white/30'}`}>
+                    <div className={`shrink-0 w-14 h-14 rounded-xl flex items-center justify-center transition-all duration-500 relative ${isActive ? 'bg-(--accent-secondary)/10 border border-(--accent-secondary)/30 text-(--accent-secondary) shadow-[0_0_20px_var(--accent-secondary)]' : 'bg-(--bg-surface) border border-white/5 text-white/30'}`}>
                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d={cap.icon} /></svg>
                     </div>
                     <div className="flex flex-col pt-1.5">
@@ -132,14 +127,14 @@ export default function VisualDebuggerShowcase() {
           {/* Product Preview Bento Box (Right) */}
           <div className="col-span-1 lg:col-span-7 relative h-full w-full">
             <div className="lg:sticky lg:top-24 w-full lg:w-[105%] lg:ml-[-2.5%] transition-all duration-700 z-10">
-              <div className="relative w-full rounded-[2.5rem] border border-white/5 bg-[#0A0A0C]/90 shadow-[0_40px_100px_-20px_rgba(79,140,255,0.08)] overflow-hidden backdrop-blur-3xl">
+              <div className="relative w-full rounded-[2.5rem] border border-white/5 bg-(--bg-surface)/90 shadow-[0_40px_100px_-20px_rgba(79,140,255,0.08)] overflow-hidden backdrop-blur-3xl">
 
                 {/* Window Chrome */}
                 <div className="flex items-center justify-between px-6 py-4 border-b border-white/5 bg-white/2">
                   <div className="flex gap-2">
-                    <div className="w-3 h-3 rounded-full bg-white/10 hover:bg-[#FF5D5D] transition-colors duration-300 cursor-pointer" />
-                    <div className="w-3 h-3 rounded-full bg-white/10 hover:bg-[#FFB020] transition-colors duration-300 cursor-pointer" />
-                    <div className="w-3 h-3 rounded-full bg-white/10 hover:bg-[#00D084] transition-colors duration-300 cursor-pointer" />
+                    <div className="w-3 h-3 rounded-full bg-white/10 hover:bg-(--exec-error) transition-colors duration-300 cursor-pointer" />
+                    <div className="w-3 h-3 rounded-full bg-white/10 hover:bg-(--exec-mutation) transition-colors duration-300 cursor-pointer" />
+                    <div className="w-3 h-3 rounded-full bg-white/10 hover:bg-(--exec-node-active) transition-colors duration-300 cursor-pointer" />
                   </div>
                   <div className="flex items-center gap-2 px-4 py-1.5 rounded-lg bg-white/5 border border-white/5">
                     <svg className="w-3 h-3 text-(--accent-secondary) opacity-60" fill="currentColor" viewBox="0 0 24 24"><path d="M4 22H2V2h2v20zM22 2v20h-2V2h2zm-4 16H6V6h12v12z" /></svg>
@@ -149,7 +144,7 @@ export default function VisualDebuggerShowcase() {
                 </div>
 
                 {/* Bento Grid */}
-                <div className="p-4 sm:p-5 bg-[#050507]/80">
+                <div className="p-4 sm:p-5 bg-(--bg-primary)/80">
                   <div className="grid grid-cols-12 gap-4">
                     
                     {/* Source Code Panel */}
@@ -176,7 +171,7 @@ export default function VisualDebuggerShowcase() {
                       
                       <div className="flex gap-3 sm:gap-4 mt-6">
                         {[4, 2, 7, 1, 9].map((v, i) => (
-                          <div key={i} className={`w-12 h-12 sm:w-14 sm:h-14 rounded-xl flex items-center justify-center font-mono text-lg border ${i===2 ? 'border-(--exec-mutation)/40 bg-(--exec-mutation)/10 text-(--exec-mutation) shadow-[0_0_20px_rgba(255,176,32,0.15)] scale-105' : 'border-white/10 bg-[#050507] text-white/60'} relative transition-all duration-300`}>
+                          <div key={i} className={`w-12 h-12 sm:w-14 sm:h-14 rounded-xl flex items-center justify-center font-mono text-lg border ${i===2 ? 'border-(--exec-mutation)/40 bg-(--exec-mutation)/10 text-(--exec-mutation) shadow-[0_0_20px_rgba(255,176,32,0.15)] scale-105' : 'border-white/10 bg-background text-white/60'} relative transition-all duration-300`}>
                             {v}
                             {i === 0 && <div className="absolute -bottom-8 flex flex-col items-center text-[10px] text-(--exec-node-active) font-bold"><svg className="w-3 h-3 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 10l7-7m0 0l7 7m-7-7v18" /></svg>L</div>}
                             {i === 4 && <div className="absolute -bottom-8 flex flex-col items-center text-[10px] text-(--accent-secondary) font-bold"><svg className="w-3 h-3 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 10l7-7m0 0l7 7m-7-7v18" /></svg>R</div>}

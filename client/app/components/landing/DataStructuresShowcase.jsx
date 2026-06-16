@@ -2,6 +2,7 @@
 
 import React, { useRef } from "react";
 import { motion, useScroll, useTransform, useSpring, useVelocity } from "framer-motion";
+import SectionEyebrow from "./ui/SectionEyebrow";
 
 // --- MICRO-VISUALIZATIONS ---
 
@@ -9,7 +10,7 @@ const MiniArray = () => (
   <div className="w-full h-full flex items-center justify-center p-4">
     <div className="flex gap-0.5 group-hover:gap-1.5 transition-all duration-500">
       {[4, 8, 15, 16, 23, 42].map((v, i) => (
-        <div key={i} className={`w-8 h-8 rounded-[4px] flex items-center justify-center font-mono text-[11px] border ${i === 2 ? 'bg-(--accent-secondary)/10 border-(--accent-secondary)/50 text-(--accent-secondary) shadow-[0_0_10px_rgba(74,143,212,0.15)] group-hover:bg-(--accent-secondary)/20 transition-colors duration-500 scale-110 relative z-10' : 'bg-[#090A0F] border-white/5 text-white/40 group-hover:border-white/10 transition-colors duration-500'}`}>
+        <div key={i} className={`w-8 h-8 rounded-[4px] flex items-center justify-center font-mono text-[11px] border ${i === 2 ? 'bg-(--accent-secondary)/10 border-(--accent-secondary)/50 text-(--accent-secondary) shadow-[0_0_10px_rgba(74,143,212,0.15)] group-hover:bg-(--accent-secondary)/20 transition-colors duration-500 scale-110 relative z-10' : 'bg-(--bg-surface) border-white/5 text-white/40 group-hover:border-white/10 transition-colors duration-500'}`}>
            {v}
         </div>
       ))}
@@ -21,7 +22,7 @@ const MiniMatrix = () => (
   <div className="w-full h-full flex items-center justify-center p-4">
     <div className="grid grid-cols-4 gap-[3px] group-hover:gap-[5px] transition-all duration-500">
       {Array.from({length: 16}).map((_, i) => (
-        <div key={i} className={`w-6 h-6 rounded-[2px] border flex items-center justify-center text-[9px] font-mono transition-all duration-500 ${i === 5 || i === 10 ? 'bg-(--accent-highlight)/10 border-(--accent-highlight)/40 text-(--accent-highlight) shadow-[0_0_8px_rgba(107,191,160,0.2)] group-hover:bg-(--accent-highlight)/20 group-hover:scale-110 z-10 relative' : 'bg-[#090A0F] border-white/5 text-white/20'}`}>
+        <div key={i} className={`w-6 h-6 rounded-[2px] border flex items-center justify-center text-[9px] font-mono transition-all duration-500 ${i === 5 || i === 10 ? 'bg-(--accent-highlight)/10 border-(--accent-highlight)/40 text-(--accent-highlight) shadow-[0_0_8px_rgba(107,191,160,0.2)] group-hover:bg-(--accent-highlight)/20 group-hover:scale-110 z-10 relative' : 'bg-(--bg-surface) border-white/5 text-white/20'}`}>
           {i}
         </div>
       ))}
@@ -45,7 +46,7 @@ const MiniLinkedList = () => (
     {[12, 99, 37].map((val, i) => (
       <React.Fragment key={i}>
         <div className="relative flex flex-col items-center">
-          <div className={`w-11 h-11 rounded-xl flex items-center justify-center font-mono text-xs border ${i === 1 ? 'bg-(--accent-secondary)/10 border-(--accent-secondary)/50 text-(--accent-secondary) shadow-[0_0_15px_rgba(74,143,212,0.15)] group-hover:bg-(--accent-secondary)/20 transition-colors duration-500' : 'bg-[#090A0F] border-white/5 text-white/50 shadow-inner'}`}>
+          <div className={`w-11 h-11 rounded-xl flex items-center justify-center font-mono text-xs border ${i === 1 ? 'bg-(--accent-secondary)/10 border-(--accent-secondary)/50 text-(--accent-secondary) shadow-[0_0_15px_rgba(74,143,212,0.15)] group-hover:bg-(--accent-secondary)/20 transition-colors duration-500' : 'bg-(--bg-surface) border-white/5 text-white/50 shadow-inner'}`}>
              {val}
           </div>
           {i === 1 && <span className="absolute -bottom-5 text-[9px] text-(--accent-secondary) font-mono opacity-0 group-hover:opacity-100 transition-opacity duration-500">curr</span>}
@@ -66,7 +67,7 @@ const MiniStack = () => (
        <div className="absolute -top-6 opacity-0 group-hover:opacity-100 group-hover:-top-8 transition-all duration-500 font-mono text-[9px] text-(--accent-secondary)">push(104)</div>
        <div className="w-full h-8 border border-dashed border-white/20 text-white/30 flex items-center justify-center font-mono text-[10px] rounded mb-1 transition-colors duration-500 group-hover:border-(--accent-secondary)/40 group-hover:bg-(--accent-secondary)/10 group-hover:text-(--accent-secondary)">...</div>
        {[104, 72, 19].map((v, i) => (
-         <div key={i} className={`w-full h-8 rounded border flex items-center justify-center font-mono text-xs ${i === 0 ? 'bg-(--accent-highlight)/10 border-(--accent-highlight)/40 text-(--accent-highlight) shadow-[0_0_15px_rgba(107,191,160,0.1)] group-hover:scale-105 transition-transform duration-500 z-10 relative mt-1' : 'bg-[#090A0F] border-white/5 text-white/40 mt-1'}`}>
+         <div key={i} className={`w-full h-8 rounded border flex items-center justify-center font-mono text-xs ${i === 0 ? 'bg-(--accent-highlight)/10 border-(--accent-highlight)/40 text-(--accent-highlight) shadow-[0_0_15px_rgba(107,191,160,0.1)] group-hover:scale-105 transition-transform duration-500 z-10 relative mt-1' : 'bg-(--bg-surface) border-white/5 text-white/40 mt-1'}`}>
            {v}
          </div>
        ))}
@@ -83,7 +84,7 @@ const MiniQueue = () => (
        
        <div className="h-10 w-4 border-l border-y border-white/20 rounded-l opacity-50" />
        {[1, 2, 3, 4].map((v, i) => (
-         <div key={i} className={`w-10 h-10 rounded border flex items-center justify-center font-mono text-xs ${i === 3 ? 'bg-(--accent-secondary)/10 border-(--accent-secondary)/40 text-(--accent-secondary) shadow-[0_0_10px_rgba(74,143,212,0.15)] group-hover:scale-110 transition-transform duration-500 z-10' : 'bg-[#090A0F] border-white/5 text-white/40'}`}>
+         <div key={i} className={`w-10 h-10 rounded border flex items-center justify-center font-mono text-xs ${i === 3 ? 'bg-(--accent-secondary)/10 border-(--accent-secondary)/40 text-(--accent-secondary) shadow-[0_0_10px_rgba(74,143,212,0.15)] group-hover:scale-110 transition-transform duration-500 z-10' : 'bg-(--bg-surface) border-white/5 text-white/40'}`}>
            {v}
          </div>
        ))}
@@ -101,7 +102,7 @@ const MiniDeque = () => (
        <div className="flex items-center gap-1">
          <div className="text-(--accent-primary) text-xs opacity-50 group-hover:opacity-100 transition-opacity duration-500">↔</div>
          {[1, 2, 3, 4].map((v, i) => (
-           <div key={i} className={`w-9 h-9 rounded-[4px] border flex items-center justify-center font-mono text-[11px] ${i === 0 ? 'bg-(--accent-primary)/10 border-(--accent-primary)/40 text-(--accent-primary) shadow-[0_0_10px_rgba(232,164,74,0.15)]' : i === 3 ? 'bg-(--accent-secondary)/10 border-(--accent-secondary)/40 text-(--accent-secondary) shadow-[0_0_10px_rgba(74,143,212,0.15)]' : 'bg-[#090A0F] border-white/5 text-white/40'}`}>
+           <div key={i} className={`w-9 h-9 rounded-[4px] border flex items-center justify-center font-mono text-[11px] ${i === 0 ? 'bg-(--accent-primary)/10 border-(--accent-primary)/40 text-(--accent-primary) shadow-[0_0_10px_rgba(var(--accent-primary-rgb, 211, 123, 80), 0.15)]' : i === 3 ? 'bg-(--accent-secondary)/10 border-(--accent-secondary)/40 text-(--accent-secondary) shadow-[0_0_10px_rgba(74,143,212,0.15)]' : 'bg-(--bg-surface) border-white/5 text-white/40'}`}>
              {v}
            </div>
          ))}
@@ -113,14 +114,14 @@ const MiniDeque = () => (
 
 const MiniPriorityQueue = () => (
   <div className="w-full h-full flex flex-col items-center justify-center gap-4 p-4 group-hover:-translate-y-2 transition-transform duration-500">
-    <div className="w-11 h-11 rounded-full border border-(--accent-primary)/50 bg-(--accent-primary)/10 text-(--accent-primary) flex items-center justify-center font-mono text-xs shadow-[0_0_15px_rgba(232,164,74,0.2)] group-hover:scale-110 group-hover:bg-(--accent-primary)/20 transition-all duration-500 z-10 relative">99</div>
+    <div className="w-11 h-11 rounded-full border border-(--accent-primary)/50 bg-(--accent-primary)/10 text-(--accent-primary) flex items-center justify-center font-mono text-xs shadow-[0_0_15px_rgba(var(--accent-primary-rgb, 211, 123, 80), 0.2)] group-hover:scale-110 group-hover:bg-(--accent-primary)/20 transition-all duration-500 z-10 relative">99</div>
     <div className="flex gap-10 relative">
        <svg className="absolute bottom-full left-1/2 -translate-x-1/2 w-14 h-6 overflow-visible -z-10" viewBox="0 0 56 24">
          <line x1="28" y1="0" x2="8" y2="24" stroke="rgba(255,255,255,0.1)" strokeWidth="2" className="group-hover:stroke-[rgba(255,255,255,0.2)] transition-colors duration-500" />
          <line x1="28" y1="0" x2="48" y2="24" stroke="rgba(255,255,255,0.1)" strokeWidth="2" className="group-hover:stroke-[rgba(255,255,255,0.2)] transition-colors duration-500" />
        </svg>
-       <div className="w-9 h-9 rounded-full border border-white/10 bg-[#090A0F] text-white/40 flex items-center justify-center font-mono text-[10px] shadow-inner">45</div>
-       <div className="w-9 h-9 rounded-full border border-white/10 bg-[#090A0F] text-white/40 flex items-center justify-center font-mono text-[10px] shadow-inner">72</div>
+       <div className="w-9 h-9 rounded-full border border-white/10 bg-(--bg-surface) text-white/40 flex items-center justify-center font-mono text-[10px] shadow-inner">45</div>
+       <div className="w-9 h-9 rounded-full border border-white/10 bg-(--bg-surface) text-white/40 flex items-center justify-center font-mono text-[10px] shadow-inner">72</div>
     </div>
   </div>
 );
@@ -133,9 +134,9 @@ const MiniHashMap = () => (
        {k: '"role"', v: '"admin"', active: false}
      ].map((row, i) => (
        <div key={i} className={`flex items-center gap-3 transition-transform duration-500 ${row.active ? 'group-hover:translate-x-2' : ''}`}>
-         <div className={`w-16 h-7 border rounded-[4px] flex items-center justify-center text-[10px] font-mono ${row.active ? 'bg-(--accent-secondary)/10 border-(--accent-secondary)/40 text-(--accent-secondary)' : 'bg-[#090A0F] border-white/5 text-white/30'}`}>{row.k}</div>
+         <div className={`w-16 h-7 border rounded-[4px] flex items-center justify-center text-[10px] font-mono ${row.active ? 'bg-(--accent-secondary)/10 border-(--accent-secondary)/40 text-(--accent-secondary)' : 'bg-(--bg-surface) border-white/5 text-white/30'}`}>{row.k}</div>
          <span className={`text-[10px] font-mono transition-colors duration-500 ${row.active ? 'text-(--accent-secondary)/50 group-hover:text-(--accent-secondary)' : 'text-white/10'}`}>→</span>
-         <div className={`w-16 h-7 border rounded-[4px] flex items-center justify-center text-[10px] font-mono ${row.active ? 'bg-(--accent-secondary)/10 border-(--accent-secondary)/40 text-(--accent-secondary) shadow-[0_0_10px_rgba(74,143,212,0.15)] group-hover:scale-105 transition-transform duration-500' : 'bg-[#090A0F] border-white/5 text-white/30'}`}>{row.v}</div>
+         <div className={`w-16 h-7 border rounded-[4px] flex items-center justify-center text-[10px] font-mono ${row.active ? 'bg-(--accent-secondary)/10 border-(--accent-secondary)/40 text-(--accent-secondary) shadow-[0_0_10px_rgba(74,143,212,0.15)] group-hover:scale-105 transition-transform duration-500' : 'bg-(--bg-surface) border-white/5 text-white/30'}`}>{row.v}</div>
        </div>
      ))}
   </div>
@@ -144,10 +145,10 @@ const MiniHashMap = () => (
 const MiniHashSet = () => (
   <div className="w-full h-full flex items-center justify-center p-4">
      <div className="w-28 h-28 rounded-full border border-dashed border-white/20 flex flex-wrap items-center justify-center p-3 relative group-hover:border-white/30 group-hover:bg-white/2 transition-all duration-700">
-        <div className="absolute -top-3 bg-[#030305] px-2 text-[9px] font-mono text-white/40">bucket</div>
-        <div className="w-7 h-7 rounded-full bg-[#090A0F] border border-white/10 text-[9px] font-mono text-white/50 flex items-center justify-center m-1">A</div>
+        <div className="absolute -top-3 bg-background px-2 text-[9px] font-mono text-white/40">bucket</div>
+        <div className="w-7 h-7 rounded-full bg-(--bg-surface) border border-white/10 text-[9px] font-mono text-white/50 flex items-center justify-center m-1">A</div>
         <div className="w-7 h-7 rounded-full bg-(--accent-highlight)/10 border border-(--accent-highlight)/40 text-[9px] font-mono text-(--accent-highlight) flex items-center justify-center m-1 shadow-[0_0_15px_rgba(107,191,160,0.15)] group-hover:scale-110 transition-transform duration-500">B</div>
-        <div className="w-7 h-7 rounded-full bg-[#090A0F] border border-white/10 text-[9px] font-mono text-white/50 flex items-center justify-center m-1">C</div>
+        <div className="w-7 h-7 rounded-full bg-(--bg-surface) border border-white/10 text-[9px] font-mono text-white/50 flex items-center justify-center m-1">C</div>
      </div>
   </div>
 );
@@ -163,7 +164,7 @@ const MiniCallStack = () => (
          {name: 'dfs(node)', active: false},
          {name: 'main()', active: false}
        ].map((frame, i) => (
-         <div key={i} className={`w-full p-2.5 border rounded-[4px] text-[10px] font-mono flex items-center justify-between transition-colors duration-500 ${frame.active ? 'bg-(--accent-highlight)/10 border-(--accent-highlight)/40 text-(--accent-highlight) group-hover:bg-(--accent-highlight)/20' : 'bg-[#090A0F] border-white/5 text-white/30'}`}>
+         <div key={i} className={`w-full p-2.5 border rounded-[4px] text-[10px] font-mono flex items-center justify-between transition-colors duration-500 ${frame.active ? 'bg-(--accent-highlight)/10 border-(--accent-highlight)/40 text-(--accent-highlight) group-hover:bg-(--accent-highlight)/20' : 'bg-(--bg-surface) border-white/5 text-white/30'}`}>
             <span>{frame.name}</span>
             {frame.active && <span className="w-1.5 h-1.5 rounded-full bg-(--accent-highlight) animate-pulse" />}
          </div>
@@ -174,7 +175,7 @@ const MiniCallStack = () => (
 
 const MiniVariables = () => (
   <div className="w-full h-full flex items-center justify-center p-4">
-    <div className="w-full max-w-[220px] border border-white/10 rounded-xl bg-[#090A0F] overflow-hidden group-hover:border-white/20 group-hover:shadow-[0_10px_30px_-10px_rgba(0,0,0,0.5)] transition-all duration-700">
+    <div className="w-full max-w-[220px] border border-white/10 rounded-xl bg-(--bg-surface) overflow-hidden group-hover:border-white/20 group-hover:shadow-[0_10px_30px_-10px_rgba(0,0,0,0.5)] transition-all duration-700">
        <div className="bg-white/5 border-b border-white/10 px-4 py-2 flex items-center gap-2">
          <div className="w-2 h-2 rounded-full bg-white/20" />
          <span className="text-[10px] uppercase tracking-wider text-white/40 font-mono">Watch</span>
@@ -230,7 +231,7 @@ const MiniTimeline = () => (
 
 const MiniTree = () => (
   <div className="relative w-full h-full flex items-center justify-center p-4">
-    <div className="absolute inset-0 z-20 flex items-center justify-center backdrop-blur-[1px] bg-[#030305]/40 rounded-3xl">
+    <div className="absolute inset-0 z-20 flex items-center justify-center backdrop-blur-[1px] bg-(--bg-primary)/40 rounded-3xl">
       <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 shadow-xl group-hover:bg-white/10 group-hover:border-white/20 transition-all duration-500">
          <span className="text-white/80 uppercase tracking-widest text-[10px] font-mono font-medium">In Development</span>
       </div>
@@ -311,12 +312,7 @@ export default function DataStructuresShowcase() {
         <div className="px-6 md:px-12 shrink-0 mb-10 md:mb-16 lg:mb-20 relative z-10 pointer-events-none">
           <div className="flex flex-col lg:flex-row items-start lg:items-end justify-between gap-6 lg:gap-10">
             <div className="max-w-2xl">
-              <div className="flex items-center gap-3 mb-4 lg:mb-6">
-                <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 backdrop-blur-md">
-                  <span className="w-1.5 h-1.5 rounded-full bg-(--accent-secondary) shadow-[0_0_8px_var(--accent-secondary)]" />
-                  <span className="text-white/80 uppercase tracking-[0.25em] text-[10px] font-semibold font-ui">Data Structures</span>
-                </div>
-              </div>
+              <SectionEyebrow title="Data Structures" phase="SYS.TOPOLOGY" accentClass="text-(--accent-secondary)" />
               
               <h2 className="text-[clamp(2.5rem,6vw,6.5rem)] font-display font-medium leading-[0.95] tracking-tighter text-white">
                 Every structure.<br />
@@ -336,7 +332,7 @@ export default function DataStructuresShowcase() {
               <motion.div 
                 key={struct.id}
                 style={{ skewX }}
-                className="shrink-0 w-[80vw] sm:w-[45vw] lg:w-[32vw] xl:w-[24vw] h-[320px] md:h-[380px] lg:h-[400px] group relative rounded-[28px] bg-[#030305] border border-white/5 overflow-hidden flex flex-col transition-colors duration-700 hover:bg-[#090A0F] cursor-pointer"
+                className="shrink-0 w-[80vw] sm:w-[45vw] lg:w-[32vw] xl:w-[24vw] h-[320px] md:h-[380px] lg:h-[400px] group relative rounded-[28px] bg-background border border-white/5 overflow-hidden flex flex-col transition-colors duration-700 hover:bg-(--bg-surface) cursor-pointer"
               >
                 {/* Hover gradient overlay */}
                 <div className="absolute inset-0 bg-linear-to-br from-white/0 via-white/2 to-white/0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none z-20" />
