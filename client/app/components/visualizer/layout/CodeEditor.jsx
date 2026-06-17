@@ -1,19 +1,21 @@
 "use client";
 
 import { useRef, useEffect } from "react";
-import Editor, { useMonaco } from "@monaco-editor/react";
+import Editor from "@monaco-editor/react";
 
 export default function CodeEditor({ code, setCode, activeLine }) {
   const editorRef = useRef(null);
-  const monaco = useMonaco();
+  const monacoRef = useRef(null);
   const decorationsRef = useRef([]);
 
-  const handleEditorDidMount = (editor) => {
+  const handleEditorDidMount = (editor, monaco) => {
     editorRef.current = editor;
+    monacoRef.current = monaco;
   };
 
   useEffect(() => {
-    if (!editorRef.current || !monaco) return;
+    if (!editorRef.current || !monacoRef.current) return;
+    const monaco = monacoRef.current;
 
     if (activeLine) {
       decorationsRef.current = editorRef.current.deltaDecorations(
@@ -32,7 +34,7 @@ export default function CodeEditor({ code, setCode, activeLine }) {
     } else {
       decorationsRef.current = editorRef.current.deltaDecorations(decorationsRef.current, []);
     }
-  }, [activeLine, monaco]);
+  }, [activeLine]);
 
   return (
     <Editor

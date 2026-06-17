@@ -524,7 +524,11 @@ function parseExecutionOutput(rawOutput) {
     } else if (type === "TREE_MUTATE") {
       const node = parts[2].split("=")[1];
       const field = parts[3].split("=")[1];
-      const to = parts[4].split("=")[1];
+      let to = parts.slice(4).join("|").substring(3);
+      if (field === "val") {
+        const num = Number(to);
+        to = isNaN(num) ? to : num;
+      }
       trace.push({ type: "TREE_MUTATE", node, field, to });
     } else if (type === "GRAPH_EDGE" || type === "GRAPH_EDGE_ADD" || type === "GRAPH_EDGE_REMOVE") {
       const from = parts[2].split("=")[1];
@@ -1088,17 +1092,21 @@ function injectTraceIntoBody(mappedLines, methodName = "solve", methodParams = [
     }
 
     if (wantsTreeNode) {
-      const mutateMatch = line.match(/^(.*)\.([a-zA-Z_]\w*)\s*=\s*(.*?)\s*;/);
-      if (mutateMatch && (mutateMatch[2] === 'left' || mutateMatch[2] === 'right')) {
+      const mutateMatch = line.match(/^(.*)\.([a-zA-Z_]\w*)\s*([+\-*\/%]?=)\s*(.*?)\s*;/);
+      if (mutateMatch && (mutateMatch[2] === 'left' || mutateMatch[2] === 'right' || mutateMatch[2] === 'val')) {
         isNodeMutate = true;
         const targetObject = mutateMatch[1].trim();
         const field = mutateMatch[2];
-        const rhsExpr = mutateMatch[3].trim();
+        const rhsExpr = mutateMatch[4].trim();
         
-        if (rhsExpr === "null") {
-          tracedBody += `System.out.println("TRACE|TREE_MUTATE|node=" + __DSAInput.getTreeNodeId(${targetObject}) + "|field=${field}|to=null");\n`;
+        if (field === 'val') {
+          tracedBody += `System.out.println("TRACE|TREE_MUTATE|node=" + __DSAInput.getTreeNodeId(${targetObject}) + "|field=${field}|to=" + (${targetObject}.${field}));\n`;
         } else {
-          tracedBody += `System.out.println("TRACE|TREE_MUTATE|node=" + __DSAInput.getTreeNodeId(${targetObject}) + "|field=${field}|to=" + __DSAInput.getTreeNodeId(${rhsExpr}));\n`;
+          if (rhsExpr === "null") {
+            tracedBody += `System.out.println("TRACE|TREE_MUTATE|node=" + __DSAInput.getTreeNodeId(${targetObject}) + "|field=${field}|to=null");\n`;
+          } else {
+            tracedBody += `System.out.println("TRACE|TREE_MUTATE|node=" + __DSAInput.getTreeNodeId(${targetObject}) + "|field=${field}|to=" + __DSAInput.getTreeNodeId(${rhsExpr}));\n`;
+          }
         }
       }
     }
