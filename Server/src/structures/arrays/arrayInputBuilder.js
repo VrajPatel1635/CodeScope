@@ -235,6 +235,11 @@ function buildInt({ paramName, inputRaw }) {
   return { decl: `int ${paramName} = ${value};`, arg: paramName, initialValue: value };
 }
 
+function buildLong({ paramName, inputRaw }) {
+  const value = Math.trunc(parseNumericLoose(inputRaw));
+  return { decl: `long ${paramName} = ${value}L;`, arg: paramName, initialValue: value };
+}
+
 // Keeping old names for existing references (like LinkedLists)
 const buildIntArray = buildGenericNumericArray("int");
 const buildIntMatrix = buildGenericNumericMatrix("int");
@@ -282,6 +287,7 @@ function buildChar({ paramName, inputRaw }) {
 
 module.exports = {
   buildInt,
+  buildLong,
   buildString,
   buildChar,
   buildIntArray,
