@@ -69,6 +69,7 @@ export default function Hero() {
                 href="/visualizer" 
                 variant="primary" 
                 accent="primary"
+                triggerLoader={true}
                 icon={
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
@@ -79,8 +80,9 @@ export default function Hero() {
               </Button>
 
               <Button
-                onClick={() => document.getElementById('interactive-demo')?.scrollIntoView({ behavior: 'smooth' })}
+                href="/docs"
                 variant="secondary"
+                triggerLoader={true}
                 icon={
                   <span className="flex items-center justify-center w-5 h-5 rounded-full bg-white/10">
                     <svg className="w-2 h-2 ml-0.5" fill="currentColor" viewBox="0 0 24 24">
@@ -89,7 +91,7 @@ export default function Hero() {
                   </span>
                 }
               >
-                Watch Demo
+                Documentation
               </Button>
             </motion.div>
           </motion.div>
@@ -103,7 +105,7 @@ export default function Hero() {
             <div className="relative w-full aspect-square md:aspect-4/3 lg:aspect-auto lg:h-[650px]">
               <motion.div 
                 whileHover={{ y: -8, transition: { duration: 0.5, ease: "easeOut" } }}
-                className="absolute top-0 right-0 w-[90%] rounded-2xl border border-white/10 bg-(--bg-primary)/80 shadow-[0_40px_80px_-20px_rgba(0,0,0,0.8)] overflow-hidden backdrop-blur-2xl z-10"
+                className="absolute top-0 right-0 w-[90%] rounded-2xl border border-white/10 bg-background/80 shadow-[0_40px_80px_-20px_rgba(0,0,0,0.8)] overflow-hidden backdrop-blur-2xl z-10"
               >
                 <div className="flex items-center gap-2 px-4 py-3 border-b border-white/5 bg-white/5">
                   <div className="flex gap-1.5">
@@ -128,7 +130,7 @@ export default function Hero() {
 
               <motion.div 
                 whileHover={{ y: -8, transition: { duration: 0.5, ease: "easeOut" } }}
-                className="absolute bottom-12 -left-8 md:bottom-24 md:-left-16 w-[85%] p-6 rounded-2xl border border-white/10 bg-(--bg-primary)/90 shadow-[0_30px_60px_rgba(0,0,0,0.7)] backdrop-blur-2xl z-20"
+                className="absolute bottom-12 -left-8 md:bottom-24 md:-left-16 w-[85%] p-6 rounded-2xl border border-white/10 bg-background/90 shadow-[0_30px_60px_rgba(0,0,0,0.7)] backdrop-blur-2xl z-20"
               >
                 <div className="flex justify-between items-center mb-6">
                   <div className="text-[10px] uppercase tracking-[0.25em] text-white/40 font-medium">Heap State</div>

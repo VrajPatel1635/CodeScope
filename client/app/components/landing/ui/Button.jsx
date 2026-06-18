@@ -1,5 +1,7 @@
 import React from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useLoader } from "../../shared/LoaderContext";
 
 export default function Button({
   children,
@@ -8,10 +10,13 @@ export default function Button({
   variant = "primary",
   accent = "primary", 
   icon,
+  triggerLoader = false,
   className = "",
   ...props
 }) {
   const isPrimary = variant === "primary";
+  const router = useRouter();
+  const { triggerLoader: activateLoader } = useLoader();
 
   const accentVars = {
     primary: "var(--accent-primary)",
@@ -85,13 +90,24 @@ export default function Button({
     </>
   );
 
+  const handleNavigation = (e) => {
+    if (triggerLoader) {
+      e.preventDefault();
+      activateLoader();
+      setTimeout(() => {
+        router.push(href);
+      }, 800); // 800ms allows the cinematic aperture doors to slam shut before routing freezes the main thread
+    }
+    if (onClick) onClick(e);
+  };
+
   const finalClassName = `${baseClasses} ${sizeClasses} ${className}`;
 
   if (href) {
     return (
-      <Link href={href} className={finalClassName} style={containerStyles} {...props}>
+      <a href={href} onClick={handleNavigation} className={finalClassName} style={containerStyles} {...props}>
         {renderContent()}
-      </Link>
+      </a>
     );
   }
 

@@ -117,6 +117,8 @@
   --font-sans: var(--font-ui);
   --font-mono: var(--font-code);
   --font-heading: var(--font-ui);
+  --font-display: var(--font-display);
+  --font-ui: var(--font-ui);
 }
 
 /* =========================================

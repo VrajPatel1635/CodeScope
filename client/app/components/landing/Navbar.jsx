@@ -59,15 +59,12 @@ export default function Navbar() {
           
           {/* Left side: Logo & Title */}
           <div className="flex items-center gap-3 pl-1 md:pl-2">
-            <Link href="/" className="flex items-center gap-3 group">
-              <div className="w-9 h-9 md:w-11 md:h-11 rounded-[12px] md:rounded-[14px] bg-[#040405] border border-[#181A20] flex items-center justify-center relative overflow-hidden transition-all duration-500 group-hover:border-[#D37B50] shadow-inner group-hover:shadow-[0_0_20px_rgba(211,123,80,0.15)]">
-                <img
-                  src="/codescopelogo.png"
-                  alt="CodeScope"
-                  className="w-5 h-5 md:w-6 md:h-6 object-contain transition-transform duration-500 group-hover:scale-110" 
-                  style={{ filter: 'brightness(0) saturate(100%) invert(73%) sepia(50%) saturate(704%) hue-rotate(345deg) brightness(97%) contrast(93%)' }}
-                />
-              </div>
+            <Link href="/" className="flex items-center gap-2 md:gap-3 group">
+              <img
+                src="/codescopelogo.png"
+                alt="CodeScope"
+                className="w-6 h-6 md:w-8 md:h-8 object-contain transition-transform duration-500 group-hover:scale-110 opacity-90 group-hover:opacity-100" 
+              />
               <span className="font-ui font-semibold text-[15px] md:text-[17px] text-[#040405] tracking-tight group-hover:text-[#D37B50] transition-colors">
                 CodeScope
               </span>
@@ -90,6 +87,7 @@ export default function Navbar() {
                 href="/visualizer" 
                 variant="primary" 
                 accent="primary"
+                triggerLoader={true}
                 className="shadow-[0_5px_15px_rgba(var(--accent-primary-rgb, 211,123,80),0.2)] hover:shadow-[0_10px_30px_rgba(var(--accent-primary-rgb, 211,123,80),0.4)] rounded-[16px]!"
               >
                 Launch Visualizer
@@ -121,7 +119,7 @@ export default function Navbar() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.3, ease: "easeInOut" }}
-              className="fixed inset-0 bg-(--bg-primary)/90 backdrop-blur-md z-40 md:hidden"
+              className="fixed inset-0 bg-background/90 backdrop-blur-md z-40 md:hidden"
               onClick={() => setIsMobileMenuOpen(false)}
             />
 
@@ -171,6 +169,7 @@ export default function Navbar() {
                     onClick={() => setIsMobileMenuOpen(false)} 
                     variant="primary" 
                     accent="primary"
+                    triggerLoader={true}
                     className="w-full justify-center"
                   >
                     Launch Visualizer

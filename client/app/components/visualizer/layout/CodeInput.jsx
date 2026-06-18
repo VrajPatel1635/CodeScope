@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import CodeEditor from "@/app/components/visualizer/layout/CodeEditor";
 
 export default function CodeInput({ onRun, activeLine }) {
@@ -77,15 +78,52 @@ export default function CodeInput({ onRun, activeLine }) {
           />
         </div>
 
-        {/* Run Button */}
-        <button
+        {/* Architectural Run Button */}
+        <motion.button
           onClick={handleRun}
           disabled={loading}
-          className="px-6 py-2 h-[42px] rounded font-semibold transition-transform hover-scale-sm whitespace-nowrap mr-2 mb-1.5"
-          style={{ backgroundColor: 'var(--accent-primary)', color: 'var(--text-primary)' }}
+          layout
+          className="relative px-6 min-w-[160px] h-[42px] rounded overflow-hidden transition-colors duration-300 mr-2 mb-1.5 border cursor-pointer"
+          style={{
+            backgroundColor: loading ? 'var(--bg-elevated)' : 'var(--accent-primary)',
+            color: loading ? 'var(--accent-primary)' : 'var(--bg-primary)',
+            borderColor: loading ? 'var(--accent-primary)' : 'transparent',
+          }}
         >
-          {loading ? "Running..." : "Run Execution"}
-        </button>
+          <AnimatePresence mode="wait">
+            {loading ? (
+              <motion.div
+                key="loading"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.2 }}
+                className="flex items-center justify-center gap-3 w-full h-full font-mono text-[11px] uppercase tracking-widest font-medium"
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-(--accent-primary) shadow-[0_0_8px_rgba(var(--accent-primary-rgb),0.8)] animate-pulse" />
+                Compiling
+                
+                {/* Cinematic Data Scanner */}
+                <motion.div
+                  className="absolute bottom-0 left-0 h-[2px] bg-(--accent-primary) w-1/3 shadow-[0_0_10px_rgba(var(--accent-primary-rgb),1)]"
+                  animate={{ x: ["-100%", "300%"] }}
+                  transition={{ repeat: Infinity, duration: 1.2, ease: "linear" }}
+                />
+              </motion.div>
+            ) : (
+              <motion.div
+                key="idle"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.2 }}
+                className="flex items-center justify-center w-full h-full font-semibold text-sm whitespace-nowrap"
+              >
+                Run Execution
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.button>
       </div>
     </div>
   );

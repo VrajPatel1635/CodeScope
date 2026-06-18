@@ -1,4 +1,5 @@
 import "./globals.css";
+import { LoaderProvider } from "./components/shared/LoaderContext";
 
 export const metadata = {
   title: "DSA Visualizer",
@@ -8,7 +9,11 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <LoaderProvider>
+          {children}
+        </LoaderProvider>
+      </body>
     </html>
   );
 }

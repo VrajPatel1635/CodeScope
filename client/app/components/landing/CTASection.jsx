@@ -54,7 +54,8 @@ export default function CTASection() {
             <div className="mt-8 flex flex-wrap items-center justify-end gap-3">
               <Button
                 variant="secondary"
-                href="#features"
+                href="/docs"
+                triggerLoader={true}
                 className="cursor-pointer"
               >
                 Documentation
@@ -62,8 +63,9 @@ export default function CTASection() {
               <Button
                 variant="primary"
                 accent="primary"
-                href="#top"
+                href="/visualizer"
                 icon={<span>→</span>}
+                triggerLoader={true}
                 className="cursor-pointer"
               >
                 Initialize Visualizer
