@@ -1,5 +1,7 @@
 "use client";
 
+import { motion } from "framer-motion";
+
 export default function Controls({
   currentStep,
   totalSteps,
@@ -43,95 +45,107 @@ export default function Controls({
   };
 
   const handleSliderChange = (e) => {
-    // Pause auto-play whenever the user drags the slider
     if (isPlaying) setIsPlaying(false);
     const val = Number(e.target.value);
     if (isMicro) setCurrentStep(val);
     else setSourceStepIndex(val);
   };
 
-  // Don't render the slider section at all if there are no steps
   const hasSteps = activeTotal > 0;
   const singleStep = activeTotal === 1;
 
   return (
-    <div className="controls-wrapper">
-      {/* ── Mode Toggle Row ── */}
-      <div className="flex gap-2 justify-center mb-2">
-        <button
-          onClick={() => {
-            setTimelineMode("micro");
-            // Optionally, snap the micro index to the current source's resolved step, 
-            // but for safety, we just keep currentStep where it was.
-          }}
-          className={`px-3 py-1 text-xs font-semibold rounded-full border transition-colors ${
-            timelineMode === "micro"
-              ? "bg-blue-100 text-blue-700 border-blue-300"
-              : "bg-gray-50 text-gray-500 border-gray-200 hover:bg-gray-100"
-          }`}
-        >
-          Micro Mode
-        </button>
-        <button
-          onClick={() => setTimelineMode("source")}
-          className={`px-3 py-1 text-xs font-semibold rounded-full border transition-colors ${
-            timelineMode === "source"
-              ? "bg-blue-100 text-blue-700 border-blue-300"
-              : "bg-gray-50 text-gray-500 border-gray-200 hover:bg-gray-100"
-          }`}
-        >
-          Source Mode
-        </button>
-      </div>
+    <div className="flex items-center gap-6 w-full select-none">
+        {/* Playback Buttons */}
+        <div className="flex items-center gap-2 shrink-0">
+          <button
+            onClick={prev}
+            disabled={activeStep === 0}
+            className="w-10 h-10 rounded border flex items-center justify-center transition-all duration-300 disabled:opacity-30 disabled:cursor-not-allowed group hover:bg-white/5 active:scale-95"
+            style={{ borderColor: 'var(--border-color)', color: 'var(--text-primary)', backgroundColor: 'var(--bg-primary)' }}
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform">
+              <path d="M19 12H5M12 19l-7-7 7-7" />
+            </svg>
+          </button>
 
-      {/* ── Playback buttons row ── */}
-      <div className="controls-row">
-        <button
-          onClick={prev}
-          disabled={activeStep === 0}
-          className="ctrl-btn ctrl-btn--secondary"
-        >
-          ← Prev
-        </button>
+          <button
+            onClick={togglePlay}
+            className="w-12 h-12 rounded border flex items-center justify-center transition-all duration-300 active:scale-90 shadow-lg relative overflow-hidden"
+            style={{ 
+              borderColor: 'var(--accent-primary)', 
+              color: 'var(--bg-primary)', 
+              backgroundColor: 'var(--accent-primary)' 
+            }}
+          >
+            {/* Cinematic sweep effect on hover */}
+            <div className="absolute inset-0 bg-white/20 translate-y-full hover:translate-y-0 transition-transform duration-500 ease-out" />
+            <div className="relative z-10 flex items-center justify-center w-full h-full">
+              {isPlaying ? (
+                <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
+                  <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />
+                </svg>
+              ) : (
+                <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 ml-0.5">
+                  <path d="M8 5v14l11-7z" />
+                </svg>
+              )}
+            </div>
+          </button>
 
-        <button
-          onClick={togglePlay}
-          className="ctrl-btn ctrl-btn--primary"
-        >
-          {isPlaying ? "⏸ Pause" : "▶ Play"}
-        </button>
+          <button
+            onClick={next}
+            disabled={activeStep === activeTotal - 1}
+            className="w-10 h-10 rounded border flex items-center justify-center transition-all duration-300 disabled:opacity-30 disabled:cursor-not-allowed group hover:bg-white/5 active:scale-95"
+            style={{ borderColor: 'var(--border-color)', color: 'var(--text-primary)', backgroundColor: 'var(--bg-primary)' }}
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 group-hover:translate-x-0.5 transition-transform">
+              <path d="M5 12h14M12 5l7 7-7 7" />
+            </svg>
+          </button>
+        </div>
 
-        <button
-          onClick={next}
-          disabled={activeStep === activeTotal - 1}
-          className="ctrl-btn ctrl-btn--secondary"
-        >
-          Next →
-        </button>
+        {/* Timeline Slider */}
+        {hasSteps && (
+          <div className="flex-1 relative flex items-center h-10 group cursor-pointer">
+            {/* Background Track Line */}
+            <div className="absolute left-0 right-0 h-px" style={{ backgroundColor: 'var(--border-color)' }} />
+            
+            {/* Hash Marks for precision aesthetic */}
+            <div className="absolute left-0 right-0 h-2 flex justify-between px-px opacity-20 pointer-events-none">
+              {Array.from({ length: 10 }).map((_, i) => (
+                <div key={i} className="w-px h-full bg-current" style={{ color: 'var(--text-secondary)' }} />
+              ))}
+            </div>
 
-        <span className="step-counter flex items-center gap-3">
-          <span>
-            Step <strong>{activeStep + 1}</strong> / <strong>{activeTotal}</strong>
-          </span>
-        </span>
-      </div>
-
-      {/* ── Timeline / Seek Bar ── */}
-      {hasSteps && (
-        <div className="timeline-wrapper">
-          <span className="timeline-label">Start</span>
-
-          <div className="slider-track">
-            {/* Filled progress behind the thumb */}
-            <div
-              className="slider-fill"
-              style={{
-                width:
-                  activeTotal > 1
-                    ? `${(activeStep / (activeTotal - 1)) * 100}%`
-                    : "0%",
-              }}
+            {/* Fill Track */}
+            <div 
+              className="absolute left-0 h-[2px] transition-all duration-100 ease-linear" 
+              style={{ 
+                backgroundColor: 'var(--accent-primary)', 
+                width: activeTotal > 1 ? `${(activeStep / (activeTotal - 1)) * 100}%` : '0%',
+                boxShadow: '0 0 8px rgba(211, 123, 80, 0.4)'
+              }} 
             />
+
+            {/* Loop Markers */}
+            {isMicro && activeTotal > 1 && loopMarkers.map((m) => {
+              const leftPercent = (m.stepIndex / (activeTotal - 1)) * 100;
+              return (
+                <div
+                  key={m.stepIndex}
+                  className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 flex flex-col items-center pointer-events-none"
+                  style={{ left: `${leftPercent}%` }}
+                >
+                  <div className="w-[3px] h-[7px] rounded-[1px]" style={{ backgroundColor: 'var(--accent-secondary)' }} />
+                  <span className="absolute top-[8px] text-[8px] font-mono tracking-widest uppercase opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: 'var(--accent-secondary)' }}>
+                    I-{m.iteration}
+                  </span>
+                </div>
+              );
+            })}
+
+            {/* Native Slider Overlay */}
             <input
               type="range"
               min={0}
@@ -139,231 +153,63 @@ export default function Controls({
               value={activeStep}
               onChange={handleSliderChange}
               disabled={singleStep}
-              className="timeline-slider"
-              aria-label="Execution step timeline"
+              className="w-full h-full absolute inset-0 opacity-0 cursor-ew-resize disabled:cursor-not-allowed z-20 m-0"
             />
+            
+            {/* Custom Thumb */}
+            <motion.div
+              className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-1.5 h-5 rounded-full pointer-events-none z-10 shadow-md"
+              style={{ backgroundColor: 'var(--accent-primary)' }}
+              animate={{ left: activeTotal > 1 ? `${(activeStep / (activeTotal - 1)) * 100}%` : '0%' }}
+              transition={{ type: "tween", duration: 0.1, ease: "linear" }}
+            />
+          </div>
+        )}
 
-            {/* Loop Markers (Only show in micro mode for accurate timeline matching, or map to source logic if needed) */}
-            {isMicro && activeTotal > 1 &&
-              loopMarkers.map((m) => {
-                const leftPercent = (m.stepIndex / (activeTotal - 1)) * 100;
-                return (
-                  <div
-                    key={m.stepIndex}
-                    className="loop-marker"
-                    style={{ left: `${leftPercent}%` }}
-                    title={`Iteration ${m.iteration}`}
-                  >
-                    <div className="loop-marker-tick" />
-                    <span className="loop-marker-label">Iter {m.iteration}</span>
-                  </div>
-                );
-              })}
+        {/* Step Counter & Mode Toggle */}
+        <div className="flex items-center gap-6 shrink-0 pl-4 border-l" style={{ borderColor: 'var(--border-color)' }}>
+          {/* Step Counter */}
+          <div className="text-[11px] font-mono uppercase tracking-widest flex items-center gap-3" style={{ color: 'var(--text-secondary)' }}>
+            <div className="flex items-center gap-2">
+              <span 
+                className={`w-2 h-2 rounded-sm transition-all duration-300 ${isPlaying ? 'animate-pulse' : ''}`} 
+                style={{ 
+                  backgroundColor: isPlaying ? 'var(--accent-primary)' : 'transparent', 
+                  border: isPlaying ? 'none' : '1px solid var(--border-color)' 
+                }} 
+              />
+              <span className="hidden xl:inline">STATE</span>
+            </div>
+            <span style={{ color: 'var(--text-primary)' }}>{String(activeStep + 1).padStart(2, '0')}</span>
+            <span className="opacity-50">/</span>
+            <span>{String(activeTotal).padStart(2, '0')}</span>
           </div>
 
-          <span className="timeline-label">End ({activeTotal - 1})</span>
+          {/* Mode Toggle */}
+          <div className="flex items-center rounded-md p-1 border shadow-sm" style={{ backgroundColor: 'var(--bg-primary)', borderColor: 'var(--border-color)' }}>
+            {["micro", "source"].map((mode) => {
+              const isActive = timelineMode === mode;
+              return (
+                <button
+                  key={mode}
+                  onClick={() => setTimelineMode(mode)}
+                  className="relative px-3 py-1.5 text-[10px] font-mono uppercase tracking-[0.2em] outline-none z-10 transition-colors"
+                  style={{ color: isActive ? 'var(--bg-primary)' : 'var(--text-secondary)' }}
+                >
+                  {isActive && (
+                    <motion.div
+                      layoutId="mode-indicator"
+                      className="absolute inset-0 rounded-sm shadow-sm"
+                      style={{ backgroundColor: 'var(--text-primary)' }}
+                      transition={{ type: "spring", bounce: 0.15, duration: 0.5 }}
+                    />
+                  )}
+                  <span className="relative z-20">{mode}</span>
+                </button>
+              );
+            })}
+          </div>
         </div>
-      )}
-
-      <style jsx>{`
-        /* ── Wrapper ── */
-        .controls-wrapper {
-          display: flex;
-          flex-direction: column;
-          gap: 12px;
-          width: 100%;
-        }
-
-        /* ── Buttons row ── */
-        .controls-row {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          flex-wrap: wrap;
-        }
-
-        .ctrl-btn {
-          padding: 6px 16px;
-          border-radius: 6px;
-          font-size: 0.875rem;
-          font-weight: 500;
-          cursor: pointer;
-          border: none;
-          transition: background 0.15s, opacity 0.15s, transform 0.1s;
-        }
-        .ctrl-btn:active {
-          transform: scale(0.96);
-        }
-        .ctrl-btn:disabled {
-          opacity: 0.35;
-          cursor: not-allowed;
-        }
-
-        .ctrl-btn--secondary {
-          background: #e5e7eb;
-          color: #111827;
-        }
-        .ctrl-btn--secondary:hover:not(:disabled) {
-          background: #d1d5db;
-        }
-
-        .ctrl-btn--primary {
-          background: #3b82f6;
-          color: #fff;
-          min-width: 90px;
-        }
-        .ctrl-btn--primary:hover {
-          background: #2563eb;
-        }
-
-        .step-counter {
-          margin-left: auto;
-          font-size: 0.875rem;
-          color: #6b7280;
-          white-space: nowrap;
-        }
-        .step-counter strong {
-          color: #111827;
-        }
-
-        /* ── Timeline ── */
-        .timeline-wrapper {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          width: 100%;
-        }
-
-        .timeline-label {
-          font-size: 0.75rem;
-          color: #9ca3af;
-          white-space: nowrap;
-          user-select: none;
-        }
-
-        /* Relative container so we can overlay fill + input */
-        .slider-track {
-          position: relative;
-          flex: 1;
-          height: 20px;
-          display: flex;
-          align-items: center;
-        }
-
-        /* Filled portion (visual progress) */
-        .slider-fill {
-          position: absolute;
-          left: 0;
-          top: 50%;
-          transform: translateY(-50%);
-          height: 6px;
-          background: linear-gradient(90deg, #3b82f6, #60a5fa);
-          border-radius: 9999px;
-          pointer-events: none;
-          transition: width 0.05s linear;
-          z-index: 1;
-        }
-
-        /* Native range — reset + re-style */
-        .timeline-slider {
-          -webkit-appearance: none;
-          appearance: none;
-          width: 100%;
-          height: 6px;
-          background: #e5e7eb;
-          border-radius: 9999px;
-          outline: none;
-          cursor: pointer;
-          position: relative;
-          z-index: 2;
-          /* make the track transparent so the .slider-fill shows through */
-          background: transparent;
-        }
-        .timeline-slider:disabled {
-          cursor: not-allowed;
-          opacity: 0.5;
-        }
-
-        /* Track — WebKit */
-        .timeline-slider::-webkit-slider-runnable-track {
-          height: 6px;
-          border-radius: 9999px;
-          background: #e5e7eb;
-        }
-
-        /* Thumb — WebKit */
-        .timeline-slider::-webkit-slider-thumb {
-          -webkit-appearance: none;
-          width: 18px;
-          height: 18px;
-          border-radius: 50%;
-          background: #fff;
-          border: 3px solid #3b82f6;
-          box-shadow: 0 1px 4px rgba(0, 0, 0, 0.18);
-          cursor: grab;
-          margin-top: -6px; /* vertically centre on track */
-          transition: border-color 0.15s, transform 0.1s;
-          position: relative;
-          z-index: 3;
-        }
-        .timeline-slider::-webkit-slider-thumb:hover {
-          border-color: #2563eb;
-          transform: scale(1.15);
-        }
-        .timeline-slider::-webkit-slider-thumb:active {
-          cursor: grabbing;
-          transform: scale(1.05);
-        }
-
-        /* Track — Firefox */
-        .timeline-slider::-moz-range-track {
-          height: 6px;
-          border-radius: 9999px;
-          background: #e5e7eb;
-        }
-
-        /* Thumb — Firefox */
-        .timeline-slider::-moz-range-thumb {
-          width: 18px;
-          height: 18px;
-          border-radius: 50%;
-          background: #fff;
-          border: 3px solid #3b82f6;
-          box-shadow: 0 1px 4px rgba(0, 0, 0, 0.18);
-          cursor: grab;
-        }
-        .timeline-slider::-moz-range-thumb:hover {
-          border-color: #2563eb;
-          transform: scale(1.15);
-        }
-
-        /* ── Loop Markers ── */
-        .loop-marker {
-          position: absolute;
-          top: -2px; /* Slight offset above track */
-          transform: translateX(-50%);
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          pointer-events: none;
-          z-index: 1; /* Below thumb, above track */
-        }
-
-        .loop-marker-tick {
-          width: 2px;
-          height: 10px;
-          background-color: #f59e0b;
-          border-radius: 1px;
-        }
-
-        .loop-marker-label {
-          margin-top: 6px;
-          font-size: 0.6rem;
-          font-weight: 700;
-          color: #d97706;
-          white-space: nowrap;
-        }
-      `}</style>
     </div>
   );
 }

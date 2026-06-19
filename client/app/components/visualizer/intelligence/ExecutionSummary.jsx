@@ -1,18 +1,23 @@
 "use client";
 
 import React from "react";
+import { motion } from "framer-motion";
 
 export default function ExecutionSummary({ intelligence }) {
   if (!intelligence) return null;
 
   const { costDistribution, hotspots, characteristics } = intelligence;
   
-  let dominantCost = "None";
+  let dominantCost = "O(1)"; // Default fallback
   let maxCost = -1;
   for (const [key, val] of Object.entries(costDistribution || {})) {
     if (val > maxCost) {
       maxCost = val;
-      dominantCost = key.charAt(0).toUpperCase() + key.slice(1);
+      dominantCost = key === "linear" ? "O(N)" 
+                   : key === "quadratic" ? "O(N²)" 
+                   : key === "logarithmic" ? "O(log N)" 
+                   : key === "exponential" ? "O(2^N)" 
+                   : "O(1)";
     }
   }
 
@@ -22,26 +27,44 @@ export default function ExecutionSummary({ intelligence }) {
   else if (characteristics?.includes("Tree Traversal")) mostActiveStructure = "Tree";
   else if (characteristics?.includes("Graph Traversal")) mostActiveStructure = "Graph";
 
-  const primaryHotspot = hotspots && hotspots.length > 0 ? `Line ${hotspots[0].line}` : "N/A";
+  const primaryHotspot = hotspots && hotspots.length > 0 ? `L${hotspots[0].line}` : "--";
 
   return (
-    <div className="flex flex-col h-full justify-center gap-2 border-r border-opacity-10 pr-4" style={{ borderColor: "var(--border-color)" }}>
-      <h3 className="text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>Execution Summary</h3>
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.8, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
+      className="flex flex-col gap-8 w-full border-t pt-8" 
+      style={{ borderColor: "var(--border-color)" }}
+    >
+      <div className="text-[10px] font-mono uppercase tracking-[0.2em] flex items-center gap-3" style={{ color: "var(--text-muted)" }}>
+        <div className="w-8 h-px bg-current opacity-50" />
+        Execution Profile
+      </div>
       
-      <div className="flex flex-col gap-2 mt-1">
-        <div>
-          <div className="text-[10px] uppercase" style={{ color: "var(--text-secondary)" }}>Dominant Cost</div>
-          <div className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>{dominantCost}</div>
-        </div>
-        <div>
-          <div className="text-[10px] uppercase" style={{ color: "var(--text-secondary)" }}>Active Structure</div>
-          <div className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>{mostActiveStructure}</div>
-        </div>
-        <div>
-          <div className="text-[10px] uppercase" style={{ color: "var(--text-secondary)" }}>Primary Hotspot</div>
-          <div className="text-sm font-mono font-semibold" style={{ color: "var(--text-primary)" }}>{primaryHotspot}</div>
+      {/* Massive Big-O Typographic Moment */}
+      <div className="flex flex-col">
+        <div className="text-[10px] font-mono uppercase tracking-widest mb-1" style={{ color: "var(--text-secondary)" }}>Dominant Time Complexity</div>
+        <div className="text-7xl font-display leading-none tracking-tighter" style={{ color: "var(--accent-primary)" }}>
+          {dominantCost}
         </div>
       </div>
-    </div>
+
+      <div className="grid grid-cols-2 gap-6 mt-4">
+        <div className="flex flex-col gap-1">
+          <div className="text-[10px] font-mono uppercase tracking-widest" style={{ color: "var(--text-secondary)" }}>Primary Structure</div>
+          <div className="text-lg font-mono" style={{ color: "var(--text-primary)" }}>{mostActiveStructure}</div>
+        </div>
+        
+        <div className="flex flex-col gap-1">
+          <div className="text-[10px] font-mono uppercase tracking-widest" style={{ color: "var(--text-secondary)" }}>Primary Hotspot</div>
+          <div className="text-lg font-mono flex items-center gap-2" style={{ color: "var(--text-primary)" }}>
+            <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ backgroundColor: "var(--exec-error)" }} />
+            {primaryHotspot}
+          </div>
+        </div>
+      </div>
+
+    </motion.div>
   );
 }

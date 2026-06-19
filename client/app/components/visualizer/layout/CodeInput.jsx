@@ -3,14 +3,17 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import CodeEditor from "@/app/components/visualizer/layout/CodeEditor";
+import useExecutionStore from "@/app/store/useExecutionStore";
 
 export default function CodeInput({ onRun, activeLine }) {
-  const [code, setCode] = useState(`class Solution {
+  const { code: globalCode, input: globalInput } = useExecutionStore();
+
+  const [code, setCode] = useState(globalCode || `class Solution {
     public int solve(int[] arr) {
         
     }
 }`);
-  const [input, setInput] = useState("");
+  const [input, setInput] = useState(globalInput || "");
   const [loading, setLoading] = useState(false);
 
   const handleRun = async () => {
@@ -55,12 +58,14 @@ export default function CodeInput({ onRun, activeLine }) {
   };
 
   return (
-    <div className="flex flex-col h-full w-full gap-4">
+    <div className="flex-1 flex flex-col w-full gap-4 min-h-0">
       {/* Code Input */}
-      <div className="flex-1 border rounded overflow-hidden flex flex-col" style={{ borderColor: 'var(--border-color)', backgroundColor: 'var(--bg-primary)' }}>
+      <div className="flex-1 border rounded overflow-hidden flex flex-col min-h-0" style={{ borderColor: 'var(--border-color)', backgroundColor: 'var(--bg-primary)' }}>
         <label className="block font-semibold p-2 border-b text-sm" style={{ backgroundColor: 'var(--bg-elevated)', borderColor: 'var(--border-color)', color: 'var(--text-secondary)' }}>Java Code</label>
-        <div className="flex-1 min-h-0">
-          <CodeEditor code={code} setCode={setCode} activeLine={activeLine} />
+        <div className="flex-1 relative min-h-0">
+          <div className="absolute inset-0">
+            <CodeEditor code={code} setCode={setCode} activeLine={activeLine} />
+          </div>
         </div>
       </div>
 

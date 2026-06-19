@@ -131,7 +131,6 @@ function VisualizerGraphic({ slug }) {
         );
 
       case 'stack':
-      case 'call-stack':
         return (
           <div className="relative w-24 h-40 flex flex-col items-center justify-end gap-1 pb-4">
              {[...Array(5)].map((_, i) => (
@@ -203,70 +202,6 @@ function VisualizerGraphic({ slug }) {
           </div>
         );
 
-      case 'variables':
-        return (
-          <div className="relative w-32 h-32 flex items-center justify-center">
-             <div className="w-20 h-12 border border-(--border-color) group-hover:border-(--accent-primary) bg-background transition-all duration-700 flex items-center justify-center group-hover:scale-110 shadow-[0_0_0_rgba(232,164,74,0)] group-hover:shadow-[0_0_20px_rgba(232,164,74,0.2)]">
-                <div className="absolute -top-3 left-2 px-1 bg-background text-[8px] font-mono text-(--text-muted) group-hover:text-(--accent-primary) transition-colors duration-700">PTR</div>
-                <div className="w-8 h-2 bg-(--border-color) group-hover:bg-(--accent-primary) transition-colors duration-700" />
-             </div>
-          </div>
-        );
-
-      case 'operations':
-      case 'execution-pipeline':
-        return (
-          <div className="relative w-40 h-16 flex items-center justify-between">
-             <div className="absolute inset-0 top-1/2 -translate-y-1/2 h-px bg-(--border-color) group-hover:bg-(--accent-primary)/30 transition-colors duration-700" />
-             {[...Array(3)].map((_, i) => (
-               <div key={i} className="relative w-10 h-10 border border-(--border-color) group-hover:border-(--accent-primary) transition-all duration-700 bg-background flex items-center justify-center group-hover:rotate-45" style={{ transitionDelay: `${i * 100}ms` }}>
-                  <div className="w-3 h-3 border border-(--border-color) group-hover:border-(--accent-primary) transition-colors duration-700" />
-               </div>
-             ))}
-          </div>
-        );
-
-      case 'timelines':
-        return (
-          <div className="relative w-48 h-24 flex items-center justify-center">
-             <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-px bg-(--border-color) group-hover:bg-(--accent-primary)/50 transition-colors duration-700" />
-             <div className="absolute w-full flex justify-between px-2">
-               {[...Array(7)].map((_, i) => (
-                 <div key={i} className={`w-px ${i%2===0 ? 'h-4 -translate-y-2' : 'h-2 -translate-y-1'} bg-(--border-color) group-hover:bg-(--accent-primary) transition-all duration-700`} style={{ transitionDelay: `${i * 50}ms`, transform: i%2===0 ? 'scaleY(1.5)' : 'scaleY(1)' }} />
-               ))}
-             </div>
-             <div className="absolute w-2 h-2 rounded-full bg-(--text-muted) group-hover:bg-(--accent-primary) shadow-none group-hover:shadow-[0_0_10px_rgba(232,164,74,0.8)] transition-all duration-1000 -translate-x-20 group-hover:translate-x-20" />
-          </div>
-        );
-
-      case 'runtime-errors':
-      case 'compilation-errors':
-      case 'input-errors':
-        return (
-          <div className="relative w-32 h-32 flex items-center justify-center">
-             <div className="absolute w-20 h-20 border border-(--border-color) group-hover:border-red-500/50 transition-colors duration-700 rotate-45" />
-             <div className="w-16 h-16 border border-(--border-color) group-hover:border-red-500 transition-colors duration-700 flex items-center justify-center bg-background group-hover:scale-110">
-                <div className="w-px h-6 bg-(--text-muted) group-hover:bg-red-500 transition-colors duration-700 rotate-45 absolute" />
-                <div className="w-px h-6 bg-(--text-muted) group-hover:bg-red-500 transition-colors duration-700 -rotate-45 absolute" />
-             </div>
-          </div>
-        );
-
-      case 'input-system':
-      case 'docker-sandbox':
-        return (
-          <div className="relative w-32 h-32 flex items-center justify-center">
-             <div className="absolute w-24 h-24 border border-dashed border-(--border-color) group-hover:border-(--accent-primary)/50 transition-colors duration-700" />
-             <div className="w-16 h-16 border border-(--border-color) group-hover:border-(--accent-primary) transition-all duration-700 bg-background flex flex-col justify-between p-2 group-hover:scale-110 shadow-[0_0_0_rgba(232,164,74,0)] group-hover:shadow-[0_0_20px_rgba(232,164,74,0.15)]">
-                <div className="w-full h-px bg-(--border-color) group-hover:bg-(--accent-primary)/50 transition-colors" />
-                <div className="w-full flex justify-between">
-                  <div className="w-2 h-2 bg-(--border-color) group-hover:bg-(--accent-primary) transition-colors" />
-                  <div className="w-2 h-2 bg-(--border-color) group-hover:bg-(--accent-primary) transition-colors delay-75" />
-                </div>
-                <div className="w-full h-px bg-(--border-color) group-hover:bg-(--accent-primary)/50 transition-colors" />
-             </div>
-          </div>
-        );
 
       default:
         // Generic geometric fallback for anything missed
