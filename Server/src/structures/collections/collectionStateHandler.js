@@ -1,6 +1,12 @@
 function handleCollectionTrace(event, ctx) {
     if (event.type === "COLLECTION_MUT") {
         return ctx.createStep(event.type, { collectionEvent: event });
+    } else if (event.type === "COLLECTION_TYPE") {
+        if (!ctx.declaredCollectionTypes) {
+            ctx.declaredCollectionTypes = {};
+        }
+        ctx.declaredCollectionTypes[event.name] = event.collectionType;
+        return null;
     }
     return null;
 }

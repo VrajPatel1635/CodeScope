@@ -230,9 +230,9 @@ export default function VisualizerLayout() {
         </div>
       </div>
 
-      <motion.div 
-        variants={containerVariants} 
-        initial="hidden" 
+      <motion.div
+        variants={containerVariants}
+        initial="hidden"
         animate="visible"
         className="flex-1 flex flex-col p-4 md:p-6 gap-6"
       >
@@ -257,87 +257,87 @@ export default function VisualizerLayout() {
                 <Panel defaultSize={40} minSize={25}>
                   <div className="h-full w-full flex flex-col min-h-0">
                     <div className="flex-1 flex flex-col relative min-h-0 overflow-hidden pt-4 px-4 pb-0">
-                  <CodeInput
-                    onRun={(data, inputValue, codeValue) => {
-                      setExecutionData(data, inputValue, codeValue);
-                    }}
-                    activeLine={activeLine}
-                  />
-                </div>
-              </div>
-            </Panel>
-
-            {/* DRAG HANDLE */}
-            <Separator className="w-1 flex flex-col justify-center items-center cursor-col-resize hover:bg-white/5 transition-colors relative group" style={{ backgroundColor: 'var(--border-color)' }}>
-              <div className="w-1 h-8 rounded-full opacity-0 group-hover:opacity-100 transition-opacity" style={{ backgroundColor: "var(--accent-secondary)" }} />
-            </Separator>
-
-            {/* RIGHT SIDE: Visualizer & Call Stack */}
-            <Panel defaultSize={60} minSize={30}>
-              <div className="h-full w-full flex flex-col relative min-w-0">
-                <div className="p-4 flex-1 overflow-auto relative">
-                {states.length > 0 ? (
-                  <VisualizationWorkspace 
-                    currentState={currentState} 
-                    result={result} 
-                    activeSourceStep={activeSourceStep}
-                  />
-                ) : (
-                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                    {/* Architectural Empty State */}
-                    <div className="absolute inset-0 opacity-[0.03]" style={{ 
-                      backgroundImage: `linear-gradient(var(--border-color) 1px, transparent 1px), linear-gradient(90deg, var(--border-color) 1px, transparent 1px)`,
-                      backgroundSize: '40px 40px'
-                    }} />
-                    <div className="flex flex-col items-center gap-4 text-center z-10">
-                      <div className="w-16 h-16 border rounded-full flex items-center justify-center relative overflow-hidden" style={{ borderColor: "var(--border-color)" }}>
-                        <div className="absolute inset-0 border-t border-r rounded-full animate-spin" style={{ borderColor: "var(--accent-secondary)", animationDuration: "3s" }} />
-                        <svg className="w-6 h-6 opacity-30" style={{ color: "var(--text-secondary)" }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
-                        </svg>
-                      </div>
-                      <div className="uppercase tracking-[0.2em] text-xs font-mono" style={{ color: "var(--text-muted)" }}>
-                        Awaiting Execution Data
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Floating Call Stack Widget (Overlay) */}
-              <AnimatePresence>
-                {states.length > 0 && callStack.length > 0 && (
-                  <motion.div 
-                    initial={{ opacity: 0, x: 20, scale: 0.95 }}
-                    animate={{ opacity: 1, x: 0, scale: 1 }}
-                    exit={{ opacity: 0, x: 20, scale: 0.95 }}
-                    transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-                    className="absolute top-4 right-4 w-72 max-h-[calc(100%-2rem)] flex flex-col gap-4 rounded-lg border shadow-2xl p-4 overflow-hidden z-50" 
-                    style={{ 
-                      borderColor: 'var(--border-color)', 
-                      backgroundColor: 'var(--bg-elevated)',
-                    }}
-                  >
-                    <div className="flex items-center justify-between mb-2 pb-2 border-b" style={{ borderColor: "var(--border-color)" }}>
-                      <h2 className="text-xs uppercase tracking-widest font-mono" style={{ color: 'var(--text-secondary)' }}>Call Stack</h2>
-                      <div className="w-2 h-2 rounded-full" style={{ backgroundColor: "var(--accent-primary)" }} />
-                    </div>
-                    <div className="flex-1 overflow-auto pr-2 custom-scrollbar">
-                      <CallStackPanel
-                        stack={callStack}
-                        returnFlow={returnFlow}
-                        stepReturn={stepReturn}
-                        linkedList={linkedList}
-                        tree={tree}
-                        graph={graph}
-                        callStackSemantics={currentCallStackSemantics}
+                      <CodeInput
+                        onRun={(data, inputValue, codeValue) => {
+                          setExecutionData(data, inputValue, codeValue);
+                        }}
+                        activeLine={activeLine}
                       />
                     </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-              </div>
-            </Panel>
+                  </div>
+                </Panel>
+
+                {/* DRAG HANDLE */}
+                <Separator className="w-1 flex flex-col justify-center items-center cursor-col-resize hover:bg-white/5 transition-colors relative group" style={{ backgroundColor: 'var(--border-color)' }}>
+                  <div className="w-1 h-8 rounded-full opacity-0 group-hover:opacity-100 transition-opacity" style={{ backgroundColor: "var(--accent-secondary)" }} />
+                </Separator>
+
+                {/* RIGHT SIDE: Visualizer & Call Stack */}
+                <Panel defaultSize={60} minSize={30}>
+                  <div className="h-full w-full flex flex-col relative min-w-0">
+                    <div className="p-4 flex-1 overflow-auto relative">
+                      {states.length > 0 ? (
+                        <VisualizationWorkspace
+                          currentState={currentState}
+                          result={result}
+                          activeSourceStep={activeSourceStep}
+                        />
+                      ) : (
+                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                          {/* Architectural Empty State */}
+                          <div className="absolute inset-0 opacity-[0.03]" style={{
+                            backgroundImage: `linear-gradient(var(--border-color) 1px, transparent 1px), linear-gradient(90deg, var(--border-color) 1px, transparent 1px)`,
+                            backgroundSize: '40px 40px'
+                          }} />
+                          <div className="flex flex-col items-center gap-4 text-center z-10">
+                            <div className="w-16 h-16 border rounded-full flex items-center justify-center relative overflow-hidden" style={{ borderColor: "var(--border-color)" }}>
+                              <div className="absolute inset-0 border-t border-r rounded-full animate-spin" style={{ borderColor: "var(--accent-secondary)", animationDuration: "3s" }} />
+                              <svg className="w-6 h-6 opacity-30" style={{ color: "var(--text-secondary)" }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+                              </svg>
+                            </div>
+                            <div className="uppercase tracking-[0.2em] text-xs font-mono" style={{ color: "var(--text-muted)" }}>
+                              Awaiting Execution Data
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Floating Call Stack Widget (Overlay) */}
+                    <AnimatePresence>
+                      {states.length > 0 && callStack.length > 0 && (
+                        <motion.div
+                          initial={{ opacity: 0, x: 20, scale: 0.95 }}
+                          animate={{ opacity: 1, x: 0, scale: 1 }}
+                          exit={{ opacity: 0, x: 20, scale: 0.95 }}
+                          transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                          className="absolute top-4 right-4 w-72 max-h-[calc(100%-2rem)] flex flex-col gap-4 rounded-lg border shadow-2xl p-4 overflow-hidden z-50"
+                          style={{
+                            borderColor: 'var(--border-color)',
+                            backgroundColor: 'var(--bg-elevated)',
+                          }}
+                        >
+                          <div className="flex items-center justify-between mb-2 pb-2 border-b" style={{ borderColor: "var(--border-color)" }}>
+                            <h2 className="text-xs uppercase tracking-widest font-mono" style={{ color: 'var(--text-secondary)' }}>Call Stack</h2>
+                            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: "var(--accent-primary)" }} />
+                          </div>
+                          <div className="flex-1 overflow-auto pr-2 custom-scrollbar">
+                            <CallStackPanel
+                              stack={callStack}
+                              returnFlow={returnFlow}
+                              stepReturn={stepReturn}
+                              linkedList={linkedList}
+                              tree={tree}
+                              graph={graph}
+                              callStackSemantics={currentCallStackSemantics}
+                            />
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                </Panel>
               </Group>
             </motion.div>
 
@@ -367,7 +367,7 @@ export default function VisualizerLayout() {
         {activeView === "analytics" && (
           <motion.div variants={itemVariants} className="flex flex-col gap-6 rounded-lg p-6 flex-1 min-h-[600px] overflow-auto" style={{ backgroundColor: 'var(--bg-primary)' }}>
             <div className="grid grid-cols-1 xl:grid-cols-12 gap-12 max-w-[1600px] mx-auto w-full">
-              
+
               {/* LEFT COLUMN: Massive Telemetry (Col 1-4) */}
               <div className="xl:col-span-4 flex flex-col gap-12">
                 <ExecutionMetricsPanel states={states} />

@@ -567,6 +567,8 @@ function parseExecutionOutput(rawOutput) {
       });
     } else if (type === "COLLECTION_MUT") {
       trace.push({ type: "COLLECTION_MUT", name: parts[2], value: parts[3] });
+    } else if (type === "COLLECTION_TYPE") {
+      trace.push({ type: "COLLECTION_TYPE", name: parts[2], collectionType: parts[3] });
     } else if (type === "ARRAY2D") {
       const name = parts[2];
       const row = parts[3];
@@ -1046,16 +1048,24 @@ function injectTraceIntoBody(mappedLines, methodName = "solve", methodParams = [
       const arrayName = array2DMatch[1];
       const row = array2DMatch[2];
       const col = array2DMatch[3];
-      tracedBody += `System.out.println("TRACE|ARRAY2D|${arrayName}|" + (${row}) + "|" + (${col}) + "|" + ${arrayName}[${row}][${col}]);\n`;
-      tracedBody += `System.out.println("TRACE|VAR|${arrayName}|" + ${formatter}(${arrayName}));\n`;
+      if (row.includes('++') || row.includes('--') || col.includes('++') || col.includes('--')) {
+        tracedBody += `System.out.println("TRACE|VAR|${arrayName}|" + ${formatter}(${arrayName}));\n`;
+      } else {
+        tracedBody += `System.out.println("TRACE|ARRAY2D|${arrayName}|" + (${row}) + "|" + (${col}) + "|" + ${arrayName}[${row}][${col}]);\n`;
+        tracedBody += `System.out.println("TRACE|VAR|${arrayName}|" + ${formatter}(${arrayName}));\n`;
+      }
     } else {
       const arrayMatch = line.match(/(\w+)\s*\[([^\]]+)\]\s*[+\-*\/%]?=\s*(.*);/);
       if (arrayMatch) {
         const arrayName = arrayMatch[1];
         const index = arrayMatch[2];
-        tracedBody += `System.out.println("TRACE|ARRAY|${arrayName}|" + (${index}) + "|" + ${arrayName}[${index}]);\n`;
-        // Emit full array state so the variable panel stays in sync for locally-created arrays
-        tracedBody += `System.out.println("TRACE|VAR|${arrayName}|" + ${formatter}(${arrayName}));\n`;
+        if (index.includes('++') || index.includes('--')) {
+          tracedBody += `System.out.println("TRACE|VAR|${arrayName}|" + ${formatter}(${arrayName}));\n`;
+        } else {
+          tracedBody += `System.out.println("TRACE|ARRAY|${arrayName}|" + (${index}) + "|" + ${arrayName}[${index}]);\n`;
+          // Emit full array state so the variable panel stays in sync for locally-created arrays
+          tracedBody += `System.out.println("TRACE|VAR|${arrayName}|" + ${formatter}(${arrayName}));\n`;
+        }
       }
     }
 
@@ -1152,6 +1162,14 @@ function injectTraceIntoBody(mappedLines, methodName = "solve", methodParams = [
           tracedBody += `System.out.println("TRACE|VAR|${varName}|" + ${formatter}(${varName}));\n`;
         }
       }
+    }
+
+    // COLLECTION DECLARATION TRACE
+    const collectionDeclMatch = line.match(/(?:java\.util\.)?\b(Stack|Queue|Deque|ArrayDeque|PriorityQueue|Map|HashMap|Set|HashSet|List|ArrayList)(?:\s*<[^>]*>)?\s+([a-zA-Z_]\w*)\s*(?:=|;)/);
+    if (collectionDeclMatch) {
+      const type = collectionDeclMatch[1];
+      const varName = collectionDeclMatch[2];
+      tracedBody += `System.out.println("TRACE|COLLECTION_TYPE|${varName}|${type}");\n`;
     }
 
     // COLLECTION MUTATION TRACE

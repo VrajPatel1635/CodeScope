@@ -32,15 +32,15 @@ export default function HashMapEntry({
     keyValue === null || keyValue === undefined
       ? "null"
       : typeof keyValue === "boolean"
-      ? String(keyValue)
-      : String(keyValue);
+        ? String(keyValue)
+        : String(keyValue);
 
   const displayValue =
     valueValue === null || valueValue === undefined
       ? "null"
       : typeof valueValue === "boolean"
-      ? String(valueValue)
-      : String(valueValue);
+        ? String(valueValue)
+        : String(valueValue);
 
   return (
     <div className={rowClasses}>

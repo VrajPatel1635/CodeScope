@@ -95,6 +95,7 @@ export function NodeRegistryProvider({ children }) {
 
   return (
     <NodeRegistryContext.Provider value={{ nodes, registerNode, unregisterNode, containerRef }}>
+      {/* Overlay positioning context */}
       {children}
     </NodeRegistryContext.Provider>
   );

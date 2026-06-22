@@ -2,10 +2,10 @@ import React from "react";
 import styles from "./StringVisualizer.module.css";
 import { useNodeRegistry } from "@/app/components/shared/NodeRegistryContext";
 
-export default function StringCell({ 
-  value, 
-  index, 
-  isHighlighted, 
+export default function StringCell({
+  value,
+  index,
+  isHighlighted,
   variableName,
   pointerLabels = [],
   isWindow = false,
@@ -31,15 +31,15 @@ export default function StringCell({
   return (
     <div className={styles.cellWrapper}>
       <div className={styles.indexLabel}>{index}</div>
-      
+
       <div className={styles.cellMain}>
-        <div 
+        <div
           ref={(el) => registerNode(nodeId, el)}
           className={`${styles.cellBox} ${highlightedClass} ${whitespaceClass} ${comparisonClass} ${substringClass}`}
         >
           {displayValue}
         </div>
-        
+
         {isWindow && (
           <div className={`${styles.windowLine} ${isWindowStart ? styles.windowStart : ""} ${isWindowEnd ? styles.windowEnd : ""}`} />
         )}
@@ -53,7 +53,7 @@ export default function StringCell({
         <div className={styles.pointerContainer}>
           <div className={styles.pointerArrow}>↑</div>
           <div className={styles.pointerNames}>
-             {pointerLabels.map(l => <div key={l} className={styles.pointerLabel}>{l}</div>)}
+            {pointerLabels.map(l => <div key={l} className={styles.pointerLabel}>{l}</div>)}
           </div>
         </div>
       )}

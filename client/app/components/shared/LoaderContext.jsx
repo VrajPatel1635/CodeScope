@@ -17,7 +17,7 @@ export const LoaderProvider = ({ children }) => {
     // stays visible for a short duration to complete its animation cycle.
     const timer = setTimeout(() => {
       setIsLoading(false);
-    }, 2500); // 2.5 seconds of high-end cinematic animation
+    }, 3200);
 
     return () => clearTimeout(timer);
   }, [pathname]);

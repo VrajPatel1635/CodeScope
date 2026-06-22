@@ -7,14 +7,14 @@ export default function StringVisualizer({ contract }) {
 
   const { name, characters, length, pointers = [], window, comparison, substring } = contract;
 
-  const maxPointerIndex = pointers.length > 0 
-      ? Math.max(...pointers.map(p => p.index))
-      : -1;
+  const maxPointerIndex = pointers.length > 0
+    ? Math.max(...pointers.map(p => p.index))
+    : -1;
   const maxIndexToRender = Math.max(length - 1, maxPointerIndex);
-  
+
   const renderIndices = [];
   for (let i = 0; i <= maxIndexToRender; i++) {
-      renderIndices.push(i);
+    renderIndices.push(i);
   }
 
   return (
@@ -38,17 +38,17 @@ export default function StringVisualizer({ contract }) {
             const isWindow = window && index >= window.start && index <= window.end;
             const isWindowStart = window && index === window.start;
             const isWindowEnd = window && index === window.end;
-            
+
             let isComparisonTarget = false;
             let comparisonSide = null;
             if (comparison) {
-               if (index === comparison.leftIndex) {
-                   isComparisonTarget = true;
-                   comparisonSide = "left";
-               } else if (index === comparison.rightIndex) {
-                   isComparisonTarget = true;
-                   comparisonSide = "right";
-               }
+              if (index === comparison.leftIndex) {
+                isComparisonTarget = true;
+                comparisonSide = "left";
+              } else if (index === comparison.rightIndex) {
+                isComparisonTarget = true;
+                comparisonSide = "right";
+              }
             }
 
             const isSubstring = substring && index >= substring.start && index < substring.end;
@@ -56,9 +56,9 @@ export default function StringVisualizer({ contract }) {
             const isSubstringEnd = substring && index === substring.end - 1;
 
             return (
-              <StringCell 
-                key={`${name}-${index}`} 
-                value={char} 
+              <StringCell
+                key={`${name}-${index}`}
+                value={char}
                 index={index}
                 variableName={name}
                 isHighlighted={false} // Pointers/highlights are to be added in future iterations

@@ -46,8 +46,21 @@ export default function DocsDetail({ params }) {
   const nextTopic = currentIndex < flatItems.length - 1 ? flatItems[currentIndex + 1] : null;
 
   const [activeTab, setActiveTab] = useState(0);
+  const [copied, setCopied] = useState(false);
 
   const videoToPlay = topicData.videoUrl || "https://www.youtube.com/watch?v=ri1Ar5nEq4s";
+
+  const codeString = topicData.examples[activeTab]?.code || "// No example code provided.";
+  const lineCount = codeString.split('\n').length;
+  const displayLines = Math.min(lineCount, 25);
+  // Approx 21px per line with font-size 14 + 32px vertical padding
+  const editorHeight = `${Math.max(150, displayLines * 21 + 32)}px`;
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(codeString);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   return (
     <div className="min-h-screen pb-32 pt-24 px-6 lg:px-12 xl:px-20 font-ui relative overflow-hidden selection:bg-(--accent-primary) selection:text-background">
@@ -203,6 +216,19 @@ export default function DocsDetail({ params }) {
             <p className="text-(--text-secondary) text-sm leading-relaxed font-light mb-8">
               {topicData.examples[activeTab]?.reason || "Recommended structural implementation."}
             </p>
+
+            {topicData.examples[activeTab]?.input && (
+              <div className="mb-8">
+                <div className="text-[10px] font-mono uppercase tracking-widest text-(--text-muted) mb-3 flex items-center gap-2">
+                  <span className="w-3 h-px bg-(--border-color)" />
+                  Target Input
+                </div>
+                <div className="bg-background border border-(--border-color) rounded-md py-3 px-4 font-mono text-sm text-foreground shadow-inner overflow-x-auto whitespace-pre-wrap">
+                  {topicData.examples[activeTab].input}
+                </div>
+              </div>
+            )}
+
             <div className="inline-flex items-center gap-2 text-[10px] font-mono text-(--accent-primary) uppercase tracking-widest bg-(--accent-primary)/10 px-3 py-1.5 rounded-full">
               <div className="w-1.5 h-1.5 rounded-full bg-(--accent-primary) animate-pulse" />
               Ready for Compilation
@@ -210,13 +236,29 @@ export default function DocsDetail({ params }) {
           </div>
           
           {/* Monaco Editor Panel */}
-          <div className="lg:col-span-8 bg-[#1e1e1e] relative min-h-[300px]">
-             <div className="absolute inset-0 p-4">
+          <div className="lg:col-span-8 bg-[#1e1e1e] relative group border-t lg:border-t-0 lg:border-l border-[#333]">
+            <button
+              onClick={handleCopy}
+              className="absolute top-4 right-6 z-10 px-3 py-1.5 bg-[#1e1e1e]/90 hover:bg-[#2d2d2d] border border-[#333] rounded-md text-[10px] uppercase tracking-widest font-mono text-[#A8AABB] hover:text-[#D37B50] transition-all backdrop-blur-md flex items-center gap-2 opacity-0 group-hover:opacity-100 shadow-xl"
+            >
+              {copied ? (
+                <>
+                  <div className="w-1.5 h-1.5 rounded-full bg-[#61C554] shadow-[0_0_8px_rgba(97,197,84,0.6)]" />
+                  Copied
+                </>
+              ) : (
+                <>
+                  <div className="w-1.5 h-1.5 rounded-full bg-[#D37B50] opacity-50" />
+                  Copy Code
+                </>
+              )}
+            </button>
+            <div className="p-4 w-full transition-all duration-300" style={{ height: editorHeight }}>
                <Editor
                  height="100%"
-                 defaultLanguage="javascript"
+                 defaultLanguage="java"
                  theme="vs-dark"
-                 value={topicData.examples[activeTab]?.code || "// No example code provided."}
+                 value={codeString}
                  options={{
                    readOnly: true,
                    minimap: { enabled: false },
@@ -226,7 +268,11 @@ export default function DocsDetail({ params }) {
                    padding: { top: 16, bottom: 16 },
                    contextmenu: false,
                    lineNumbersMinChars: 3,
-                   renderLineHighlight: "none"
+                   renderLineHighlight: "none",
+                   scrollbar: {
+                     vertical: "auto",
+                     horizontal: "auto"
+                   }
                  }}
                />
              </div>
@@ -268,7 +314,7 @@ export default function DocsDetail({ params }) {
               {isYouTube(videoToPlay) ? (
                 <iframe
                   className="w-full h-full"
-                  src={`https://www.youtube.com/embed/${getYouTubeID(videoToPlay)}?autoplay=0&loop=1&playlist=${getYouTubeID(videoToPlay)}&controls=1&showinfo=0&rel=0`}
+                  src={`https://www.youtube.com/embed/${getYouTubeID(videoToPlay)}?autoplay=0&controls=1&showinfo=0&rel=0`}
                   title="YouTube video player"
                   frameBorder="0"
                   allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"

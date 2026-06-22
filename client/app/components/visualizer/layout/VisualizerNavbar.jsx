@@ -1,3 +1,4 @@
+import Link from "next/link";
 import Button from "@/app/components/landing/ui/Button";
 import { motion } from "framer-motion";
 
@@ -15,12 +16,16 @@ export default function VisualizerNavbar({ children }) {
     >
       {/* Brand / Logo */}
       <div className="flex items-center gap-3 shrink-0">
-        <div className="w-8 h-8 rounded-md flex items-center justify-center" style={{ backgroundColor: "var(--bg-elevated)", border: "1px solid var(--border-color)" }}>
-          <div className="w-4 h-4 rounded-sm" style={{ backgroundColor: "var(--accent-primary)" }} />
-        </div>
-        <span className="font-semibold tracking-wide text-lg hidden md:block" style={{ fontFamily: "var(--font-display)", color: "var(--text-primary)" }}>
-          CodeScope
-        </span>
+        <Link href="/" className="flex items-center gap-2 md:gap-3 group">
+          <img
+            src="/codescopelogo.png"
+            alt="CodeScope"
+            className="w-6 h-6 md:w-8 md:h-8 object-contain transition-transform duration-500 group-hover:scale-110 opacity-90 group-hover:opacity-100 brightness-0 invert" 
+          />
+          <span className="font-ui font-semibold text-[15px] md:text-[17px] text-foreground tracking-tight group-hover:text-(--accent-primary) transition-colors hidden sm:block">
+            CodeScope
+          </span>
+        </Link>
       </div>
 
       {/* Center Content (Controls) */}

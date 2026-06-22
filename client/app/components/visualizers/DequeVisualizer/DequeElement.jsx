@@ -47,8 +47,8 @@ export default function DequeElement({
     value === null || value === undefined
       ? "null"
       : typeof value === "boolean"
-      ? String(value)
-      : String(value);
+        ? String(value)
+        : String(value);
 
   return (
     <div className={styles.elementColumn}>

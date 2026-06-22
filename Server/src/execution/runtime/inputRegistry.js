@@ -109,15 +109,13 @@ function buildHelperCode({ userCode, wantsListNode, wantsTreeNode, wantsGraphLis
     "    if (o == null) return \"null\";\n" +
     "    Class<?> c = o.getClass();\n" +
     "    if (c.isArray()) {\n" +
+    "      if (o instanceof Object[]) return java.util.Arrays.deepToString((Object[]) o);\n" +
     "      if (c == int[].class) return java.util.Arrays.toString((int[]) o);\n" +
     "      if (c == boolean[].class) return java.util.Arrays.toString((boolean[]) o);\n" +
     "      if (c == double[].class) return java.util.Arrays.toString((double[]) o);\n" +
     "      if (c == char[].class) return java.util.Arrays.toString((char[]) o);\n" +
     "      if (c == long[].class) return java.util.Arrays.toString((long[]) o);\n" +
-    "      if (c == int[][].class) return java.util.Arrays.deepToString((int[][]) o);\n" +
-    "      if (c == boolean[][].class) return java.util.Arrays.deepToString((boolean[][]) o);\n" +
-    "      if (c == Object[].class) return java.util.Arrays.deepToString((Object[]) o);\n" +
-    "      // fallback for other arrays\n" +
+    "      // fallback for other primitive arrays\n" +
     "      return \"[...]\" ;\n" +
     "    }"
   );

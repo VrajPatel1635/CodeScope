@@ -10,7 +10,7 @@ export default function HashSetVisualizer({ contract }) {
   // Determine if a specific value is affected by the current operation
   const getHighlightType = (itemValue) => {
     if (!operation || operation.value === undefined) return null;
-    
+
     // We coerce to string for loose comparison (e.g. 1 === "1")
     if (String(itemValue) === String(operation.value)) {
       if (operation.type === "add") return "add";
@@ -26,7 +26,7 @@ export default function HashSetVisualizer({ contract }) {
   // However, for HashSet, standard practice in V1 is to just show the highlight on existing nodes.
   // If a node was just removed, its contract generation should ideally leave it in the values list
   // for the active step if we want it highlighted, but if it's strictly absent, it won't render.
-  
+
   // We'll trust the contract's values array to contain what should be rendered.
   // We will map over the values and assign highlights.
 

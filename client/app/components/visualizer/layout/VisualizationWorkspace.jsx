@@ -36,6 +36,10 @@ const ARRAY_POINTER_NAMES = [
   "mid",
   "lo", "hi",
   "l", "r",
+  "row", "col",
+  "top", "bottom",
+  "r1", "c1", "r2", "c2",
+  "row1", "col1", "row2", "col2"
 ];
 
 /**
@@ -274,11 +278,6 @@ function InnerWorkspace({ currentState, result, activeSourceStep }) {
   // ══════════════════════════════════════════════════════════════════
   // MATRIX: COORDINATE POINTER MODEL
   // ══════════════════════════════════════════════════════════════════
-  // Derives the active cell from any two integer variables that are
-  // valid row/col indices into the current matrix. Does NOT hardcode
-  // variable names — it discovers the row pointer (value < matrix.length)
-  // and the col pointer (value < matrix[0].length) from all integer
-  // variables in scope that appear in the ARRAY_POINTER_NAMES whitelist.
   const matrixActiveCell = useMemo(() => {
     if (!isMatrix || !currentState?.matrix) return null;
     const matrix = currentState.matrix;
@@ -286,40 +285,152 @@ function InnerWorkspace({ currentState, result, activeSourceStep }) {
     const cols = matrix[0]?.length ?? 0;
     if (rows === 0 || cols === 0) return null;
 
-    // Collect all integer pointer candidates from scope
+    if (matrixMutationEvents.length > 0) {
+      const lastMut = matrixMutationEvents[matrixMutationEvents.length - 1];
+      return { row: lastMut.row, col: lastMut.col };
+    }
+
+    let parsedRow = null;
+    let parsedCol = null;
+    for (const step of activeMicroSteps) {
+      const expr = step.traceEvent?.expr;
+      if (expr) {
+        const match = expr.match(/(\w+)\[([^\]]+)\]\[([^\]]+)\]/);
+        if (match) {
+          const r = resolveIndex(match[2], variables);
+          const c = resolveIndex(match[3], variables);
+          if (r !== null && c !== null && r < rows && c < cols) {
+            parsedRow = r;
+            parsedCol = c;
+            break;
+          }
+        }
+      }
+    }
+    if (parsedRow !== null && parsedCol !== null) {
+      return { row: parsedRow, col: parsedCol };
+    }
+
     const candidates = [];
     for (const [key, value] of Object.entries(variables)) {
       if (typeof value === "number" && value >= 0 && ARRAY_POINTER_NAMES.includes(key.toLowerCase())) {
         candidates.push({ name: key, value });
       }
     }
-
     if (candidates.length < 2) return null;
 
-    // If a mutation happened this step, use its row/col directly
-    if (matrixMutationEvents.length > 0) {
-      const lastMut = matrixMutationEvents[matrixMutationEvents.length - 1];
-      return { row: lastMut.row, col: lastMut.col };
-    }
+    const isRowName = (name) => /^(row|r|i|top|bottom|y|row1|row2|r1|r2)$/i.test(name);
+    const isColName = (name) => /^(col|c|j|left|right|x|col1|col2|c1|c2)$/i.test(name);
+    const rowCandidates = candidates.filter(c => isRowName(c.name) && c.value < rows);
+    const colCandidates = candidates.filter(c => isColName(c.name) && c.value < cols);
 
-    // Otherwise discover from variables: first valid row pointer, first valid col pointer
-    // Strategy: take the first two candidates ordered by declaration. 
-    // First candidate → row, second → col (matching typical loop nesting).
-    let rowPtr = null;
-    let colPtr = null;
-    for (const c of candidates) {
-      if (rowPtr === null && c.value < rows) {
-        rowPtr = c;
-      } else if (rowPtr !== null && colPtr === null && c.value < cols) {
-        colPtr = c;
+    const states = result?.states || [];
+    const currentIdx = states.indexOf(currentState);
+
+    // --- Value inference: find newly added values ---
+    // Compare current step's collections against the PREVIOUS step in the
+    // global timeline (not against itself), so micro-step mode works.
+    const newlyAddedValues = new Set();
+
+    const prevState = currentIdx > 0 ? states[currentIdx - 1] : null;
+    const prevCollections = prevState?.collections || {};
+    const currCollections = currentState.collections || {};
+
+    for (const [key, currVal] of Object.entries(currCollections)) {
+      const prevVal = prevCollections[key];
+      const currArr = Array.isArray(currVal) ? currVal : [];
+      const prevArr = Array.isArray(prevVal) ? prevVal : [];
+      if (currArr.length > prevArr.length) {
+        for (let i = prevArr.length; i < currArr.length; i++) {
+          newlyAddedValues.add(currArr[i]);
+        }
       }
     }
 
-    if (rowPtr && colPtr) {
-      return { row: rowPtr.value, col: colPtr.value };
+    // Also scan activeMicroSteps for collection diffs (source-step mode)
+    if (activeMicroSteps.length > 1) {
+      let earliest = null;
+      let latest = null;
+      for (const step of activeMicroSteps) {
+        if (step.collections) {
+          if (!earliest) earliest = step.collections;
+          latest = step.collections;
+        }
+      }
+      if (earliest && latest && earliest !== latest) {
+        for (const [key, currVal] of Object.entries(latest)) {
+          const prevVal = earliest[key];
+          const currArr = Array.isArray(currVal) ? currVal : [];
+          const prevArr = Array.isArray(prevVal) ? prevVal : [];
+          if (currArr.length > prevArr.length) {
+            for (let i = prevArr.length; i < currArr.length; i++) {
+              newlyAddedValues.add(currArr[i]);
+            }
+          }
+        }
+      }
+      // Also catch the case where earliest collections come from before
+      // activeMicroSteps (i.e. from the state just before this source step)
+      if (latest) {
+        const firstMicroIdx = states.indexOf(activeMicroSteps[0]);
+        const beforeState = firstMicroIdx > 0 ? states[firstMicroIdx - 1] : null;
+        const beforeColl = beforeState?.collections || {};
+        for (const [key, currVal] of Object.entries(latest)) {
+          const prevVal = beforeColl[key];
+          const currArr = Array.isArray(currVal) ? currVal : [];
+          const prevArr = Array.isArray(prevVal) ? prevVal : [];
+          if (currArr.length > prevArr.length) {
+            for (let i = prevArr.length; i < currArr.length; i++) {
+              newlyAddedValues.add(currArr[i]);
+            }
+          }
+        }
+      }
     }
+
+    // Reverse-lookup: find which matrix cell holds the newly added value
+    if (newlyAddedValues.size > 0 && rowCandidates.length > 0 && colCandidates.length > 0) {
+      for (const val of newlyAddedValues) {
+        // Collect ALL candidate pairs that match
+        const matches = [];
+        for (const rc of rowCandidates) {
+          for (const cc of colCandidates) {
+            if (matrix[rc.value]?.[cc.value] === val) {
+              matches.push({ row: rc.value, col: cc.value, rowName: rc.name, colName: cc.name });
+            }
+          }
+        }
+        if (matches.length === 1) return matches[0];
+        if (matches.length > 1) {
+          // Prefer the match whose pointers were most recently mutated
+          const lastMut = new Map();
+          for (let i = 0; i <= currentIdx; i++) {
+            if (states[i]?.type === "VAR") lastMut.set(states[i].name, i);
+          }
+          matches.sort((a, b) => {
+            const scoreA = (lastMut.get(a.rowName) ?? -1) + (lastMut.get(a.colName) ?? -1);
+            const scoreB = (lastMut.get(b.rowName) ?? -1) + (lastMut.get(b.colName) ?? -1);
+            return scoreB - scoreA;
+          });
+          return { row: matches[0].row, col: matches[0].col };
+        }
+      }
+    }
+
+    // Fallback: most recently mutated row×col pointers
+    const lastMutationIdx = new Map();
+    for (let i = 0; i <= currentIdx; i++) {
+      if (states[i]?.type === "VAR") lastMutationIdx.set(states[i].name, i);
+    }
+    rowCandidates.sort((a, b) => (lastMutationIdx.get(b.name) ?? -1) - (lastMutationIdx.get(a.name) ?? -1));
+    colCandidates.sort((a, b) => (lastMutationIdx.get(b.name) ?? -1) - (lastMutationIdx.get(a.name) ?? -1));
+
+    if (rowCandidates.length > 0 && colCandidates.length > 0) {
+      return { row: rowCandidates[0].value, col: colCandidates[0].value };
+    }
+
     return null;
-  }, [isMatrix, currentState, variables, matrixMutationEvents]);
+  }, [isMatrix, currentState, variables, matrixMutationEvents, activeMicroSteps, result]);
 
   // ══════════════════════════════════════════════════════════════════
   // MATRIX: VISUALIZATION DATA CONTRACT
@@ -679,10 +790,10 @@ function InnerWorkspace({ currentState, result, activeSourceStep }) {
       for (const [key, value] of Object.entries(variables)) {
         if (value === null || value === undefined) continue;
         if (typeof value !== "number" && typeof value !== "string" && typeof value !== "boolean") continue;
-        
+
         let resolvedValue = value;
         const lowerKey = key.toLowerCase();
-        
+
         // ══════════════════════════════════════════════════════════════
         // STRUCTURAL VARIABLE SYNC
         // ══════════════════════════════════════════════════════════════
@@ -712,17 +823,25 @@ function InnerWorkspace({ currentState, result, activeSourceStep }) {
                 resolvedValue = `[${parsed.join(", ")}]`;
               }
             } else if (currentState.collections && currentState.collections[key]) {
-              resolvedValue = typeof currentState.collections[key] === "string" 
-                  ? currentState.collections[key] 
-                  : JSON.stringify(currentState.collections[key]);
+              resolvedValue = typeof currentState.collections[key] === "string"
+                ? currentState.collections[key]
+                : JSON.stringify(currentState.collections[key]);
             }
           } catch (e) {
             // Silently fallback to the original string snapshot if parsing fails
           }
         }
-        
+
         // Skip ownership pointers (handled by PointerOverlay)
-        if (ALL_POINTER_NAMES.has(lowerKey)) continue;
+        if (ALL_POINTER_NAMES.has(lowerKey)) {
+          const isArrayPointer = ARRAY_POINTER_NAMES.includes(lowerKey);
+          // If it's a matrix, array pointers don't get a PointerOverlay, so keep them in variables section!
+          if (isMatrix && isArrayPointer) {
+             // Keep it!
+          } else {
+             continue;
+          }
+        }
 
         // Skip linked list / tree / graph node references (handled by PointerOverlay)
         if (typeof value === "string" && (value.startsWith("node_") || value.startsWith("treeNode_") || value.startsWith("graphNode_"))) continue;
@@ -733,7 +852,7 @@ function InnerWorkspace({ currentState, result, activeSourceStep }) {
         if (ACC_NAMES.some(n => lowerKey.includes(n))) {
           accs.push({ name: key, value: resolvedValue, prevValue, isMutating });
         } else if (TEMP_NAMES.some(n => lowerKey.includes(n))) {
-          temps.push({ name: key, value: resolvedValue, isActive: isMutating }); 
+          temps.push({ name: key, value: resolvedValue, isActive: isMutating });
         } else {
           // Default to State variable
           sVars.push({ name: key, value: resolvedValue });
@@ -787,17 +906,17 @@ function InnerWorkspace({ currentState, result, activeSourceStep }) {
           grouped[p.index].push(p);
         });
         return Object.entries(grouped).map(([idx, activeP]) => (
-          <PointerOverlay key={`arr-ptr-${idx}`} targetNodeId={`array-cell-${idx}`} activePointers={activeP} />
+          <PointerOverlay key={`arr-ptr-${idx}`} targetNodeId={`array-cell-${idx}`} activePointers={activeP} offsetY={16} />
         ));
       })()}
 
       {/* Mutation Overlays (array) */}
       {arrayMutationEvents.map(m => (
-        <MutationOverlay 
-          key={`arr-mut-${m.index}`} 
-          targetNodeId={`array-cell-${m.index}`} 
-          oldValue={m.oldValue} 
-          newValue={m.newValue} 
+        <MutationOverlay
+          key={`arr-mut-${m.index}`}
+          targetNodeId={`array-cell-${m.index}`}
+          oldValue={m.oldValue}
+          newValue={m.newValue}
         />
       ))}
 
@@ -883,17 +1002,17 @@ function InnerWorkspace({ currentState, result, activeSourceStep }) {
       {/* VARIABLE SEMANTICS LAYER                                  */}
       {/* ══════════════════════════════════════════════════════════ */}
       <div className="pr-80 z-10 relative">
-        <VariableSemanticsLayer 
-          stateVars={stateVars} 
-          accumulators={accumulators} 
-          tempVars={tempVars} 
+        <VariableSemanticsLayer
+          stateVars={stateVars}
+          accumulators={accumulators}
+          tempVars={tempVars}
         />
       </div>
 
       {/* ══════════════════════════════════════════════════════════ */}
       {/* OPERATION PANEL                                           */}
       {/* ══════════════════════════════════════════════════════════ */}
-      <OperationPanel 
+      <OperationPanel
         activeMicroSteps={activeMicroSteps}
         variables={variables}
         collections={currentState?.collections}
