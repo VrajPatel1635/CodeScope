@@ -44,7 +44,7 @@ export function deriveIntelligence(states) {
     }
 
     if (s.type === "LOOP_ITER") {
-        const loopId = s.loopEvent?.loopId;
+        const loopId = s.loopId || s.loopEvent?.loopId;
         if (loopId) {
             loopIterCounts[loopId] = (loopIterCounts[loopId] || 0) + 1;
             if (s.loopContext && Object.keys(s.loopContext).length > 1) {
@@ -187,8 +187,22 @@ export function deriveIntelligence(states) {
       ];
   }
 
+  // Derive Time Complexity
+  let timeComplexity = "O(1)";
+  if (totalRecursiveCalls > 0) {
+      if (maxStack > 10) timeComplexity = "O(2^N)";
+      else timeComplexity = "O(log N)";
+  } else if (hasNestedLoop) {
+      timeComplexity = "O(N²)";
+  } else if (Object.keys(loopIterCounts).length > 0) {
+      timeComplexity = "O(N)";
+  } else if (treeVisits > 0 || graphVisits > 0) {
+      timeComplexity = "O(V + E)";
+  }
+
   return {
     characteristics: chars,
+    timeComplexity,
     costDistribution,
     hotspots: hotspotEntries,
     structures: structuresList,

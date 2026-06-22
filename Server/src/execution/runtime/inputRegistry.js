@@ -308,7 +308,7 @@ function buildJavaInputsFromSignature({ userCode, methodName, methodParams, inpu
   } else {
     const parsed = parseJsonLoose(inputRaw);
     if (!Array.isArray(parsed) || parsed.length !== params.length) {
-      throw new Error(`For ${params.length} parameters, input must be a JSON array of length ${params.length}.`);
+      throw new Error(`For ${params.length} parameters, input must be a JSON array of length ${params.length}. Expected types: ${params.map(p => p.type).join(', ')}.`);
     }
     perParamInputs = parsed;
   }

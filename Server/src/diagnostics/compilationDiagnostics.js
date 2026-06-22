@@ -21,37 +21,80 @@ module.exports = function resolveCompilationDiagnostic(rawMessage) {
     };
   }
 
-  if (rawMessage.includes("cannot find symbol") && rawMessage.includes("class")) {
-    const match = rawMessage.match(/class (\w+)/);
-    const className = match ? match[1] : "a class";
+  const classSymbolMatch = rawMessage.match(/symbol:\s*class\s+(\w+)/);
+  if (rawMessage.includes("cannot find symbol") && classSymbolMatch) {
+    const className = classSymbolMatch[1];
+    
+    // Map common DSA classes to their exact import paths
+    const commonImports = {
+      "List": "java.util.List",
+      "ArrayList": "java.util.ArrayList",
+      "LinkedList": "java.util.LinkedList",
+      "Map": "java.util.Map",
+      "HashMap": "java.util.HashMap",
+      "TreeMap": "java.util.TreeMap",
+      "Set": "java.util.Set",
+      "HashSet": "java.util.HashSet",
+      "TreeSet": "java.util.TreeSet",
+      "Queue": "java.util.Queue",
+      "PriorityQueue": "java.util.PriorityQueue",
+      "Deque": "java.util.Deque",
+      "ArrayDeque": "java.util.ArrayDeque",
+      "Stack": "java.util.Stack",
+      "Arrays": "java.util.Arrays",
+      "Collections": "java.util.Collections",
+      "Scanner": "java.util.Scanner",
+      "Pattern": "java.util.regex.Pattern",
+      "Matcher": "java.util.regex.Matcher",
+      "File": "java.io.File",
+      "IOException": "java.io.IOException"
+    };
+
+    let suggestedImport = `import java.util.${className}; (or appropriate package)`;
+    if (commonImports[className]) {
+      suggestedImport = `Add this to the top of your code:\nimport ${commonImports[className]};`;
+    } else if (className !== "a class") {
+      suggestedImport = `Ensure you have imported the class, e.g., \nimport java.util.${className};`;
+    }
+
     return {
       severity: "error",
       category: "compilation",
       title: "Missing Import",
-      explanation: `${className} is not available in the current scope.`,
-      suggestedFix: `import java.util.${className}; (or appropriate package)`,
+      explanation: `The class '${className}' is not recognized. You are likely missing an import statement.`,
+      suggestedFix: suggestedImport,
       rawMessage
     };
   }
 
   if (rawMessage.includes("cannot find symbol")) {
+    const symbolMatch = rawMessage.match(/symbol:\s+(variable|method)\s+(.*)/);
+    const symType = symbolMatch ? symbolMatch[1] : "symbol";
+    const symName = symbolMatch ? symbolMatch[2] : "a variable or method";
+
     return {
       severity: "error",
       category: "compilation",
       title: "Unknown Symbol",
-      explanation: "A variable, method, or class used in the code is undeclared or out of scope.",
-      suggestedFix: "Check spelling, verify variable declarations, and ensure necessary imports are present.",
+      explanation: `The ${symType} '${symName}' is undeclared or out of scope.`,
+      suggestedFix: symType === "variable" 
+        ? `Ensure the variable '${symName}' is declared and spelled correctly before using it.`
+        : (symType === "method" ? `Ensure the method '${symName}' is defined in your class or correctly imported.` : "Check spelling, verify variable declarations, and ensure necessary imports are present."),
       rawMessage
     };
   }
 
   if (rawMessage.includes("incompatible types")) {
+    const typeMatch = rawMessage.match(/incompatible types: (.*) cannot be converted to (.*)/);
+    const fromType = typeMatch ? typeMatch[1] : "a value";
+    const toType = typeMatch ? typeMatch[2] : "an incompatible type";
+
     return {
       severity: "error",
       category: "compilation",
       title: "Type Mismatch",
-      explanation: "A value is being assigned to an incompatible type.",
-      suggestedFix: "Review variable declarations and assignments.",
+      explanation: `You are trying to assign or return a '${fromType}' where a '${toType}' is expected.`,
+      suggestedFix: `Check your variable declarations, assignments, and method return type to ensure they match exactly. You may need to cast or convert the value.`,
       rawMessage
     };
   }
@@ -68,12 +111,15 @@ module.exports = function resolveCompilationDiagnostic(rawMessage) {
   }
 
   if (rawMessage.includes("error:") && rawMessage.includes("expected")) {
+    const expectedMatch = rawMessage.match(/error: '(.*)' expected/);
+    const expectedChar = expectedMatch ? expectedMatch[1] : "punctuation";
+
     return {
       severity: "error",
       category: "compilation",
       title: "Syntax Error",
-      explanation: "The Java compiler encountered a syntax error, such as a missing semicolon or bracket.",
-      suggestedFix: "Check the code near the indicated line for missing punctuation.",
+      explanation: `The Java compiler expected a '${expectedChar}' near the failing line.`,
+      suggestedFix: `Carefully check the indicated line and the line immediately above it to insert the missing '${expectedChar}'.`,
       rawMessage
     };
   }

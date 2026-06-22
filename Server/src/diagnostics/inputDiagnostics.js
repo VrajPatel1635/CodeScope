@@ -1,13 +1,31 @@
 module.exports = function resolveInputDiagnostic(rawMessage) {
   if (rawMessage.includes("input must be a JSON array of length")) {
-    const match = rawMessage.match(/For (\d+) parameters/);
+    const match = rawMessage.match(/For (\d+) parameters.*Expected types: (.*)\./);
     const paramCount = match ? match[1] : "multiple";
+    const expectedTypes = match ? match[2] : "";
+
+    let exampleStr = "[[1, 2, 3], 5]";
+    if (expectedTypes) {
+      const types = expectedTypes.split(', ');
+      const examples = types.map(t => {
+        if (t.includes('[][]')) return '[[1, 2], [3, 4]]';
+        if (t.includes('[]')) return '[1, 2, 3]';
+        if (t === 'String') return '"text"';
+        if (t === 'char') return '"c"';
+        if (t === 'boolean') return 'true';
+        if (t === 'ListNode') return '[1, 2, 3]';
+        if (t === 'TreeNode') return '[1, 2, 3, null, 4]';
+        return '5'; // default for int, double, etc.
+      });
+      exampleStr = `[${examples.join(', ')}]`;
+    }
+
     return {
       severity: "error",
       category: "input",
       title: "Input Format Error",
-      explanation: `Your method expects ${paramCount} parameters.`,
-      suggestedFix: "Provide all values in a single JSON array. Example: [[1, 2, 3], 5]",
+      explanation: `Your method expects ${paramCount} parameters${expectedTypes ? ` of types: ${expectedTypes}` : ''}.`,
+      suggestedFix: `Provide all values in a single JSON array format. Example: ${exampleStr}`,
       rawMessage
     };
   }

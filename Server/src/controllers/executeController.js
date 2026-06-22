@@ -16,7 +16,7 @@ exports.executeCode = async (req, res) => {
   const result = await executeJavaCode(code, input);
 
   if (!result.success && result.error) {
-    result.diagnostic = resolveDiagnostic(result.error);
+    result.diagnostic = resolveDiagnostic(result.error, result.states, code);
     result.rawError = result.error;
     delete result.error; // Remove raw error string to enforce structured diagnostic format
   }

@@ -8,18 +8,7 @@ export default function ExecutionSummary({ intelligence }) {
 
   const { costDistribution, hotspots, characteristics } = intelligence;
   
-  let dominantCost = "O(1)"; // Default fallback
-  let maxCost = -1;
-  for (const [key, val] of Object.entries(costDistribution || {})) {
-    if (val > maxCost) {
-      maxCost = val;
-      dominantCost = key === "linear" ? "O(N)" 
-                   : key === "quadratic" ? "O(N²)" 
-                   : key === "logarithmic" ? "O(log N)" 
-                   : key === "exponential" ? "O(2^N)" 
-                   : "O(1)";
-    }
-  }
+  const dominantCost = intelligence.timeComplexity || "O(1)";
 
   let mostActiveStructure = "Variables";
   if (characteristics?.includes("Array Mutation Heavy")) mostActiveStructure = "Array";

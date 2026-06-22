@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
+import { deriveIntelligence } from "@/app/components/visualizer/intelligence/intelligenceDeriver";
 import { motion, AnimatePresence } from "framer-motion";
 import { Group, Panel, Separator } from "react-resizable-panels";
 import CodeInput from "@/app/components/visualizer/layout/CodeInput";
@@ -10,7 +11,7 @@ import CallStackPanel from "@/app/components/visualizer/stack/CallStackPanel";
 import ExecutionMetricsPanel from "@/app/components/visualizer/metrics/ExecutionMetricsPanel";
 import ExecutionIntelligencePanel from "@/app/components/visualizer/intelligence/ExecutionIntelligencePanel";
 import ExecutionSummary from "@/app/components/visualizer/intelligence/ExecutionSummary";
-import DiagnosticBanner from "@/app/components/visualizer/diagnostics/DiagnosticBanner";
+import ExecutionDiagnosticsPanel from "@/app/components/visualizer/diagnostics/ExecutionDiagnosticsPanel";
 import VisualizerNavbar from "@/app/components/visualizer/layout/VisualizerNavbar";
 
 import useExecutionStore from "@/app/store/useExecutionStore";
@@ -130,6 +131,10 @@ export default function VisualizerLayout() {
 
   const loopContext = currentState?.loopContext ?? {};
 
+  const derivedIntelligence = useMemo(() => {
+    return result?.intelligence || deriveIntelligence(states);
+  }, [states, result?.intelligence]);
+
   // Extract call stack data
   const callStack = currentState?.stack ?? [];
   const returnFlow = currentState?.returnFlow ?? null;
@@ -240,7 +245,13 @@ export default function VisualizerLayout() {
 
         {result?.diagnostic ? (
           <motion.div variants={itemVariants}>
-            <DiagnosticBanner diagnostic={result.diagnostic} />
+            <ExecutionDiagnosticsPanel 
+              diagnostic={result.diagnostic} 
+              currentStep={currentStep}
+              setCurrentStep={setCurrentStep}
+              setTimelineMode={setTimelineMode}
+              totalSteps={states.length}
+            />
           </motion.div>
         ) : result?.error ? (
           <motion.div variants={itemVariants} style={{ color: 'var(--exec-error)' }} className="p-3 bg-red-950/20 rounded border border-red-900/50 backdrop-blur-sm">
@@ -371,12 +382,12 @@ export default function VisualizerLayout() {
               {/* LEFT COLUMN: Massive Telemetry (Col 1-4) */}
               <div className="xl:col-span-4 flex flex-col gap-12">
                 <ExecutionMetricsPanel states={states} />
-                <ExecutionSummary intelligence={result?.intelligence || { characteristics: [], costDistribution: {}, hotspots: [], memory: {} }} />
+                <ExecutionSummary intelligence={derivedIntelligence} />
               </div>
 
               {/* RIGHT COLUMN: Deep Intelligence (Col 5-12) */}
               <div className="xl:col-span-8 flex flex-col gap-8">
-                <ExecutionIntelligencePanel states={states} intelligence={result?.intelligence} />
+                <ExecutionIntelligencePanel states={states} intelligence={derivedIntelligence} />
               </div>
 
             </div>

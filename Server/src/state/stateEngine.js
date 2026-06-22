@@ -236,6 +236,9 @@ function buildState(traceEvents, initialArray) {
             currentStep.loopContext = { ...ctx.currentLoops };
 
             ctx.states.push(currentStep);
+            if (ctx.states.length > 1000) {
+                ctx.states.splice(100, 1);
+            }
 
             if (currentStep.shouldPopFrame) {
                 ctx.stack.pop();

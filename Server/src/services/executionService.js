@@ -209,7 +209,7 @@ function runProcess(command, args, cwd, timeout = 5000) {
 }
 
 async function compileJava(dirPath) {
-  return await runProcess("javac", ["Main.java"], dirPath);
+  return await runProcess("javac", ["-g", "Main.java"], dirPath);
 }
 
 async function runJava(dirPath) {
@@ -361,14 +361,6 @@ async function executeJavaCode(userCode, input) {
       }
 
       runResult = await runJava(dirPath);
-
-      if (runResult.code !== 0) {
-        return {
-          success: false,
-          output: runResult.stdout,
-          error: runResult.stderr,
-        };
-      }
     }
 
     const { trace, output } = parseExecutionOutput(runResult.stdout);
@@ -417,7 +409,7 @@ async function executeJavaCode(userCode, input) {
     });
 
     return {
-      success: true,
+      success: runResult.code === 0,
       states,
       sourceSteps: resolvedSourceSteps,
       semanticFrames,
@@ -428,7 +420,7 @@ async function executeJavaCode(userCode, input) {
       graphSemanticFrames,
       patterns,
       output,
-      error: null,
+      error: runResult.code === 0 ? null : runResult.stderr,
     };
   } catch (err) {
     return {
@@ -706,8 +698,7 @@ function injectTraceIntoBody(mappedLines, methodName = "solve", methodParams = [
     }
 
     // ── VAR detection: use (?<!\.) so field accesses like `tail.next = ...`
-    // are never mistaken for a variable named `next` being assigned.
-    let match = trimmed.match(/(?<!\.)(\b[a-zA-Z_][a-zA-Z0-9_]*)\s*(=|\+=|-=|\*=\|\/=)\s*(.*);/);
+    let match = trimmed.match(/(?<!\.)(\b[a-zA-Z_][a-zA-Z0-9_]*)\s*(=|\+=|-=|\*=|\/=)\s*(.*);/);
     if (!match) {
       match = trimmed.match(/\b([a-zA-Z_][a-zA-Z0-9_]*)\s*(\+\+|--)/);
     }
@@ -812,6 +803,12 @@ function injectTraceIntoBody(mappedLines, methodName = "solve", methodParams = [
         if (pendingForTrace.isWhile) {
           tracedBody += `System.out.println("TRACE|LOOP_ITER|loop_${pendingForTrace.lineNumber}");\n`;
           forVarScopeStack.push({ isWhile: true, lineId: pendingForTrace.lineNumber, depth: braceDepth, isInfinite: pendingForTrace.isInfinite });
+        } else if (pendingForTrace.isEnhancedFor) {
+          tracedBody += `System.out.println("TRACE|COND|line=${pendingForTrace.lineNumber}|expr=hasNext()|value=true");\n`;
+          tracedBody += `System.out.println("TRACE|ASSIGN|${pendingForTrace.loopVar}|=|" + ${pendingForTrace.loopVar});\n`;
+          tracedBody += `System.out.println("TRACE|VAR|${pendingForTrace.loopVar}|" + ${formatter}(${pendingForTrace.loopVar}));\n`;
+          tracedBody += `System.out.println("TRACE|LOOP_ITER|loop_${pendingForTrace.lineNumber}");\n`;
+          forVarScopeStack.push({ isEnhancedFor: true, varName: pendingForTrace.loopVar, lineId: pendingForTrace.lineNumber, depth: braceDepth });
         } else {
           if (pendingForTrace.loopVars) {
             for (let v of pendingForTrace.loopVars) {
@@ -841,6 +838,9 @@ function injectTraceIntoBody(mappedLines, methodName = "solve", methodParams = [
         const scopeItem = forVarScopeStack.pop();
         if (scopeItem.isWhile) {
           tracedBody += `System.out.println("TRACE|LOOP_END|loop_${scopeItem.lineId}");\n`;
+        } else if (scopeItem.isEnhancedFor) {
+          tracedBody += `System.out.println("TRACE|COND|line=${scopeItem.lineId}|expr=hasNext()|value=false");\n`;
+          tracedBody += `System.out.println("TRACE|VAR|${scopeItem.varName}|null");\n`;
         } else {
           tracedBody += `System.out.println("TRACE|LINE|${lineNumber}");\n`;
           if (scopeItem.loopVars) {
@@ -951,8 +951,25 @@ function injectTraceIntoBody(mappedLines, methodName = "solve", methodParams = [
       tracedBody += line + "\n";
 
       const match = line.match(/for\s*\(\s*int\s+([^;]+);/);
+      const enhancedMatch = line.match(/for\s*\(\s*(?:final\s+)?([a-zA-Z_0-9<>\[\]]+)\s+([a-zA-Z_0-9]+)\s*:\s*([^)]+)\s*\)/);
 
-      if (match) {
+      if (enhancedMatch) {
+        const loopVar = enhancedMatch[2];
+        currentLoopVar = loopVar;
+
+        if (line.includes("{") && !line.includes("}")) {
+          tracedBody += `System.out.println("TRACE|LINE|${lineNumber}");\n`;
+          tracedBody += `System.out.println("TRACE|COND|line=${lineNumber}|expr=hasNext()|value=true");\n`;
+          tracedBody += `System.out.println("TRACE|ASSIGN|${loopVar}|=|" + ${loopVar});\n`;
+          tracedBody += `System.out.println("TRACE|VAR|${loopVar}|" + ${formatter}(${loopVar}));\n`;
+          tracedBody += `System.out.println("TRACE|LOOP_ITER|loop_${lineNumber}");\n`;
+          
+          braceDepth += 1;
+          forVarScopeStack.push({ isEnhancedFor: true, varName: loopVar, lineId: lineNumber, depth: braceDepth });
+        } else {
+          pendingForTrace = { lineNumber, isEnhancedFor: true, loopVar: loopVar };
+        }
+      } else if (match) {
         const loopVarsStr = match[1];
         const declarations = loopVarsStr.split(",");
         const loopVars = [];
@@ -1147,7 +1164,7 @@ function injectTraceIntoBody(mappedLines, methodName = "solve", methodParams = [
     if (!isPtrMove && !isNodeMutate) {
       // ── VAR detection: (?<!\.) prevents field names (e.g. `next` in `tail.next = ...`)
       // from being treated as the assigned variable.
-      let match = line.match(/(?<!\.)(\b[a-zA-Z_][a-zA-Z0-9_]*)\s*(\+|-|\*|\/|%)?=(?!=)/);
+      let match = line.match(/(?<!\.)(\b[a-zA-Z_][a-zA-Z0-9_]*)\s*(=|\+=|-=|\*=|\/=)\s*(.*);/);
       if (!match) {
         match = line.match(/\b([a-zA-Z_][a-zA-Z0-9_]*)\s*(\+\+|--)/);
       }
@@ -1158,7 +1175,10 @@ function injectTraceIntoBody(mappedLines, methodName = "solve", methodParams = [
 
       if (match) {
         const varName = match[1];
+        const op = match[2];
+        const rhs = (match[3] || "").trim().replace(/"/g, '\\"');
         if (/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(varName)) {
+          tracedBody += `System.out.println("TRACE|ASSIGN|${varName}|${op}|${rhs}");\n`;
           tracedBody += `System.out.println("TRACE|VAR|${varName}|" + ${formatter}(${varName}));\n`;
         }
       }

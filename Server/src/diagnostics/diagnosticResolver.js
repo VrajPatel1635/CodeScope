@@ -4,7 +4,7 @@ const resolveRuntimeDiagnostic = require("./runtimeDiagnostics");
 const resolvePlatformDiagnostic = require("./platformDiagnostics");
 const resolveUnsupportedFeatureDiagnostic = require("./unsupportedFeatureDiagnostics");
 
-function resolveDiagnostic(rawMessage) {
+function resolveDiagnostic(rawMessage, states, code) {
   if (typeof rawMessage !== "string" || !rawMessage) {
     return null;
   }
@@ -14,7 +14,7 @@ function resolveDiagnostic(rawMessage) {
     resolveInputDiagnostic(rawMessage) ||
     resolveUnsupportedFeatureDiagnostic(rawMessage) ||
     resolveCompilationDiagnostic(rawMessage) ||
-    resolveRuntimeDiagnostic(rawMessage) ||
+    resolveRuntimeDiagnostic(rawMessage, states, code) ||
     resolvePlatformDiagnostic(rawMessage);
 
   if (diagnostic) {
