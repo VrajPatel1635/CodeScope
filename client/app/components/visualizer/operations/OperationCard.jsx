@@ -8,12 +8,12 @@ export default function OperationCard({ children, title, icon }) {
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, scale: 0.95 }}
       transition={{ type: "spring", stiffness: 300, damping: 25 }}
-      className="bg-[#1A1A1A] border border-[#333333] rounded-lg shadow-xl overflow-hidden min-w-[250px]"
+      className="bg-(--bg-elevated) border border-(--border-color) rounded-lg shadow-xl overflow-hidden min-w-[250px]"
     >
       {/* Header */}
-      <div className="bg-[#222222] px-3 py-1.5 flex items-center gap-2 border-b border-[#333333]">
-        <span className="text-[#888888] text-xs font-mono">{icon}</span>
-        <span className="text-[#CCCCCC] text-[10px] uppercase tracking-wider font-semibold font-mono">
+      <div className="bg-(--bg-surface) px-3 py-1.5 flex items-center gap-2 border-b border-(--border-color)">
+        <span className="text-(--text-muted) text-xs font-mono">{icon}</span>
+        <span className="text-(--text-secondary) text-[10px] uppercase tracking-wider font-semibold font-mono">
           {title}
         </span>
       </div>

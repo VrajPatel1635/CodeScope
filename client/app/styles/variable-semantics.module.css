@@ -9,24 +9,24 @@
 .semanticCard {
   display: inline-flex;
   align-items: center;
-  background: var(--surface-bg, #1e1e1e);
-  border: 1px solid var(--border-color, #333333);
-  border-radius: var(--radius-md, 8px);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
   padding: 8px 16px;
-  font-family: var(--font-mono, monospace);
+  font-family: var(--font-mono);
   font-size: 0.9rem;
-  color: var(--text-primary, #ffffff);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-md);
 }
 
 .varName {
-  color: var(--color-copper, #c47c5d);
+  color: var(--accent-primary);
   font-weight: 600;
   margin-right: 8px;
 }
 
 .varOperator {
-  color: #888888;
+  color: var(--text-muted);
   margin-right: 8px;
 }
 
@@ -35,24 +35,24 @@
 }
 
 .varOldValue {
-  color: #888888;
+  color: var(--text-muted);
   text-decoration: line-through;
   margin-right: 6px;
 }
 
 .varArrow {
-  color: var(--color-copper, #c47c5d);
+  color: var(--accent-primary);
   margin-right: 6px;
   font-weight: bold;
 }
 
 .varNewValue {
-  color: var(--color-burgundy-light, #a03c50);
+  color: var(--exec-mutation);
   font-weight: 700;
 }
 
 /* Temporary Variable Animation */
 .tempActive {
-  border-color: var(--color-copper, #c47c5d);
-  box-shadow: 0 0 12px rgba(196, 124, 93, 0.4);
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--accent-primary) 40%, transparent);
 }

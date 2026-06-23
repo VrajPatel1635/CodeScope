@@ -104,7 +104,7 @@ export default function FAQSection() {
   const [openId, setOpenId] = useState("01"); // First one open by default
 
   return (
-    <section className="relative py-24 md:py-40 bg-background overflow-hidden border-t border-(--border-color)/30">
+    <section className="relative py-24 md:py-40 bg-background overflow-hidden">
       <div className="max-w-[1400px] mx-auto px-6 md:px-12 relative z-10">
         
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 lg:gap-20">
@@ -153,14 +153,9 @@ export default function FAQSection() {
               className="bg-(--bg-surface) border border-(--border-color) rounded-xl p-6 md:p-8 relative overflow-hidden"
             >
               {/* Terminal Header */}
-              <div className="flex items-center gap-2 mb-8 pb-6 border-b border-(--border-color)/60">
-                <div className="flex gap-1.5">
-                  <div className="w-2.5 h-2.5 rounded-full bg-(--border-color)" />
-                  <div className="w-2.5 h-2.5 rounded-full bg-(--border-color)" />
-                  <div className="w-2.5 h-2.5 rounded-full bg-(--border-color)" />
-                </div>
-                <div className="ml-4 flex-1">
-                  <div className="h-px w-full bg-linear-to-r from-(--border-color)/50 to-transparent" />
+              <div className="flex items-center justify-between mb-8 pb-6 border-b border-(--border-color)/60">
+                <div className="flex items-center">
+                  <span className="text-[10px] font-mono text-(--text-muted) uppercase tracking-widest">INDEX</span>
                 </div>
                 <div className="font-mono text-[10px] text-(--text-muted) tracking-widest uppercase ml-4">
                   Terminal

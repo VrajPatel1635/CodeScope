@@ -275,10 +275,47 @@ export default function InteractiveDemoExperience() {
   };
 
   return (
-    <section id="interactive-demo" className="relative py-32 md:py-48 bg-background overflow-hidden border-t border-white/2">
-      <div className="max-w-[1200px] mx-auto px-6 md:px-12 relative z-10">
+    <div className="relative px-2 md:px-4 py-24 md:py-32 flex justify-center items-center overflow-hidden" style={{ perspective: '2000px' }}>
+      
+      {/* 1. Base Void */}
+      <div className="absolute inset-0 bg-background z-0" />
+
+      {/* 2. 3D Perspective Grid (Floor) */}
+      <div className="absolute bottom-0 left-[-50%] w-[200%] h-[80%] z-0 origin-bottom opacity-40 pointer-events-none" style={{ transform: 'rotateX(75deg) scale(1.2)' }}>
+        {/* The Grid */}
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.05)_1px,transparent_1px)] bg-size-[4rem_4rem]" />
+        {/* Distance Fade */}
+        <div className="absolute inset-0 bg-linear-to-t from-transparent via-background/90 to-background" />
+      </div>
+
+      {/* 3. 3D Perspective Grid (Ceiling) */}
+      <div className="absolute top-0 left-[-50%] w-[200%] h-[80%] z-0 origin-top opacity-30 pointer-events-none" style={{ transform: 'rotateX(-75deg) scale(1.2)' }}>
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-size-[4rem_4rem]" />
+        <div className="absolute inset-0 bg-linear-to-b from-transparent via-background/90 to-background" />
+      </div>
+
+      {/* 4. Deep Core Energy (Behind Island) */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-(--accent-secondary) opacity-[0.07] blur-[150px] rounded-full pointer-events-none z-0" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[300px] bg-(--accent-highlight) opacity-[0.08] blur-[120px] rounded-full pointer-events-none z-0 rotate-[-30deg]" />
+
+      {/* 5. Volumetric Light Beams (Subtle vertical streaks) */}
+      <div className="absolute top-1/4 left-[20%] w-[2px] h-[50%] bg-linear-to-b from-transparent via-(--accent-highlight)/20 to-transparent blur-sm rotate-15 pointer-events-none z-0" />
+      <div className="absolute bottom-1/4 right-[20%] w-px h-[60%] bg-linear-to-b from-transparent via-(--accent-secondary)/20 to-transparent blur-sm rotate-[-15deg] pointer-events-none z-0" />
+
+      {/* 6. Cinematic Fade Edges for Seamless Merging */}
+      <div className="absolute top-0 left-0 w-full h-48 bg-linear-to-b from-background via-background/80 to-transparent z-10 pointer-events-none" />
+      <div className="absolute bottom-0 left-0 w-full h-48 bg-linear-to-t from-background via-background/80 to-transparent z-10 pointer-events-none" />
+
+      {/* 7. The Floating Island */}
+      <section id="interactive-demo" className="relative w-full py-32 md:py-40 bg-(--bg-surface)/40 backdrop-blur-2xl rounded-[3rem] md:rounded-[4rem] border border-white/10 shadow-[0_50px_150px_-20px_rgba(0,0,0,1),inset_0_1px_1px_rgba(255,255,255,0.1)] z-20 overflow-hidden transform-gpu">
         
-        {/* Section Header */}
+        {/* Island Inner Rim Light - Dual Tone */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[80%] h-[2px] bg-linear-to-r from-transparent via-(--accent-highlight)/40 to-transparent mix-blend-screen" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[30%] h-px bg-linear-to-r from-transparent via-white/50 to-transparent mix-blend-screen" />
+        
+        <div className="max-w-[1400px] mx-auto px-6 md:px-12 relative z-10">
+          
+          {/* Section Header */}
         <div className="text-center mb-12 md:mb-16">
           <SectionEyebrow title="Interactive Demo" phase="SYS.SANDBOX" accentClass="text-(--accent-secondary)" align="center" />
           
@@ -336,10 +373,8 @@ export default function InteractiveDemoExperience() {
                 
                 {/* Window Header */}
                 <div className="flex items-center justify-between px-6 py-4 border-b border-white/5 bg-white/2">
-                  <div className="flex gap-2.5">
-                    <div className="w-3 h-3 rounded-full bg-(--accent-secondary)/40 border border-(--accent-secondary)/20" />
-                    <div className="w-3 h-3 rounded-full bg-(--accent-highlight)/40 border border-(--accent-highlight)/20" />
-                    <div className="w-3 h-3 rounded-full bg-(--accent-highlight)/40 border border-(--accent-highlight)/20" />
+                  <div className="flex items-center">
+                    <span className="text-[10px] font-mono text-white/20 uppercase tracking-widest">DEMO_ENV_v1.0</span>
                   </div>
                   <div className="flex items-center gap-2 border border-white/5 bg-background px-4 py-1.5 rounded-full shadow-inner">
                      <span className="w-2 h-2 rounded-full bg-(--accent-secondary) animate-pulse" />
@@ -351,7 +386,7 @@ export default function InteractiveDemoExperience() {
                 {/* Main View Area */}
                 <div className="h-[350px] md:h-[450px] relative bg-background overflow-hidden">
                    {/* Blueprint Grid Background */}
-                   <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff03_1px,transparent_1px),linear-gradient(to_bottom,#ffffff03_1px,transparent_1px)] bg-size-[32px_32px]" />
+                   <div className="absolute inset-0 bg-[linear-gradient(to_right,color-mix(in_srgb,var(--text-primary)_3%,transparent)_1px,transparent_1px),linear-gradient(to_bottom,color-mix(in_srgb,var(--text-primary)_3%,transparent)_1px,transparent_1px)] bg-size-[32px_32px]" />
                    
                    {/* Render active algorithm with AnimatePresence for tab switching */}
                    <AnimatePresence mode="wait">
@@ -397,5 +432,6 @@ export default function InteractiveDemoExperience() {
         </motion.div>
       </div>
     </section>
+    </div>
   );
 }

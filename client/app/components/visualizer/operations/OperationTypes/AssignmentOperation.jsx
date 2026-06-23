@@ -6,8 +6,8 @@ export default function AssignmentOperation({ varName, newValue }) {
     <OperationCard title="Assignment" icon="=">
       <div className="flex items-center gap-3 text-[15px]">
         <span className="text-copper-400 font-semibold">{varName}</span>
-        <span className="text-[#666666]">←</span>
-        <span className="text-white bg-[#333333] px-2 py-0.5 rounded">
+        <span className="text-(--text-muted)">←</span>
+        <span className="text-white bg-(--bg-elevated) px-2 py-0.5 rounded">
           {newValue?.toString()}
         </span>
       </div>

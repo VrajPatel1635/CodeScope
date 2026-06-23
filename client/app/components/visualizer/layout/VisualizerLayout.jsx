@@ -156,7 +156,7 @@ export default function VisualizerLayout() {
   const currentCallStackSemantics = currentState ? callStackSemanticMap.get(currentState.step) ?? [] : [];
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ backgroundColor: 'var(--bg-primary)' }}>
+    <div className="min-h-screen flex flex-col overflow-x-hidden w-full" style={{ backgroundColor: 'var(--bg-primary)' }}>
       {/* NAVBAR */}
       <VisualizerNavbar>
         {states.length > 0 && (

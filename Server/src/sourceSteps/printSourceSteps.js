@@ -1,13 +1,15 @@
+const logger = require("../utils/logger");
+
 function printSourceSteps(sourceSteps) {
     for (const step of sourceSteps) {
-        console.log("================================");
-        console.log(`SOURCE STEP #${step.sourceStepId}`);
-        console.log(`FRAME: ${step.frameId}`);
-        console.log(`LINE: ${step.lineNumber}`);
-        console.log(`FIRST MICRO: ${step.firstMicroStep}`);
-        console.log(`LAST MICRO: ${step.lastMicroStep}`);
-        console.log(`OWNED MICRO STEPS: [${step.microStepIds.join(",")}]`);
-        console.log("================================");
+        logger.debug("================================");
+        logger.debug(`SOURCE STEP #${step.sourceStepId}`);
+        logger.debug(`FRAME: ${step.frameId}`);
+        logger.debug(`LINE: ${step.lineNumber}`);
+        logger.debug(`FIRST MICRO: ${step.firstMicroStep}`);
+        logger.debug(`LAST MICRO: ${step.lastMicroStep}`);
+        logger.debug(`OWNED MICRO STEPS: [${step.microStepIds.join(",")}]`);
+        logger.debug("================================");
     }
 }
 

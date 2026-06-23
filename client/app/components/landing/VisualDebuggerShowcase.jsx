@@ -70,7 +70,7 @@ export default function VisualDebuggerShowcase() {
   };
 
   return (
-    <section className="relative py-24 lg:py-48 bg-background">
+    <section id="features" className="relative py-24 lg:py-48 bg-background">
       {/* Background ambience */}
       <div className="absolute top-10 right-[5%] w-[800px] h-[800px] bg-(--accent-secondary) blur-[200px] opacity-[0.02] rounded-full pointer-events-none" />
       <div className="absolute bottom-[10%] left-[-10%] w-[600px] h-[600px] bg-(--exec-return) blur-[180px] opacity-[0.02] rounded-full pointer-events-none" />
@@ -131,10 +131,9 @@ export default function VisualDebuggerShowcase() {
 
                 {/* Window Chrome */}
                 <div className="flex items-center justify-between px-6 py-4 border-b border-white/5 bg-white/2">
-                  <div className="flex gap-2">
-                    <div className="w-3 h-3 rounded-full bg-white/10 hover:bg-(--exec-error) transition-colors duration-300 cursor-pointer" />
-                    <div className="w-3 h-3 rounded-full bg-white/10 hover:bg-(--exec-mutation) transition-colors duration-300 cursor-pointer" />
-                    <div className="w-3 h-3 rounded-full bg-white/10 hover:bg-(--exec-node-active) transition-colors duration-300 cursor-pointer" />
+                  <div className="flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 bg-(--exec-node-active) rounded-full shadow-[0_0_8px_rgba(0,208,132,0.5)]"></span>
+                    <span className="text-[10px] text-white/30 font-mono uppercase tracking-widest">Live Execution</span>
                   </div>
                   <div className="flex items-center gap-2 px-4 py-1.5 rounded-lg bg-white/5 border border-white/5">
                     <svg className="w-3 h-3 text-(--accent-secondary) opacity-60" fill="currentColor" viewBox="0 0 24 24"><path d="M4 22H2V2h2v20zM22 2v20h-2V2h2zm-4 16H6V6h12v12z" /></svg>

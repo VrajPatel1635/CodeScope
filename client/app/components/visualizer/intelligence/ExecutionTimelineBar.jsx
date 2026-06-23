@@ -62,12 +62,12 @@ export default function ExecutionTimelineBar({ timeline }) {
                      {/* Hover Overlay */}
                      <motion.div 
                         className="absolute inset-0 opacity-0 group-hover:opacity-20 transition-opacity"
-                        style={{ backgroundColor: "#ffffff" }}
+                        style={{ backgroundColor: "var(--text-primary)" }}
                      />
 
                      {/* Diagonal hash overlay for mechanical styling */}
                      <div className="absolute inset-0 opacity-[0.05]" style={{ 
-                        backgroundImage: `repeating-linear-gradient(45deg, transparent, transparent 4px, #000 4px, #000 8px)`
+                        backgroundImage: `repeating-linear-gradient(45deg, transparent, transparent 4px, var(--bg-primary) 4px, var(--bg-primary) 8px)`
                       }} />
                   </motion.div>
                 );

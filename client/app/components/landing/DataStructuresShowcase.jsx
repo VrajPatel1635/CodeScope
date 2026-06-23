@@ -153,98 +153,80 @@ const MiniHashSet = () => (
   </div>
 );
 
-const MiniCallStack = () => (
+const MiniGraph = () => (
   <div className="w-full h-full flex items-center justify-center p-4">
-    <div className="flex flex-col gap-1.5 w-40 relative group-hover:translate-x-2 transition-transform duration-500">
-       <div className="absolute -left-6 top-2 bottom-2 w-px bg-white/10">
-         <div className="w-1.5 h-1.5 bg-(--accent-highlight) rounded-full absolute left-[-2.5px] top-0 shadow-[0_0_8px_var(--accent-highlight)]" />
-       </div>
-       {[
-         {name: 'dfs(node.left)', active: true},
-         {name: 'dfs(node)', active: false},
-         {name: 'main()', active: false}
-       ].map((frame, i) => (
-         <div key={i} className={`w-full p-2.5 border rounded-[4px] text-[10px] font-mono flex items-center justify-between transition-colors duration-500 ${frame.active ? 'bg-(--accent-highlight)/10 border-(--accent-highlight)/40 text-(--accent-highlight) group-hover:bg-(--accent-highlight)/20' : 'bg-(--bg-surface) border-white/5 text-white/30'}`}>
-            <span>{frame.name}</span>
-            {frame.active && <span className="w-1.5 h-1.5 rounded-full bg-(--accent-highlight) animate-pulse" />}
-         </div>
-       ))}
+    <div className="relative w-24 h-24 group-hover:scale-105 transition-transform duration-500">
+      <svg className="absolute inset-0 w-full h-full overflow-visible" viewBox="0 0 100 100">
+        {/* Edges */}
+        <line x1="50" y1="10" x2="10" y2="90" stroke="rgba(255,255,255,0.1)" strokeWidth="2" className="group-hover:stroke-[rgba(255,255,255,0.2)] transition-colors duration-500" />
+        <line x1="50" y1="10" x2="90" y2="90" stroke="rgba(255,255,255,0.1)" strokeWidth="2" className="group-hover:stroke-[rgba(255,255,255,0.2)] transition-colors duration-500" />
+        <line x1="10" y1="90" x2="90" y2="90" stroke="rgba(255,255,255,0.1)" strokeWidth="2" className="group-hover:stroke-[rgba(255,255,255,0.2)] transition-colors duration-500" />
+        
+        {/* Nodes */}
+        <circle cx="50" cy="10" r="16" className="fill-(--bg-surface) stroke-white/10 stroke-2 group-hover:fill-(--accent-secondary)/10 group-hover:stroke-(--accent-secondary)/40 transition-all duration-500" />
+        <text x="50" y="13" textAnchor="middle" className="text-[12px] font-mono fill-white/40 group-hover:fill-(--accent-secondary) transition-colors duration-500">A</text>
+        
+        <circle cx="10" cy="90" r="16" className="fill-(--bg-surface) stroke-white/10 stroke-2 group-hover:stroke-white/20 transition-all duration-500" />
+        <text x="10" y="93" textAnchor="middle" className="text-[12px] font-mono fill-white/40 group-hover:fill-white/60 transition-colors duration-500">B</text>
+        
+        <circle cx="90" cy="90" r="16" className="fill-(--bg-surface) stroke-white/10 stroke-2 group-hover:stroke-white/20 transition-all duration-500" />
+        <text x="90" y="93" textAnchor="middle" className="text-[12px] font-mono fill-white/40 group-hover:fill-white/60 transition-colors duration-500">C</text>
+      </svg>
     </div>
   </div>
 );
 
-const MiniVariables = () => (
-  <div className="w-full h-full flex items-center justify-center p-4">
-    <div className="w-full max-w-[220px] border border-white/10 rounded-xl bg-(--bg-surface) overflow-hidden group-hover:border-white/20 group-hover:shadow-[0_10px_30px_-10px_rgba(0,0,0,0.5)] transition-all duration-700">
-       <div className="bg-white/5 border-b border-white/10 px-4 py-2 flex items-center gap-2">
-         <div className="w-2 h-2 rounded-full bg-white/20" />
-         <span className="text-[10px] uppercase tracking-wider text-white/40 font-mono">Watch</span>
-       </div>
-       <div className="p-4 flex flex-col gap-3">
-         <div className="flex justify-between items-center font-mono text-[11px]">
-           <span className="text-white/40">i</span>
-           <span className="text-white/80">42</span>
-         </div>
-         <div className="flex justify-between items-center font-mono text-[11px] bg-(--accent-secondary)/10 -mx-2 px-2 py-1 rounded-[4px] border border-(--accent-secondary)/20 relative overflow-hidden">
-           <div className="absolute inset-0 bg-(--accent-secondary)/5 opacity-0 group-hover:opacity-100 group-hover:animate-pulse transition-opacity duration-500" />
-           <span className="text-(--accent-secondary) relative z-10">curr</span>
-           <span className="text-(--accent-secondary) relative z-10">Node(12)</span>
-         </div>
-         <div className="flex justify-between items-center font-mono text-[11px]">
-           <span className="text-white/40">found</span>
-           <span className="text-white/80">false</span>
-         </div>
-       </div>
-    </div>
-  </div>
-);
-
-const MiniOperations = () => (
-  <div className="w-full h-full flex items-center justify-center p-4">
-    <div className="flex flex-col gap-2.5 font-mono text-[11px] w-full max-w-[240px]">
-       <div className="text-white/20 transition-colors duration-500 group-hover:text-white/30">Comparing A[1] and A[2]</div>
-       <div className="text-white/20 transition-colors duration-500 group-hover:text-white/30">A[1] &gt; A[2], proceeding</div>
-       <div className="text-(--accent-highlight) bg-(--accent-highlight)/10 border border-(--accent-highlight)/30 p-2 rounded-[4px] shadow-[0_0_15px_rgba(107,191,160,0.1)] group-hover:scale-105 transition-transform duration-500">swap(A[1], A[2])</div>
-       <div className="text-white/40 flex items-center gap-2 mt-1">
-         <span className="w-1.5 h-1.5 rounded-full bg-white/40 animate-pulse" />
-         Incrementing i
-       </div>
-    </div>
-  </div>
-);
-
-const MiniTimeline = () => (
-  <div className="w-full h-full flex items-center justify-center p-4">
-    <div className="w-full max-w-[260px] relative flex items-center">
-       <div className="w-full h-1.5 bg-white/5 rounded-full relative group-hover:bg-white/10 transition-colors duration-500">
-         <div className="absolute left-0 top-0 bottom-0 w-[60%] bg-linear-to-r from-(--accent-primary)/20 to-(--accent-primary) rounded-full" />
-         <div className="absolute left-[60%] top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-white border-[3px] border-(--accent-primary) shadow-[0_0_15px_var(--accent-primary)] group-hover:scale-125 transition-transform duration-500 cursor-pointer" />
-         
-         <div className="absolute left-[20%] top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-white/40 group-hover:bg-white/60 transition-colors duration-500" />
-         <div className="absolute left-[40%] top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-white/40 group-hover:bg-white/60 transition-colors duration-500" />
-         <div className="absolute left-[80%] top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-white/20 group-hover:bg-white/40 transition-colors duration-500" />
-       </div>
-       <div className="absolute -top-8 left-[60%] -translate-x-1/2 text-[10px] font-mono text-(--accent-primary) opacity-0 group-hover:opacity-100 group-hover:-top-10 transition-all duration-500">Step 42</div>
-    </div>
-  </div>
-);
 
 const MiniTree = () => (
   <div className="relative w-full h-full flex items-center justify-center p-4">
-    <div className="absolute inset-0 z-20 flex items-center justify-center backdrop-blur-[1px] bg-(--bg-primary)/40 rounded-3xl">
-      <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 shadow-xl group-hover:bg-white/10 group-hover:border-white/20 transition-all duration-500">
-         <span className="text-white/80 uppercase tracking-widest text-[10px] font-mono font-medium">In Development</span>
+    <div className="flex flex-col items-center transition-transform duration-500 group-hover:scale-105">
+      {/* Root Node */}
+      <div className="w-10 h-10 rounded-full border border-white/10 bg-(--bg-surface) flex items-center justify-center font-mono text-[11px] text-white/40 shadow-inner group-hover:border-(--accent-primary)/40 group-hover:bg-(--accent-primary)/10 group-hover:text-(--accent-primary) transition-all duration-500 relative z-10">
+        42
       </div>
-    </div>
-    <div className="flex flex-col items-center gap-6 opacity-30 group-hover:opacity-40 transition-opacity duration-700">
-      <div className="w-10 h-10 rounded-full border border-dashed border-white/30 flex items-center justify-center font-mono text-[10px] text-white/30"></div>
-      <div className="flex gap-12 relative">
-         <svg className="absolute bottom-full left-1/2 -translate-x-1/2 w-16 h-6 overflow-visible" viewBox="0 0 64 24">
-           <line x1="32" y1="0" x2="8" y2="24" stroke="rgba(255,255,255,0.2)" strokeWidth="1" strokeDasharray="3 3" />
-           <line x1="32" y1="0" x2="56" y2="24" stroke="rgba(255,255,255,0.2)" strokeWidth="1" strokeDasharray="3 3" />
-         </svg>
-         <div className="w-10 h-10 rounded-full border border-dashed border-white/30 flex items-center justify-center font-mono text-[10px] text-white/30"></div>
-         <div className="w-10 h-10 rounded-full border border-dashed border-white/30 flex items-center justify-center font-mono text-[10px] text-white/30"></div>
+      
+      {/* Edges Level 1 */}
+      <svg className="w-24 h-8 overflow-visible -mt-2" viewBox="0 0 96 32">
+         <line x1="48" y1="0" x2="20" y2="32" stroke="rgba(255,255,255,0.1)" strokeWidth="2" className="group-hover:stroke-[rgba(255,255,255,0.2)] transition-colors duration-500" />
+         <line x1="48" y1="0" x2="76" y2="32" stroke="rgba(255,255,255,0.1)" strokeWidth="2" className="group-hover:stroke-[rgba(255,255,255,0.2)] transition-colors duration-500" />
+      </svg>
+      
+      {/* Level 1 Nodes */}
+      <div className="flex gap-8 relative z-10 -mt-2">
+         {/* Left Child */}
+         <div className="relative flex flex-col items-center">
+           <div className="w-10 h-10 rounded-full border border-white/10 bg-(--bg-surface) flex items-center justify-center font-mono text-[11px] text-white/40 shadow-inner transition-all duration-500 group-hover:border-white/20">
+             15
+           </div>
+           
+           {/* Edges Level 2 */}
+           <svg className="w-16 h-6 overflow-visible -mt-1" viewBox="0 0 64 24">
+              <line x1="32" y1="0" x2="12" y2="24" stroke="rgba(255,255,255,0.1)" strokeWidth="2" className="group-hover:stroke-[rgba(255,255,255,0.2)] transition-colors duration-500" />
+              <line x1="32" y1="0" x2="52" y2="24" stroke="rgba(255,255,255,0.1)" strokeWidth="2" className="group-hover:stroke-[rgba(255,255,255,0.2)] transition-colors duration-500" />
+           </svg>
+           
+           {/* Level 2 Nodes */}
+           <div className="flex gap-2 relative z-10 -mt-1">
+              <div className="w-8 h-8 rounded-full border border-white/10 bg-(--bg-surface) flex items-center justify-center font-mono text-[9px] text-white/40 shadow-inner transition-all duration-500 group-hover:border-(--accent-highlight)/30 group-hover:bg-(--accent-highlight)/10 group-hover:text-(--accent-highlight)">8</div>
+              <div className="w-8 h-8 rounded-full border border-white/10 bg-(--bg-surface) flex items-center justify-center font-mono text-[9px] text-white/40 shadow-inner transition-all duration-500 group-hover:border-white/20">23</div>
+           </div>
+         </div>
+         
+         {/* Right Child */}
+         <div className="relative flex flex-col items-center">
+           <div className="w-10 h-10 rounded-full border border-white/10 bg-(--bg-surface) flex items-center justify-center font-mono text-[11px] text-white/40 shadow-inner transition-all duration-500 group-hover:border-(--accent-secondary)/30 group-hover:bg-(--accent-secondary)/10 group-hover:text-(--accent-secondary)">
+             89
+           </div>
+           
+           {/* Right Child's Right edge */}
+           <svg className="w-16 h-6 overflow-visible -mt-1" viewBox="0 0 64 24">
+              <line x1="32" y1="0" x2="52" y2="24" stroke="rgba(255,255,255,0.1)" strokeWidth="2" className="group-hover:stroke-[rgba(255,255,255,0.2)] transition-colors duration-500" />
+           </svg>
+           
+           <div className="flex relative z-10 -mt-1 ml-10">
+              <div className="w-8 h-8 rounded-full border border-white/10 bg-(--bg-surface) flex items-center justify-center font-mono text-[9px] text-white/40 shadow-inner transition-all duration-500 group-hover:border-white/20">99</div>
+           </div>
+         </div>
       </div>
     </div>
   </div>
@@ -263,11 +245,8 @@ const STRUCTURES = [
   { id: 'priority-queues', title: 'Priority Queues', desc: 'Heap-based prioritization and sorting visualization.', Component: MiniPriorityQueue },
   { id: 'hashmaps', title: 'Hash Maps', desc: 'Key-value relationships and collisions exposed.', Component: MiniHashMap },
   { id: 'hashsets', title: 'Hash Sets', desc: 'Buckets of unique values organized automatically.', Component: MiniHashSet },
-  { id: 'call-stack', title: 'Call Stack', desc: 'Live recursion depth and frame tracking.', Component: MiniCallStack },
-  { id: 'variables', title: 'Variables', desc: 'Isolated scope watch panels updating per step.', Component: MiniVariables },
-  { id: 'operations', title: 'Operations', desc: 'Micro-step execution logging for absolute clarity.', Component: MiniOperations },
-  { id: 'timeline', title: 'Execution Timeline', desc: 'Time-travel debugging scrubber for complete control.', Component: MiniTimeline },
-  { id: 'trees', title: 'Trees & Tries', desc: 'Deep recursion visualized with full branch awareness.', Component: MiniTree },
+  { id: 'graphs', title: 'Graphs', desc: 'Complex relationships mapped and pathfinded.', Component: MiniGraph },
+  { id: 'trees', title: 'Trees', desc: 'Visualized with full branch awareness.', Component: MiniTree },
 ];
 
 export default function DataStructuresShowcase() {
@@ -303,7 +282,7 @@ export default function DataStructuresShowcase() {
   const skewX = useTransform(smoothVelocity, [-1000, 1000], [-3, 3]);
 
   return (
-    <section ref={containerRef} className="relative bg-background h-[1000vh]">
+    <section id="data-structures" ref={containerRef} className="relative bg-background h-[1000vh]">
       <div className="sticky top-0 w-full h-screen overflow-hidden flex flex-col py-16 md:py-20 lg:py-24">
         {/* Background glow */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1000px] h-[600px] bg-(--accent-secondary) blur-[200px] opacity-[0.03] rounded-full pointer-events-none" />

@@ -44,14 +44,14 @@ function ReturnBubble({ value, toFunction, resolveNodeValue }) {
           display: "inline-flex",
           alignItems: "center",
           gap: "5px",
-          background: "linear-gradient(135deg, #f97316, #fb923c)",
-          color: "#fff",
-          fontFamily: "monospace",
+          background: "var(--exec-return)",
+          color: "var(--bg-primary)",
+          fontFamily: "var(--font-mono)",
           fontWeight: 700,
           fontSize: "0.8rem",
           padding: "3px 10px",
           borderRadius: "9999px",
-          boxShadow: "0 2px 10px rgba(249,115,22,0.5)",
+          boxShadow: "0 2px 10px color-mix(in srgb, var(--exec-return) 50%, transparent)",
           whiteSpace: "nowrap",
         }}
       >
@@ -105,17 +105,17 @@ function StackFrame({ frame, isTop, depth, returnFlow, stepReturn, resolveNodeVa
         style={{
           borderRadius: "0.5rem",
           border: `1.5px solid ${
-            isBaseCase ? "#10b981" : isReturning ? "#f97316" : isTop ? "#3b82f6" : isSuspended ? "#8b5cf6" : "#e5e7eb"
+            isBaseCase ? "var(--exec-node-active)" : isReturning ? "var(--exec-return)" : isTop ? "var(--exec-active)" : isSuspended ? "var(--exec-frontier)" : "var(--border-color)"
           }`,
-          background: isSuspended ? "#f8fafc" : "#fff",
+          background: "var(--bg-surface)",
           opacity: isSuspended ? 0.8 : 1,
           boxShadow: isBaseCase
-            ? "0 0 0 3px rgba(16, 185, 129, 0.15), 0 1px 4px rgba(0,0,0,0.06)"
+            ? "0 0 0 3px color-mix(in srgb, var(--exec-node-active) 15%, transparent)"
             : isReturning
-            ? "0 0 0 3px rgba(249,115,22,0.15), 0 1px 4px rgba(0,0,0,0.06)"
+            ? "0 0 0 3px color-mix(in srgb, var(--exec-return) 15%, transparent)"
             : isTop
-            ? "0 0 0 3px rgba(59,130,246,0.12), 0 1px 4px rgba(0,0,0,0.06)"
-            : "0 1px 3px rgba(0,0,0,0.05)",
+            ? "0 0 0 3px color-mix(in srgb, var(--exec-active) 15%, transparent)"
+            : "var(--shadow-sm)",
           overflow: "hidden",
           transition: "border-color 0.2s, box-shadow 0.2s, background 0.2s, opacity 0.2s",
         }}
@@ -128,24 +128,24 @@ function StackFrame({ frame, isTop, depth, returnFlow, stepReturn, resolveNodeVa
             gap: "8px",
             padding: "8px 12px",
             background: isBaseCase
-              ? "#ecfdf5"
+              ? "color-mix(in srgb, var(--exec-node-active) 10%, var(--bg-surface))"
               : isReturning
-              ? "#fff7ed"
+              ? "color-mix(in srgb, var(--exec-return) 10%, var(--bg-surface))"
               : isTop
-              ? "#eff6ff"
+              ? "color-mix(in srgb, var(--exec-active) 10%, var(--bg-surface))"
               : isSuspended
-              ? "#f5f3ff"
-              : "#f9fafb",
+              ? "color-mix(in srgb, var(--exec-frontier) 10%, var(--bg-surface))"
+              : "var(--bg-elevated)",
             borderBottom: "1px solid",
             borderColor: isBaseCase
-              ? "#a7f3d0"
+              ? "color-mix(in srgb, var(--exec-node-active) 30%, transparent)"
               : isReturning
-              ? "#fed7aa"
+              ? "color-mix(in srgb, var(--exec-return) 30%, transparent)"
               : isTop
-              ? "#bfdbfe"
+              ? "color-mix(in srgb, var(--exec-active) 30%, transparent)"
               : isSuspended
-              ? "#ede9fe"
-              : "#f3f4f6",
+              ? "color-mix(in srgb, var(--exec-frontier) 30%, transparent)"
+              : "var(--border-color)",
           }}
         >
           {/* Indicator dot */}
@@ -156,14 +156,14 @@ function StackFrame({ frame, isTop, depth, returnFlow, stepReturn, resolveNodeVa
               height: "8px",
               borderRadius: "50%",
               background: isBaseCase
-                ? "#10b981"
+                ? "var(--exec-node-active)"
                 : isReturning
-                ? "#f97316"
+                ? "var(--exec-return)"
                 : isTop
-                ? "#3b82f6"
+                ? "var(--exec-active)"
                 : isSuspended
-                ? "#8b5cf6"
-                : "#9ca3af",
+                ? "var(--exec-frontier)"
+                : "var(--text-muted)",
               flexShrink: 0,
               transition: "background 0.2s",
             }}
@@ -172,18 +172,18 @@ function StackFrame({ frame, isTop, depth, returnFlow, stepReturn, resolveNodeVa
           {/* Function name */}
           <span
             style={{
-              fontFamily: "monospace",
+              fontFamily: "var(--font-mono)",
               fontWeight: 600,
               fontSize: "0.8125rem",
               color: isBaseCase
-                ? "#047857"
+                ? "var(--exec-node-active)"
                 : isReturning
-                ? "#c2410c"
+                ? "var(--exec-return)"
                 : isTop
-                ? "#1e40af"
+                ? "var(--exec-active)"
                 : isSuspended
-                ? "#6d28d9"
-                : "#374151",
+                ? "var(--exec-frontier)"
+                : "var(--text-primary)",
               flex: 1,
             }}
           >
@@ -197,29 +197,29 @@ function StackFrame({ frame, isTop, depth, returnFlow, stepReturn, resolveNodeVa
               padding: "1px 7px",
               borderRadius: "9999px",
               background: isBaseCase
-                ? "#d1fae5"
+                ? "color-mix(in srgb, var(--exec-node-active) 15%, transparent)"
                 : isReturning
-                ? "#ffedd5"
+                ? "color-mix(in srgb, var(--exec-return) 15%, transparent)"
                 : isUnwinding
-                ? "#fce7f3"
+                ? "color-mix(in srgb, var(--exec-error) 15%, transparent)"
                 : isSuspended
-                ? "#ede9fe"
+                ? "color-mix(in srgb, var(--exec-frontier) 15%, transparent)"
                 : isTop
-                ? "#dbeafe"
-                : "#f3f4f6",
+                ? "color-mix(in srgb, var(--exec-active) 15%, transparent)"
+                : "var(--bg-primary)",
               color: isBaseCase
-                ? "#047857"
+                ? "var(--exec-node-active)"
                 : isReturning
-                ? "#c2410c"
+                ? "var(--exec-return)"
                 : isUnwinding
-                ? "#be185d"
+                ? "var(--exec-error)"
                 : isSuspended
-                ? "#6d28d9"
+                ? "var(--exec-frontier)"
                 : isTop
-                ? "#1d4ed8"
-                : "#6b7280",
+                ? "var(--exec-active)"
+                : "var(--text-muted)",
               border: `1px solid ${
-                isBaseCase ? "#a7f3d0" : isReturning ? "#fed7aa" : isUnwinding ? "#fbcfe8" : isSuspended ? "#ddd6fe" : isTop ? "#bfdbfe" : "#e5e7eb"
+                isBaseCase ? "color-mix(in srgb, var(--exec-node-active) 40%, transparent)" : isReturning ? "color-mix(in srgb, var(--exec-return) 40%, transparent)" : isUnwinding ? "color-mix(in srgb, var(--exec-error) 40%, transparent)" : isSuspended ? "color-mix(in srgb, var(--exec-frontier) 40%, transparent)" : isTop ? "color-mix(in srgb, var(--exec-active) 40%, transparent)" : "var(--border-color)"
               }`,
               fontWeight: 500,
               whiteSpace: "nowrap",
@@ -243,7 +243,7 @@ function StackFrame({ frame, isTop, depth, returnFlow, stepReturn, resolveNodeVa
         {/* ── Variables ── */}
         <div style={{ padding: "8px 12px" }}>
           {entries.length === 0 ? (
-            <p style={{ fontSize: "0.75rem", color: "#9ca3af", fontStyle: "italic" }}>
+            <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", fontStyle: "italic" }}>
               No variables
             </p>
           ) : (
@@ -257,17 +257,17 @@ function StackFrame({ frame, isTop, depth, returnFlow, stepReturn, resolveNodeVa
                     gap: "6px",
                     padding: "3px 6px",
                     borderRadius: "4px",
-                    background: "#f8fafc",
+                    background: "var(--bg-elevated)",
                     fontSize: "0.8125rem",
                   }}
                 >
                   <span
                     style={{
-                      fontFamily: "monospace",
+                      fontFamily: "var(--font-mono)",
                       fontWeight: 600,
-                      color: "#1e40af",
-                      background: "#dbeafe",
-                      border: "1px solid #bfdbfe",
+                      color: "var(--exec-active)",
+                      background: "color-mix(in srgb, var(--exec-active) 15%, transparent)",
+                      border: "1px solid color-mix(in srgb, var(--exec-active) 30%, transparent)",
                       borderRadius: "3px",
                       padding: "0 4px",
                       fontSize: "0.75rem",
@@ -275,11 +275,11 @@ function StackFrame({ frame, isTop, depth, returnFlow, stepReturn, resolveNodeVa
                   >
                     {key}
                   </span>
-                  <span style={{ color: "#9ca3af", fontFamily: "monospace" }}>=</span>
+                  <span style={{ color: "var(--text-muted)", fontFamily: "var(--font-mono)" }}>=</span>
                   <span
                     style={{
-                      fontFamily: "monospace",
-                      color: "#111827",
+                      fontFamily: "var(--font-mono)",
+                      color: "var(--text-primary)",
                       fontWeight: 500,
                     }}
                   >
@@ -296,22 +296,22 @@ function StackFrame({ frame, isTop, depth, returnFlow, stepReturn, resolveNodeVa
           <div
             style={{
               padding: "5px 12px",
-              borderTop: "1px solid #fed7aa",
-              background: "#fff7ed",
+              borderTop: "1px solid color-mix(in srgb, var(--exec-return) 40%, transparent)",
+              background: "color-mix(in srgb, var(--exec-return) 10%, transparent)",
               fontSize: "0.75rem",
-              color: "#9a3412",
+              color: "var(--exec-return)",
               display: "flex",
               alignItems: "center",
               gap: "6px",
-              fontFamily: "monospace",
+              fontFamily: "var(--font-mono)",
             }}
           >
             <span>returning</span>
             <span
               style={{
                 fontWeight: 700,
-                background: "#f97316",
-                color: "#fff",
+                background: "var(--exec-return)",
+                color: "var(--bg-primary)",
                 padding: "0 6px",
                 borderRadius: "4px",
               }}
@@ -319,7 +319,7 @@ function StackFrame({ frame, isTop, depth, returnFlow, stepReturn, resolveNodeVa
               {resolveNodeValue(returnFlow.value)}
             </span>
             {returnFlow.toFunction && (
-              <span style={{ color: "#c2410c" }}>
+              <span style={{ color: "var(--exec-return)" }}>
                 to {returnFlow.toFunction}()
               </span>
             )}
@@ -372,7 +372,7 @@ export default function CallStackPanel({ stack = [], returnFlow = null, stepRetu
           style={{
             fontSize: "0.6875rem",
             fontWeight: 700,
-            color: "#6b7280",
+            color: "var(--text-muted)",
             textTransform: "uppercase",
             letterSpacing: "0.08em",
             margin: 0,
@@ -383,9 +383,9 @@ export default function CallStackPanel({ stack = [], returnFlow = null, stepRetu
         <span
           style={{
             fontSize: "0.6875rem",
-            fontFamily: "monospace",
-            color: "#9ca3af",
-            background: "#f3f4f6",
+            fontFamily: "var(--font-mono)",
+            color: "var(--text-secondary)",
+            background: "var(--bg-elevated)",
             padding: "1px 6px",
             borderRadius: "9999px",
           }}
@@ -399,12 +399,12 @@ export default function CallStackPanel({ stack = [], returnFlow = null, stepRetu
             style={{
               marginLeft: "auto",
               fontSize: "0.6875rem",
-              color: "#c2410c",
-              background: "#fff7ed",
-              border: "1px solid #fed7aa",
+              color: "var(--exec-return)",
+              background: "color-mix(in srgb, var(--exec-return) 10%, transparent)",
+              border: "1px solid color-mix(in srgb, var(--exec-return) 30%, transparent)",
               borderRadius: "9999px",
               padding: "1px 8px",
-              fontFamily: "monospace",
+              fontFamily: "var(--font-mono)",
               fontWeight: 600,
               whiteSpace: "nowrap",
             }}
@@ -420,10 +420,10 @@ export default function CallStackPanel({ stack = [], returnFlow = null, stepRetu
           style={{
             padding: "16px 12px",
             borderRadius: "8px",
-            border: "1px dashed #e5e7eb",
+            border: "1px dashed var(--border-color)",
             textAlign: "center",
             fontSize: "0.8125rem",
-            color: "#9ca3af",
+            color: "var(--text-muted)",
           }}
         >
           ✓ Execution complete
@@ -434,7 +434,7 @@ export default function CallStackPanel({ stack = [], returnFlow = null, stepRetu
             display: "flex",
             flexDirection: "column",
             gap: "8px",
-            borderLeft: "2px solid #e5e7eb",
+            borderLeft: "2px solid var(--border-color)",
             paddingLeft: "10px",
           }}
         >

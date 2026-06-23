@@ -51,7 +51,7 @@ export default function ExecutionDiagnosticsPanel({
   return (
     <div 
       className={`border rounded-lg p-5 shadow-2xl transition-all duration-300 ${borderAccent} ${bgAccent} w-full flex flex-col gap-6 relative`}
-      style={{ backgroundColor: "var(--bg-surface)", borderColor: isError ? "#3f1a1a" : "var(--border-color)" }}
+      style={{ backgroundColor: "var(--bg-surface)", borderColor: isError ? "color-mix(in srgb, var(--exec-error) 25%, transparent)" : "var(--border-color)" }}
     >
       {/* Decorative side accent bar */}
       <div 
@@ -175,17 +175,21 @@ export default function ExecutionDiagnosticsPanel({
       </div>
 
       {/* Variable Snapshot Panel */}
-      {diagnostic.variableSnapshot && Object.keys(diagnostic.variableSnapshot).length > 0 && (
-        <div className="pl-2 flex flex-col gap-3">
-          <h3 
-            className="text-xs uppercase tracking-widest font-mono text-(--text-muted) flex items-center gap-2"
-            style={monoFont}
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} className="w-3.5 h-3.5">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
-            </svg>
-            Variables at Crash Point
-          </h3>
+      <div className="pl-2 flex flex-col gap-3">
+        <h3 
+          className="text-xs uppercase tracking-widest font-mono text-(--text-muted) flex items-center gap-2"
+          style={monoFont}
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} className="w-3.5 h-3.5">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+          </svg>
+          Variables at Crash Point
+        </h3>
+        {(!diagnostic.variableSnapshot || Object.keys(diagnostic.variableSnapshot).length === 0) ? (
+          <div className="flex items-center justify-center p-4 border border-dashed border-(--border-color) rounded bg-(--bg-surface)/50 text-(--text-muted) text-xs font-mono uppercase tracking-widest">
+            No Variable State Captured
+          </div>
+        ) : (
           <div className="overflow-x-auto rounded border border-(--border-color) bg-background">
             <table className="min-w-full divide-y divide-(--border-color) text-xs font-mono" style={monoFont}>
               <thead>
@@ -230,18 +234,22 @@ export default function ExecutionDiagnosticsPanel({
               </tbody>
             </table>
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
       {/* Structured Suggestions / Action Items */}
-      {diagnostic.suggestions && diagnostic.suggestions.length > 0 && (
-        <div className="pl-2 flex flex-col gap-3">
-          <h3 
-            className="text-xs uppercase tracking-widest font-mono text-(--text-muted)"
-            style={monoFont}
-          >
-            Recommended Resolutions
-          </h3>
+      <div className="pl-2 flex flex-col gap-3">
+        <h3 
+          className="text-xs uppercase tracking-widest font-mono text-(--text-muted)"
+          style={monoFont}
+        >
+          Recommended Resolutions
+        </h3>
+        {(!diagnostic.suggestions || diagnostic.suggestions.length === 0) ? (
+          <div className="flex items-center justify-center p-4 border border-dashed border-(--border-color) rounded bg-(--bg-surface)/50 text-(--text-muted) text-xs font-mono uppercase tracking-widest">
+            No Automated Resolutions Available
+          </div>
+        ) : (
           <ul className="flex flex-col gap-2.5 m-0 p-0 list-none">
             {diagnostic.suggestions.map((suggestion, idx) => (
               <li 
@@ -259,8 +267,8 @@ export default function ExecutionDiagnosticsPanel({
               </li>
             ))}
           </ul>
-        </div>
-      )}
+        )}
+      </div>
 
       {/* Raw Trace Toggle */}
       {diagnostic.rawMessage && (

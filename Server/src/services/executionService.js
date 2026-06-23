@@ -16,7 +16,8 @@ const { normalizeReturns } = require("../execution/normalizers/javaReturnNormali
 const { normalizeLoopFlows } = require("../execution/normalizers/javaLoopFlowNormalizer");
 const { normalizeConditions } = require("../execution/normalizers/javaConditionNormalizer");
 const { deriveSourceSteps } = require("../sourceSteps/deriveSourceSteps");
-const { resolveSourceStepStates, printResolvedSourceSteps } = require("../sourceSteps/resolveSourceStepStates");
+const { resolveSourceStepStates } = require("../sourceSteps/resolveSourceStepStates");
+const logger = require("../utils/logger");
 
 const EXECUTIONS_DIR = path.join(__dirname, "../../executions");
 
@@ -225,7 +226,7 @@ async function runDockerExecution(dirPath, executionId) {
     const uniqueId = crypto.randomUUID();
     const containerName = `sandbox-${uniqueId}`;
     
-    console.log(`[DOCKER DEBUG] Starting container: ${containerName} for executionId: ${executionId}`);
+    logger.debug(`[DOCKER DEBUG] Starting container: ${containerName} for executionId: ${executionId}`);
     
     const args = [
       "run",
@@ -256,7 +257,7 @@ async function runDockerExecution(dirPath, executionId) {
     const timer = setTimeout(() => {
       if (isFinished) return;
       isFinished = true;
-      console.log(`[DOCKER DEBUG] Timeout reached for container: ${containerName}`);
+      logger.debug(`[DOCKER DEBUG] Timeout reached for container: ${containerName}`);
       killContainer();
       reject(new Error("Execution timed out"));
     }, DOCKER_TIMEOUT_MS);
@@ -268,7 +269,7 @@ async function runDockerExecution(dirPath, executionId) {
       if (stdout.length > MAX_TRACE_SIZE) {
         isFinished = true;
         clearTimeout(timer);
-        console.log(`[DOCKER DEBUG] TRACE limit exceeded for container: ${containerName}`);
+        logger.debug(`[DOCKER DEBUG] TRACE limit exceeded for container: ${containerName}`);
         killContainer();
         reject(new Error("TRACE size exceeded limit"));
       }
@@ -284,9 +285,9 @@ async function runDockerExecution(dirPath, executionId) {
       isFinished = true;
       clearTimeout(timer);
       
-      console.log(`[DOCKER DEBUG] Container closed: ${containerName} with code: ${code}`);
+      logger.debug(`[DOCKER DEBUG] Container closed: ${containerName} with code: ${code}`);
       if (stderr) {
-        console.log(`[DOCKER DEBUG] Stderr for ${containerName}: ${stderr}`);
+        logger.debug(`[DOCKER DEBUG] Stderr for ${containerName}: ${stderr}`);
       }
 
       if (code !== 0) {
@@ -310,7 +311,7 @@ function cleanup(dirPath) {
   try {
     fs.rmSync(dirPath, { recursive: true, force: true });
   } catch (e) {
-    console.error("Cleanup error:", e.message);
+    logger.error("Cleanup error:", e.message);
   }
 }
 
@@ -322,14 +323,14 @@ async function executeJavaCode(userCode, input) {
     // 🔥 STEP 1 & 2: Extract all methods and Instrument them!
     const { finalUserCode, methodName, methodParams, returnType } = extractAllMethodsAndInstrument(userCode);
 
-    console.log("===== FINAL USER CODE =====");
-    console.log(finalUserCode);
+    logger.debug("===== FINAL USER CODE =====");
+    logger.debug(finalUserCode);
 
-    console.log("===== MAIN METHOD NAME =====");
-    console.log(methodName);
+    logger.debug("===== MAIN METHOD NAME =====");
+    logger.debug(methodName);
 
-    console.log("===== MAIN METHOD PARAMS =====");
-    console.log(methodParams);
+    logger.debug("===== MAIN METHOD PARAMS =====");
+    logger.debug(methodParams);
 
     // 🔥 STEP 3: Wrap and execute
     const wrapped = wrapJavaCode(finalUserCode, input, methodName, methodParams, returnType);
@@ -372,7 +373,7 @@ async function executeJavaCode(userCode, input) {
 
     const sourceSteps = deriveSourceSteps(states);
     const resolvedSourceSteps = resolveSourceStepStates(sourceSteps, states);
-    // printResolvedSourceSteps(resolvedSourceSteps);
+
 
     // ── Semantic Interpretation Layer (non-authoritative, read-only) ────────────
     // Runs AFTER state reconstruction. Never mutates `states`.

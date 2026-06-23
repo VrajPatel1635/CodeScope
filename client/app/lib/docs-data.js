@@ -98,7 +98,9 @@ export const DOCS_DATA_DETAILS = {
         Number: "LeetCode 54",
         name: "Spiral Matrix",
         input: "[[1, 2, 3], [4, 5, 6], [7, 8, 9]]",
-        code: `class Solution {
+        code: `import java.util.*;
+
+class Solution {
     public List<Integer> solve(int[][] matrix) {
         List<Integer> result = new ArrayList<>();
 
@@ -158,7 +160,9 @@ export const DOCS_DATA_DETAILS = {
         Number: "LeetCode 394",
         name: "Decode String",
         input: "\"3[a2[c]]\"",
-        code: `class Solution {
+        code: `import java.util.*;
+
+class Solution {
     public String solve(String s) {
         Stack<Integer> countStack = new Stack<>();
         Stack<String> stringStack = new Stack<>();
@@ -366,7 +370,9 @@ export const DOCS_DATA_DETAILS = {
     [3, 2]
   ]
 ]`,
-        code: `class Solution {
+        code: `import java.util.*;
+
+class Solution {
     public int[] solve(int numCourses, int[][] prerequisites) {
 
         List<List<Integer>> graph = new ArrayList<>();
@@ -436,7 +442,9 @@ export const DOCS_DATA_DETAILS = {
         Number: "LeetCode 84",
         name: "Largest Rectangle in Histogram",
         input: "[2,1,5,6,2,3]",
-        code: `class Solution {
+        code: `import java.util.*;
+
+class Solution {
     public int solve(int[] heights) {
         Stack<Integer> stack = new Stack<>();
         int maxArea = 0;
@@ -485,7 +493,9 @@ export const DOCS_DATA_DETAILS = {
         Number: "LeetCode 649",
         name: "Dota2 Senate",
         input: "\"RRD\"",
-        code: `class Solution {
+        code: `import java.util.*;
+
+class Solution {
     public String solve(String senate) {
 
         Queue<Integer> radiant = new LinkedList<>();
@@ -534,7 +544,9 @@ export const DOCS_DATA_DETAILS = {
         Number: "LeetCode 295",
         name: "Find Median from Data Stream",
         input: "[5, 15, 1, 3]",
-        code: `class Solution {
+        code: `import java.util.*;
+
+class Solution {
     public double solve(int[] nums) {
 
         PriorityQueue<Integer> lower =
@@ -582,7 +594,9 @@ export const DOCS_DATA_DETAILS = {
         Number: "LeetCode 560",
         name: "Subarray Sum Equals K",
         input: "[[1, 2, 1, 2, 1], 3]",
-        code: `class Solution {
+        code: `import java.util.*;
+
+class Solution {
     public int solve(int[] nums, int k) {
 
         HashMap<Integer, Integer> prefixCount = new HashMap<>();
@@ -624,7 +638,9 @@ export const DOCS_DATA_DETAILS = {
         Number: "LeetCode 128",
         name: "Longest Consecutive Sequence",
         input: "[100, 4, 200, 1, 3, 2]",
-        code: `class Solution {
+        code: `import java.util.*;
+
+class Solution {
     public int solve(int[] nums) {
 
         HashSet<Integer> set = new HashSet<>();
@@ -671,7 +687,9 @@ export const DOCS_DATA_DETAILS = {
         Number: "LeetCode 239",
         name: "Sliding Window Maximum",
         input: "[[1, 3, -1, -3, 5, 3, 6, 7], 3]",
-        code: `class Solution {
+        code: `import java.util.*;
+
+class Solution {
     public int[] solve(int[] nums, int k) {
 
         Deque<Integer> deque = new LinkedList<>();

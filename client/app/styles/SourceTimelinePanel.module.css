@@ -1,8 +1,8 @@
 .wrapper {
   display: flex;
   flex-direction: column;
-  background: #0f1117;
-  border: 1px solid #1e2433;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
   overflow: hidden;
   min-width: 180px;
@@ -16,8 +16,8 @@
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: #4b5a7a;
-  border-bottom: 1px solid #1e2433;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border-color);
   user-select: none;
 }
 
@@ -26,12 +26,12 @@
   max-height: 340px;
   padding: 4px 0;
   scrollbar-width: thin;
-  scrollbar-color: #2a3550 transparent;
+  scrollbar-color: var(--border-color) transparent;
 }
 
 .list::-webkit-scrollbar { width: 4px; }
 .list::-webkit-scrollbar-track { background: transparent; }
-.list::-webkit-scrollbar-thumb { background: #2a3550; border-radius: 4px; }
+.list::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 4px; }
 
 .item {
   position: relative;
@@ -47,53 +47,53 @@
   overflow: hidden;
 }
 
-.item:hover { background: #141928; }
+.item:hover { background: var(--bg-elevated); }
 
 .itemPrep { opacity: 0.55; }
 .itemPrep:hover { opacity: 0.8; }
 
 .itemActive {
-  background: #1a243d;
-  border-left-color: #3b82f6;
+  background: var(--bg-elevated);
+  border-left-color: var(--exec-active);
   opacity: 1;
 }
 
 .badge {
   font-size: 0.6rem;
   font-weight: 600;
-  color: #3b5080;
+  color: var(--text-muted);
   min-width: 22px;
   font-variant-numeric: tabular-nums;
 }
-.itemActive .badge { color: #5b8be0; }
+.itemActive .badge { color: var(--exec-active); }
 
 .frame {
   font-size: 0.6rem;
   font-weight: 600;
   padding: 1px 5px;
   border-radius: 3px;
-  background: #1a2540;
-  color: #4b6ea8;
+  background: var(--bg-elevated);
+  color: var(--text-muted);
   font-family: 'JetBrains Mono', 'Fira Code', monospace;
 }
-.itemActive .frame { background: #1e3060; color: #6fa0e8; }
+.itemActive .frame { background: color-mix(in srgb, var(--exec-active) 20%, transparent); color: var(--exec-active); }
 
 .lineLabel {
   font-size: 0.68rem;
-  color: #8899bb;
+  color: var(--text-secondary);
   font-family: 'JetBrains Mono', 'Fira Code', monospace;
   flex: 1;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.itemActive .lineLabel { color: #aac4f0; }
-.lineLabelPrep { color: #4b5a7a; font-style: italic; }
+.itemActive .lineLabel { color: var(--text-primary); }
+.lineLabelPrep { color: var(--text-muted); font-style: italic; }
 
 .activeDot {
   width: 5px;
   height: 5px;
   border-radius: 50%;
-  background: #3b82f6;
+  background: var(--exec-active);
   flex-shrink: 0;
-  box-shadow: 0 0 6px 1px rgba(59, 130, 246, 0.5);
+  box-shadow: 0 0 6px 1px color-mix(in srgb, var(--exec-active) 50%, transparent);
 }

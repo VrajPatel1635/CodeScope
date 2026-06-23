@@ -1,3 +1,5 @@
+const logger = require("../utils/logger");
+
 function resolveSourceStepStates(sourceSteps, microStates) {
     // Source timeline is ordered by when a line is first hit (deriveSourceSteps sorts by
     // sourceStepId, which increments when the step is created). If we resolve a LINE source-step
@@ -26,20 +28,20 @@ function resolveSourceStepStates(sourceSteps, microStates) {
 
 function printResolvedSourceSteps(sourceSteps) {
     for (const step of sourceSteps) {
-        console.log("================================");
-        console.log(`SOURCE STEP #${step.sourceStepId}`);
-        console.log(`TYPE: ${step.sourceStepType}`);
-        console.log(`FRAME: ${step.frameId}`);
+        logger.debug("================================");
+        logger.debug(`SOURCE STEP #${step.sourceStepId}`);
+        logger.debug(`TYPE: ${step.sourceStepType}`);
+        logger.debug(`FRAME: ${step.frameId}`);
         if (step.sourceStepType === "LINE") {
-            console.log(`LINE: ${step.lineNumber}`);
+            logger.debug(`LINE: ${step.lineNumber}`);
         }
-        console.log("");
-        console.log(`OWNED MICRO STEPS:`);
-        console.log(`[${step.microStepIds.join(",")}]`);
-        console.log("");
-        console.log(`RESOLVED MICRO STEP:`);
-        console.log(`${step.resolvedMicroStepId}`);
-        console.log("==");
+        logger.debug("");
+        logger.debug(`OWNED MICRO STEPS:`);
+        logger.debug(`[${step.microStepIds.join(",")}]`);
+        logger.debug("");
+        logger.debug(`RESOLVED MICRO STEP:`);
+        logger.debug(`${step.resolvedMicroStepId}`);
+        logger.debug("==");
     }
 }
 

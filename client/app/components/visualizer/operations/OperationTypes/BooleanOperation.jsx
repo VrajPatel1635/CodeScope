@@ -7,8 +7,8 @@ export default function BooleanOperation({ evaluatedExpr, result }) {
   return (
     <OperationCard title="Boolean" icon="&">
       <div className="flex items-center gap-3 text-[15px]">
-        <span className="text-[#AAAAAA]">{evaluatedExpr}</span>
-        <span className="text-[#666666]">=</span>
+        <span className="text-(--text-secondary)">{evaluatedExpr}</span>
+        <span className="text-(--text-muted)">=</span>
         <span
           className={`px-2 py-0.5 rounded font-semibold text-sm ${
             isTrue

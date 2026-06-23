@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import Editor from "@monaco-editor/react";
 import Button from "@/app/components/landing/ui/Button";
+import CustomYouTubePlayer from "@/app/components/landing/ui/CustomYouTubePlayer";
 import { DOCS_DATA_DETAILS, DOCS_NAVIGATION } from "@/app/lib/docs-data";
 
 // Helper to determine if a URL is YouTube
@@ -20,6 +21,26 @@ const getYouTubeID = (url) => {
   const match = url.match(regExp);
   return (match && match[2].length === 11) ? match[2] : null;
 };
+
+const CodeEditorLoadingSkeleton = () => (
+  <div className="w-full h-full flex flex-col p-4 bg-(--bg-elevated)">
+    <div className="flex items-center gap-2 mb-4">
+      <div className="w-2 h-2 rounded-full bg-(--accent-primary) animate-pulse" />
+      <span className="text-[10px] font-mono text-(--text-secondary) uppercase tracking-widest">Initializing Editor</span>
+    </div>
+    {[...Array(10)].map((_, i) => (
+      <div key={i} className="flex gap-4 mb-2 opacity-50">
+        <div className="w-4 h-4 text-[10px] font-mono text-(--text-muted) text-right">{i + 1}</div>
+        <motion.div 
+          className="h-4 bg-(--border-color) rounded"
+          initial={{ width: "20%" }}
+          animate={{ width: `${Math.random() * 40 + 20}%` }}
+          transition={{ repeat: Infinity, repeatType: "reverse", duration: 1.5 + Math.random() }}
+        />
+      </div>
+    ))}
+  </div>
+);
 
 export default function DocsDetail({ params }) {
   const resolvedParams = use(params);
@@ -47,6 +68,8 @@ export default function DocsDetail({ params }) {
 
   const [activeTab, setActiveTab] = useState(0);
   const [copied, setCopied] = useState(false);
+  const [videoLoaded, setVideoLoaded] = useState(false);
+  const [videoError, setVideoError] = useState(false);
 
   const videoToPlay = topicData.videoUrl || "https://www.youtube.com/watch?v=ri1Ar5nEq4s";
 
@@ -63,7 +86,7 @@ export default function DocsDetail({ params }) {
   };
 
   return (
-    <div className="min-h-screen pb-32 pt-24 px-6 lg:px-12 xl:px-20 font-ui relative overflow-hidden selection:bg-(--accent-primary) selection:text-background">
+    <div className="min-h-screen pb-32 pt-24 px-6 lg:px-12 xl:px-20 font-ui relative overflow-x-hidden selection:bg-(--accent-primary) selection:text-background">
       {/* Background glow for aesthetic */}
       <div className="fixed top-[-20%] right-[-10%] w-[800px] h-[800px] bg-(--accent-primary) opacity-[0.02] blur-[150px] pointer-events-none rounded-full" />
 
@@ -120,8 +143,8 @@ export default function DocsDetail({ params }) {
             
             {topicData.unsupported.length > 0 && (
               <div className="bg-(--bg-elevated) border border-(--border-color) p-8 rounded-xl relative overflow-hidden group">
-                <div className="absolute top-0 left-0 w-1 h-full bg-[#ED6A5E] opacity-50 group-hover:opacity-100 transition-opacity" />
-                <h3 className="text-[#ED6A5E] font-mono text-xs uppercase tracking-widest mb-6">Execution Limitations</h3>
+                <div className="absolute top-0 left-0 w-1 h-full bg-(--exec-error) opacity-50 group-hover:opacity-100 transition-opacity" />
+                <h3 className="text-(--exec-error) font-mono text-xs uppercase tracking-widest mb-6">Execution Limitations</h3>
                 <ul className="list-none space-y-4">
                   {topicData.unsupported.map((unsup, i) => (
                     <li key={i} className="flex items-start gap-4 text-(--text-secondary) text-sm font-mono leading-relaxed">
@@ -236,19 +259,19 @@ export default function DocsDetail({ params }) {
           </div>
           
           {/* Monaco Editor Panel */}
-          <div className="lg:col-span-8 bg-[#1e1e1e] relative group border-t lg:border-t-0 lg:border-l border-[#333]">
+          <div className="lg:col-span-8 bg-(--bg-elevated) relative group border-t lg:border-t-0 lg:border-l border-(--border-color)">
             <button
               onClick={handleCopy}
-              className="absolute top-4 right-6 z-10 px-3 py-1.5 bg-[#1e1e1e]/90 hover:bg-[#2d2d2d] border border-[#333] rounded-md text-[10px] uppercase tracking-widest font-mono text-[#A8AABB] hover:text-[#D37B50] transition-all backdrop-blur-md flex items-center gap-2 opacity-0 group-hover:opacity-100 shadow-xl"
+              className="absolute top-4 right-6 z-10 px-3 py-1.5 bg-(--bg-elevated)/90 hover:bg-(--border-color) border border-(--border-color) rounded-md text-[10px] uppercase tracking-widest font-mono text-(--text-secondary) hover:text-(--accent-primary) transition-all backdrop-blur-md flex items-center gap-2 opacity-0 group-hover:opacity-100 shadow-xl"
             >
               {copied ? (
                 <>
-                  <div className="w-1.5 h-1.5 rounded-full bg-[#61C554] shadow-[0_0_8px_rgba(97,197,84,0.6)]" />
+                  <div className="w-1.5 h-1.5 rounded-full bg-(--exec-node-active) shadow-[0_0_8px_var(--exec-node-active)]" />
                   Copied
                 </>
               ) : (
                 <>
-                  <div className="w-1.5 h-1.5 rounded-full bg-[#D37B50] opacity-50" />
+                  <div className="w-1.5 h-1.5 rounded-full bg-(--accent-primary) opacity-50" />
                   Copy Code
                 </>
               )}
@@ -259,6 +282,7 @@ export default function DocsDetail({ params }) {
                  defaultLanguage="java"
                  theme="vs-dark"
                  value={codeString}
+                 loading={<CodeEditorLoadingSkeleton />}
                  options={{
                    readOnly: true,
                    minimap: { enabled: false },
@@ -298,35 +322,49 @@ export default function DocsDetail({ params }) {
 
           <div className="w-full bg-(--bg-elevated) border border-(--border-color) rounded-xl overflow-hidden shadow-[0_30px_80px_-20px_rgba(0,0,0,0.6)] group">
             {/* MacOS Title Bar */}
-            <div className="h-10 bg-background border-b border-(--border-color) flex items-center px-4 relative z-10">
-              <div className="flex gap-2">
-                <div className="w-3 h-3 rounded-full bg-[#ED6A5E] border border-[#D04E42]" />
-                <div className="w-3 h-3 rounded-full bg-[#F4BF4F] border border-[#D6A243]" />
-                <div className="w-3 h-3 rounded-full bg-[#61C554] border border-[#4A983D]" />
+            <div className="h-10 bg-background border-b border-(--border-color) flex items-center justify-between px-4 relative z-10">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-(--accent-primary) animate-pulse" />
+                <span className="text-[10px] font-mono text-(--accent-primary) uppercase tracking-widest">LIVE</span>
               </div>
               <div className="absolute left-1/2 -translate-x-1/2 text-[10px] font-mono text-(--text-muted) uppercase tracking-widest select-none">
                 {topicSlug}-visualizer.mp4
               </div>
+              <div className="w-12" />
             </div>
 
             {/* Video Player Area */}
-            <div className="relative aspect-video bg-black flex items-center justify-center">
+            <div className="relative aspect-video bg-black flex items-center justify-center overflow-hidden">
+              {!videoLoaded && !videoError && (
+                <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-(--bg-elevated)">
+                  <div className="w-8 h-8 border border-(--border-color) rounded-full flex items-center justify-center relative overflow-hidden">
+                    <div className="absolute inset-0 border-t border-r rounded-full animate-spin border-(--accent-secondary) transition-all duration-300" style={{ animationDuration: "2s" }} />
+                  </div>
+                  <span className="text-[10px] font-mono uppercase tracking-widest text-(--text-muted)">Initializing Media Pipeline</span>
+                </div>
+              )}
+              {videoError && (
+                <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-(--bg-surface)">
+                  <div className="w-8 h-8 rounded-full bg-red-950/30 flex items-center justify-center border border-red-900/50">
+                    <div className="w-2 h-2 rounded-full bg-red-500 opacity-50" />
+                  </div>
+                  <span className="text-[10px] font-mono uppercase tracking-widest text-red-400">Media Unreachable</span>
+                </div>
+              )}
+
               {isYouTube(videoToPlay) ? (
-                <iframe
-                  className="w-full h-full"
-                  src={`https://www.youtube.com/embed/${getYouTubeID(videoToPlay)}?autoplay=0&controls=1&showinfo=0&rel=0`}
-                  title="YouTube video player"
-                  frameBorder="0"
-                  allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                />
+                <div className="w-full h-full relative z-10">
+                  <CustomYouTubePlayer videoId={getYouTubeID(videoToPlay)} />
+                </div>
               ) : (
                 <video 
-                  className="w-full h-full object-cover"
+                  className={`w-full h-full object-cover relative z-10 transition-opacity duration-700 ${videoLoaded ? "opacity-100" : "opacity-0"}`}
                   src={videoToPlay}
                   loop
                   controls
                   playsInline
+                  onLoadedData={() => setVideoLoaded(true)}
+                  onError={() => setVideoError(true)}
                 />
               )}
               {/* Scanline overlay for aesthetic */}

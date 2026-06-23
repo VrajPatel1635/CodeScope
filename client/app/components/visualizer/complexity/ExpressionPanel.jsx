@@ -35,8 +35,8 @@ export default function ExpressionPanel({ expressionEvaluation }) {
     <div
       style={{
         borderRadius: "10px",
-        border: "1.5px solid #fde68a",
-        background: "linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%)",
+        border: "1.5px solid var(--border-color)",
+        background: "var(--bg-surface)",
         padding: "14px 16px",
         boxShadow: "0 2px 8px rgba(251,191,36,0.15)",
       }}
@@ -56,7 +56,7 @@ export default function ExpressionPanel({ expressionEvaluation }) {
             margin: 0,
             fontSize: "0.7rem",
             fontWeight: 700,
-            color: "#92400e",
+            color: "var(--text-secondary)",
             textTransform: "uppercase",
             letterSpacing: "0.08em",
           }}
@@ -85,7 +85,7 @@ export default function ExpressionPanel({ expressionEvaluation }) {
         {/* Divider */}
         <div
           style={{
-            borderTop: "1.5px dashed #fcd34d",
+            borderTop: "1.5px dashed var(--border-color)",
             margin: "2px 0",
           }}
         />
@@ -97,7 +97,7 @@ export default function ExpressionPanel({ expressionEvaluation }) {
               fontFamily: "monospace",
               fontSize: "1.05rem",
               fontWeight: 700,
-              color: "#78350f",
+              color: "var(--text-primary)",
               letterSpacing: "0.04em",
             }}
           >
@@ -108,7 +108,7 @@ export default function ExpressionPanel({ expressionEvaluation }) {
               fontFamily: "monospace",
               fontSize: "1.1rem",
               fontWeight: 700,
-              color: "#d97706",
+              color: "var(--text-muted)",
               padding: "0 4px",
             }}
           >
@@ -119,7 +119,7 @@ export default function ExpressionPanel({ expressionEvaluation }) {
               fontFamily: "monospace",
               fontSize: "1.05rem",
               fontWeight: 700,
-              color: "#78350f",
+              color: "var(--text-primary)",
             }}
           >
             {rightValue}
@@ -129,7 +129,7 @@ export default function ExpressionPanel({ expressionEvaluation }) {
               fontFamily: "monospace",
               fontSize: "1.1rem",
               fontWeight: 700,
-              color: "#d97706",
+              color: "var(--text-muted)",
               padding: "0 6px",
             }}
           >
@@ -142,8 +142,8 @@ export default function ExpressionPanel({ expressionEvaluation }) {
               fontFamily: "monospace",
               fontWeight: 800,
               fontSize: "1.05rem",
-              background: "#f97316",
-              color: "#fff",
+              background: "var(--accent-primary)",
+              color: "var(--bg-primary)",
               padding: "2px 12px",
               borderRadius: "9999px",
               boxShadow: "0 1px 4px rgba(249,115,22,0.35)",
@@ -162,8 +162,8 @@ export default function ExpressionPanel({ expressionEvaluation }) {
 
 function Token({ label, color }) {
   const colors = {
-    blue:   { bg: "#dbeafe", border: "#bfdbfe", text: "#1e40af" },
-    purple: { bg: "#ede9fe", border: "#ddd6fe", text: "#6d28d9" },
+    blue:   { bg: "color-mix(in srgb, var(--exec-active) 15%, transparent)", border: "color-mix(in srgb, var(--exec-active) 30%, transparent)", text: "var(--exec-active)" },
+    purple: { bg: "color-mix(in srgb, var(--exec-frontier) 15%, transparent)", border: "color-mix(in srgb, var(--exec-frontier) 30%, transparent)", text: "var(--exec-frontier)" },
   };
   const c = colors[color] ?? colors.blue;
   return (
@@ -187,8 +187,8 @@ function Token({ label, color }) {
 
 function Value({ value, color }) {
   const colors = {
-    blue:   { bg: "#1e40af", text: "#fff" },
-    purple: { bg: "#6d28d9", text: "#fff" },
+    blue:   { bg: "var(--exec-active)", text: "var(--bg-primary)" },
+    purple: { bg: "var(--exec-frontier)", text: "var(--bg-primary)" },
   };
   const c = colors[color] ?? colors.blue;
   return (
@@ -219,6 +219,6 @@ const rowStyle = {
 
 const equalsStyle = {
   fontSize: "0.75rem",
-  color: "#92400e",
+  color: "var(--text-secondary)",
   fontWeight: 500,
 };

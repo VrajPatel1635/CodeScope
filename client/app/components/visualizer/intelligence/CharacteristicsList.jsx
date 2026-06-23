@@ -20,7 +20,7 @@ export default function CharacteristicsList({ characteristics }) {
               style={{ 
                 backgroundColor: isNegative ? "rgba(255,0,0,0.1)" : "var(--bg-elevated)", 
                 borderColor: isNegative ? "rgba(255,0,0,0.2)" : "var(--border-color)",
-                color: isNegative ? "#ff6b6b" : "var(--text-secondary)"
+                color: isNegative ? "var(--exec-error)" : "var(--text-secondary)"
               }}
             >
               {displayChar}

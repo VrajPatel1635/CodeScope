@@ -39,8 +39,8 @@ export default function LoopInsightPanel({ loopContext }) {
                   <span className="text-gray-500 text-sm">Iteration:</span>
                   <motion.div
                     key={`${id}-${iter}`}
-                    initial={{ scale: 1.4, color: "#4f46e5" }}
-                    animate={{ scale: 1, color: "#312e81" }}
+                    initial={{ scale: 1.4, color: "var(--exec-active)" }}
+                    animate={{ scale: 1, color: "var(--text-primary)" }}
                     className="font-black text-xl w-8 text-center"
                   >
                     {iter}

@@ -30,7 +30,7 @@ export default function FeaturesMarquee() {
   const row3 = ["Execution Intelligence", "✦", "Diagnostics", "✦", "Hotspots", "✦", "Recursion", "✦", "DFS", "✦", "BFS", "✦"];
 
   return (
-    <section className="relative w-full py-8 md:py-12 flex flex-col items-center justify-center border-y border-white/4 bg-background">
+    <section className="relative w-full py-8 md:py-12 flex flex-col items-center justify-center bg-background">
       {/* Modern CSS Mask for smooth fade-out on the left and right edges */}
       <div
         className="w-full flex flex-col gap-2 md:gap-4 relative"

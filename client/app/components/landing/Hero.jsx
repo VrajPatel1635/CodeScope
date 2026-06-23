@@ -107,16 +107,9 @@ export default function Hero() {
                 whileHover={{ y: -8, transition: { duration: 0.5, ease: "easeOut" } }}
                 className="absolute top-0 right-0 w-[90%] rounded-2xl border border-white/10 bg-background/80 shadow-[0_40px_80px_-20px_rgba(0,0,0,0.8)] overflow-hidden backdrop-blur-2xl z-10"
               >
-                <div className="flex items-center gap-2 px-4 py-3 border-b border-white/5 bg-white/5">
-                  <div className="flex gap-1.5">
-                    <div className="w-2.5 h-2.5 rounded-full bg-white/20" />
-                    <div className="w-2.5 h-2.5 rounded-full bg-white/20" />
-                    <div className="w-2.5 h-2.5 rounded-full bg-white/20" />
-                  </div>
-                  <div className="flex-1 flex justify-center">
-                    <span className="text-[9px] text-white/30 font-mono tracking-widest uppercase">Solution.java</span>
-                  </div>
-                  <div className="w-12" />
+                <div className="flex items-center justify-between px-4 py-3 border-b border-white/5 bg-white/5">
+                  <span className="text-[9px] text-white/30 font-mono tracking-[0.2em] uppercase">// SYS.CORE_INIT</span>
+                  <span className="text-[9px] text-white/30 font-mono tracking-widest uppercase">Solution.java</span>
                 </div>
                 
                 <div className="p-6 font-mono text-[13px] text-white/50 leading-loose overflow-x-hidden">

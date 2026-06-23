@@ -27,7 +27,8 @@ function detectPatterns({ states, sourceSteps, semantics }) {
         const slidingWindow = detectSlidingWindow(states, semantics);
         if (slidingWindow) patterns.push(slidingWindow);
     } catch (err) {
-        console.error("Error during pattern detection:", err);
+        const logger = require("../utils/logger");
+        logger.error("Error during pattern detection:", err);
     }
 
     return patterns;

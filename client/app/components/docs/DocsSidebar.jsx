@@ -221,12 +221,12 @@ export default function DocsSidebar() {
                 transition={{ duration: 0.2 }}
                 className="flex items-center justify-between w-full"
               >
-                <div className="flex items-center gap-4">
-                  <img src="/codescopelogo.png" alt="Logo" className="w-7 h-7 object-contain invert opacity-90 hover:opacity-100 transition-opacity" />
-                  <span className="font-mono text-[11px] uppercase tracking-[0.25em] text-foreground">
+                <Link href="/" className="flex items-center gap-4 group outline-none">
+                  <img src="/codescopelogo.png" alt="Logo" className="w-7 h-7 object-contain invert opacity-90 group-hover:opacity-100 group-hover:scale-110 transition-all duration-500" />
+                  <span className="font-mono text-[11px] uppercase tracking-[0.25em] text-foreground group-hover:text-(--accent-primary) transition-colors duration-300">
                     CodeScope
                   </span>
-                </div>
+                </Link>
                 <button
                   onClick={() => setIsDesktopOpen(false)}
                   className="group relative w-8 h-8 flex items-center justify-center border border-transparent hover:border-(--accent-primary)/30 bg-transparent hover:bg-(--bg-elevated) transition-all duration-500 cursor-pointer overflow-hidden"
@@ -347,9 +347,12 @@ export default function DocsSidebar() {
               onClick={(e) => e.stopPropagation()}
             >
               <div className="p-6 border-b border-(--border-color) mb-8">
-                <span className="font-mono text-[11px] uppercase tracking-[0.25em] text-foreground">
-                  CodeScope Directory
-                </span>
+                <Link href="/" className="flex items-center gap-3 group outline-none w-max" onClick={() => setIsMobileOpen(false)}>
+                  <img src="/codescopelogo.png" alt="Logo" className="w-6 h-6 object-contain invert opacity-90 group-hover:opacity-100 group-hover:scale-110 transition-all duration-500" />
+                  <span className="font-mono text-[11px] uppercase tracking-[0.25em] text-foreground group-hover:text-(--accent-primary) transition-colors duration-300">
+                    CodeScope Directory
+                  </span>
+                </Link>
               </div>
               {SidebarContent}
             </motion.aside>
