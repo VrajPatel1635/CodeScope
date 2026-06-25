@@ -2,8 +2,11 @@ import "./globals.css";
 import { LoaderProvider } from "./components/shared/LoaderContext";
 
 export const metadata = {
-  title: "DSA Visualizer",
-  description: "Step-by-step execution viewer",
+  title: "CodeScope",
+  description: "Advanced interactive execution visualizer for algorithmic analysis and debugging",
+  icons: {
+    icon: '/codescopelogo.png',
+  },
 };
 
 export default function RootLayout({ children }) {
