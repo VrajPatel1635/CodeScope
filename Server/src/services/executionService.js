@@ -44,6 +44,7 @@ function wrapJavaCode(userCode, input, methodName = "solve", methodParams = [], 
     methodName,
     methodParams: normalizedParams,
     inputRaw: input,
+    returnType
   });
 
   let declarationPart = "";
@@ -217,9 +218,9 @@ async function runJava(dirPath) {
   return await runProcess("java", ["Main"], dirPath);
 }
 
-const USE_DOCKER = false;
-const DOCKER_TIMEOUT_MS = 30000;
-const MAX_TRACE_SIZE = 5 * 1024 * 1024; // 5MB
+const USE_DOCKER = process.env.USE_DOCKER !== "false";
+const DOCKER_TIMEOUT_MS = parseInt(process.env.DOCKER_TIMEOUT_MS) || 30000;
+const MAX_TRACE_SIZE = parseInt(process.env.MAX_TRACE_SIZE) || (5 * 1024 * 1024); // Default 5MB
 
 async function runDockerExecution(dirPath, executionId) {
   return new Promise((resolve, reject) => {
@@ -234,6 +235,9 @@ async function runDockerExecution(dirPath, executionId) {
       "--name",
       containerName,
       "--memory=256m",
+      "--cpus=0.5",
+      "--network=none",
+      "--pids-limit=64",
       "-v",
       `${dirPath}:/app`,
       "-w",
@@ -657,8 +661,9 @@ function injectTraceIntoBody(mappedLines, methodName = "solve", methodParams = [
   let currentLoopVar = null;
   let pendingForTrace = null;
   
-  const wantsListNode = methodParams.some(p => p.type === "ListNode");
-  const wantsTreeNode = methodParams.some(p => p.type === "TreeNode");
+  const wantsListNode = methodParams.some(p => p.type === "ListNode") || returnType === "ListNode";
+  const wantsTreeNode = methodParams.some(p => p.type === "TreeNode") || returnType === "TreeNode";
+  const wantsNodeFormat = wantsListNode || wantsTreeNode;
   const formatter = "__DSAInput.formatValue";
 
   let braceDepth = 0;

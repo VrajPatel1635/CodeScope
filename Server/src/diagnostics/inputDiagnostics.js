@@ -52,12 +52,12 @@ module.exports = function resolveInputDiagnostic(rawMessage) {
     };
   }
 
-  if (rawMessage.includes("Invalid Graph") || rawMessage.includes("Malformed graph")) {
+  if (rawMessage.includes("Invalid Graph") || rawMessage.includes("Malformed graph") || rawMessage.includes("Graph edges must be a 2D integer array.")) {
     return {
       severity: "error",
       category: "input",
-      title: "Invalid Graph Format",
-      explanation: "Graphs must be represented as adjacency lists or matrices.",
+      title: "Input Format Error",
+      explanation: "Graph edges must be a 2D integer array.",
       suggestedFix: "Provide a valid graph representation. Example: [[1,2],[0,2],[0,1]]",
       rawMessage
     };

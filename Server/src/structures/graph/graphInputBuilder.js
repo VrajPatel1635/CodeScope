@@ -26,10 +26,20 @@ function buildGraphList({ paramName, inputRaw }) {
   
   const parsed = parseJsonLoose(inputRaw) || [];
   
+  if (!Array.isArray(parsed)) {
+    throw new Error("Graph edges must be a 2D integer array.");
+  }
+  
   let decl = `java.util.List<java.util.List<Integer>> ${paramName} = new java.util.ArrayList<>();\n`;
   for (let i = 0; i < parsed.length; i++) {
+    if (!Array.isArray(parsed[i])) {
+      throw new Error("Graph edges must be a 2D integer array.");
+    }
     decl += `        __DSAInput.__DSATracedAdjacencyList __list_${paramName}_${i} = new __DSAInput.__DSATracedAdjacencyList(${i});\n`;
     for (let j = 0; j < parsed[i].length; j++) {
+      if (typeof parsed[i][j] !== 'number' || !Number.isFinite(parsed[i][j])) {
+        throw new Error("Graph edges must be a 2D integer array.");
+      }
       decl += `        __list_${paramName}_${i}.add(${parsed[i][j]});\n`;
     }
     decl += `        ${paramName}.add(__list_${paramName}_${i});\n`;

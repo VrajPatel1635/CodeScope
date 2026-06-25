@@ -290,13 +290,18 @@ function getBuilderForType(paramType) {
   }
 }
 
-function buildJavaInputsFromSignature({ userCode, methodName, methodParams, inputRaw }) {
+function buildJavaInputsFromSignature({ userCode, methodName, methodParams, inputRaw, returnType }) {
   const params = Array.isArray(methodParams) ? methodParams : [];
+  
+  let wantsListNode = returnType === "ListNode";
+  let wantsTreeNode = returnType === "TreeNode";
+  let wantsGraphList = false;
+
   if (params.length === 0) {
     return {
       declarations: "",
       argsList: "",
-      helperCode: buildHelperCode({ userCode, wantsListNode: false, wantsTreeNode: false, wantsGraphList: false }),
+      helperCode: buildHelperCode({ userCode, wantsListNode, wantsTreeNode, wantsGraphList }),
       initialValueForState: null,
     };
   }
@@ -316,9 +321,6 @@ function buildJavaInputsFromSignature({ userCode, methodName, methodParams, inpu
   const decls = [];
   const args = [];
   let initialValueForState = null;
-  let wantsListNode = false;
-  let wantsTreeNode = false;
-  let wantsGraphList = false;
 
   params.forEach((p, idx) => {
     let builder = getBuilderForType(p.type);
