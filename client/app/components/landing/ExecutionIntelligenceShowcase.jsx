@@ -31,7 +31,7 @@ const HotspotPanel = ({ isActive }) => (
       zIndex: isActive ? 30 : 10
     }}
     transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-    className="absolute top-[10%] right-[5%] w-[80%] bg-(--bg-surface) border border-(--border-color) rounded-xl p-6 md:p-8 shadow-2xl"
+    className="absolute top-[10%] right-[5%] w-[90%] sm:w-[80%] bg-(--bg-surface) border border-(--border-color) rounded-xl p-4 sm:p-6 md:p-8 shadow-2xl"
   >
      <div className="flex justify-between items-center mb-8">
         <span className="text-[10px] uppercase font-mono text-(--text-muted) tracking-[0.2em]">Execution Hotspots</span>
@@ -72,7 +72,7 @@ const BehaviorPanel = ({ isActive }) => (
       zIndex: isActive ? 30 : 20
     }}
     transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-    className="absolute bottom-[10%] left-0 w-[75%] bg-background border border-(--border-color) rounded-xl p-6 md:p-8 shadow-2xl backdrop-blur-xl flex flex-col"
+    className="absolute bottom-[10%] left-0 w-[85%] sm:w-[75%] bg-background border border-(--border-color) rounded-xl p-4 sm:p-6 md:p-8 shadow-2xl backdrop-blur-xl flex flex-col"
   >
      <div className="flex justify-between items-center mb-6 pb-4 border-b border-(--border-color)">
         <span className="text-[10px] uppercase font-mono text-(--text-muted) tracking-[0.2em]">Semantic Analysis</span>
@@ -108,7 +108,7 @@ const MemoryPanel = ({ isActive }) => (
       zIndex: isActive ? 30 : 15
     }}
     transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-    className="absolute top-1/2 -translate-y-1/2 right-[-5%] w-[55%] aspect-square bg-(--bg-elevated) border border-(--border-color) rounded-full p-8 shadow-2xl flex flex-col justify-center items-center text-center backdrop-blur-md"
+    className="absolute top-1/2 -translate-y-1/2 right-0 sm:right-[-5%] w-[45%] sm:w-[55%] aspect-square bg-(--bg-elevated) border border-(--border-color) rounded-full p-4 sm:p-8 shadow-2xl flex flex-col justify-center items-center text-center backdrop-blur-md"
   >
      <motion.div 
         animate={{ rotate: isActive ? 0 : -45 }} 
@@ -116,7 +116,7 @@ const MemoryPanel = ({ isActive }) => (
         className="absolute inset-2 border border-dashed border-(--text-muted)/30 rounded-full" 
      />
      <span className="text-[10px] uppercase font-mono text-(--text-muted) tracking-[0.2em] mb-3">Peak Stack</span>
-     <span className="text-6xl font-display text-foreground mb-6">12<span className="text-2xl text-(--text-muted) ml-1 italic font-serif">fr</span></span>
+     <span className="text-4xl sm:text-6xl font-display text-foreground mb-4 sm:mb-6">12<span className="text-xl sm:text-2xl text-(--text-muted) ml-1 italic font-serif">fr</span></span>
      
      <span className="text-[10px] uppercase font-mono text-(--text-muted) tracking-[0.2em] mb-2">Allocation</span>
      <span className="text-[13px] font-mono text-(--accent-highlight)">O(1) Auxiliary</span>
@@ -127,13 +127,13 @@ export default function ExecutionIntelligenceShowcase() {
   const [activeId, setActiveId] = useState("01");
 
   return (
-    <section className="relative py-24 md:py-48 bg-background overflow-hidden">
+    <section id="intelligence" className="relative py-24 md:py-48 bg-background overflow-hidden">
       
       {/* Base Void */}
       <div className="absolute inset-0 bg-background z-0" />
 
       {/* The Right-Anchored Bleeding Surface */}
-      <div className="relative w-[95%] md:w-[90%] ml-auto bg-(--bg-surface)/40 backdrop-blur-2xl rounded-l-[3rem] md:rounded-l-[4rem] border border-white/5 border-r-0 py-24 md:py-32 shadow-[-50px_0_150px_-20px_rgba(0,0,0,1),inset_1px_0_1px_rgba(255,255,255,0.05)] z-10">
+      <div className="relative w-[98%] sm:w-[95%] md:w-[90%] ml-auto bg-(--bg-surface)/40 backdrop-blur-2xl rounded-l-4xl sm:rounded-l-[3rem] md:rounded-l-[4rem] border border-white/5 border-r-0 py-16 sm:py-24 md:py-32 shadow-[-50px_0_150px_-20px_rgba(0,0,0,1),inset_1px_0_1px_rgba(255,255,255,0.05)] z-10">
         
         {/* Inner Glow Rim on the Left Edge */}
         <div className="absolute top-0 left-0 w-px h-[80%] bg-linear-to-b from-transparent via-(--accent-highlight)/30 to-transparent mix-blend-screen" />
@@ -148,8 +148,8 @@ export default function ExecutionIntelligenceShowcase() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 lg:gap-24 items-center">
             
             {/* Breakout Panels (Left side, order 1, pulls into negative space) */}
-            <div className="col-span-1 lg:col-span-7 order-2 lg:order-1 relative h-[500px] md:h-[600px] flex items-center justify-center lg:translate-x-[-15%]">
-               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] md:w-[500px] h-[300px] md:h-[500px] bg-linear-to-br from-(--accent-primary)/10 via-(--accent-secondary)/10 to-transparent blur-[100px] rounded-full pointer-events-none mix-blend-screen opacity-50" />
+            <div className="col-span-1 lg:col-span-7 order-2 lg:order-1 relative h-[350px] sm:h-[500px] md:h-[600px] flex items-center justify-center lg:translate-x-[-15%]">
+               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[250px] sm:w-[300px] md:w-[500px] h-[250px] sm:h-[300px] md:h-[500px] bg-linear-to-br from-(--accent-primary)/10 via-(--accent-secondary)/10 to-transparent blur-[100px] rounded-full pointer-events-none mix-blend-screen opacity-50" />
 
                <div className="relative w-full max-w-[600px] h-full">
                   <HotspotPanel isActive={activeId === "01"} />

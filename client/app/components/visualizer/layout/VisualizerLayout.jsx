@@ -12,6 +12,7 @@ import ExecutionMetricsPanel from "@/app/components/visualizer/metrics/Execution
 import ExecutionIntelligencePanel from "@/app/components/visualizer/intelligence/ExecutionIntelligencePanel";
 import ExecutionSummary from "@/app/components/visualizer/intelligence/ExecutionSummary";
 import ExecutionDiagnosticsPanel from "@/app/components/visualizer/diagnostics/ExecutionDiagnosticsPanel";
+import DesktopRequiredOverlay from "@/app/components/visualizer/layout/DesktopRequiredOverlay";
 import VisualizerNavbar from "@/app/components/visualizer/layout/VisualizerNavbar";
 
 import useExecutionStore from "@/app/store/useExecutionStore";
@@ -40,6 +41,19 @@ const itemVariants = {
 export default function VisualizerLayout() {
   const { result, input, code, activeLine, setExecutionData, setActiveLine } = useExecutionStore();
   const [activeView, setActiveView] = useState("workspace"); // "workspace" | "analytics"
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Check for mobile devices (excluding iPads which are >= 768px)
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile(); // Check immediately on mount
+    
+    // Add resize listener to handle dynamic resizing
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   // --- HOISTED PLAYBACK STATE ---
   const [currentStep, setCurrentStep] = useState(0);
@@ -154,6 +168,10 @@ export default function VisualizerLayout() {
   }, [callStackSemanticFrames]);
 
   const currentCallStackSemantics = currentState ? callStackSemanticMap.get(currentState.step) ?? [] : [];
+
+  if (isMobile) {
+    return <DesktopRequiredOverlay />;
+  }
 
   return (
     <div className="min-h-screen flex flex-col overflow-x-hidden w-full" style={{ backgroundColor: 'var(--bg-primary)' }}>

@@ -30,7 +30,7 @@ export default function DiagnosticEngineShowcase() {
       <div className="absolute inset-0 bg-background z-0" />
 
       {/* The Left-Anchored Bleeding Surface */}
-      <div className="relative w-[95%] md:w-[90%] mr-auto bg-[linear-gradient(to_bottom_right,var(--bg-surface),var(--bg-primary))] rounded-r-[3rem] md:rounded-r-[4rem] border border-white/5 border-l-0 py-24 md:py-32 shadow-[50px_0_150px_-20px_rgba(0,0,0,1),inset_-1px_0_1px_rgba(255,255,255,0.05)] z-10 overflow-hidden">
+      <div className="relative w-[98%] sm:w-[95%] md:w-[90%] mr-auto bg-[linear-gradient(to_bottom_right,var(--bg-surface),var(--bg-primary))] rounded-r-4xl sm:rounded-r-[3rem] md:rounded-r-[4rem] border border-white/5 border-l-0 py-16 sm:py-24 md:py-32 shadow-[50px_0_150px_-20px_rgba(0,0,0,1),inset_-1px_0_1px_rgba(255,255,255,0.05)] z-10 overflow-hidden">
         
         {/* Inner Glow Rim on the Right Edge */}
         <div className="absolute top-0 right-0 w-px h-[80%] bg-linear-to-b from-transparent via-emerald-500/20 to-transparent mix-blend-screen" />
@@ -55,7 +55,7 @@ export default function DiagnosticEngineShowcase() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: 0.1 }}
-                className="text-4xl md:text-5xl lg:text-6xl font-display font-medium leading-[1.05] tracking-tight mb-8 text-white"
+                className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-display font-medium leading-[1.05] tracking-tight mb-6 sm:mb-8 text-white"
               >
                 The stack trace is useless.
               </motion.h2>
@@ -65,7 +65,7 @@ export default function DiagnosticEngineShowcase() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: 0.2 }}
-                className="text-white/60 text-lg md:text-xl leading-relaxed max-w-lg mb-12 font-light"
+                className="text-white/60 text-base sm:text-lg md:text-xl leading-relaxed max-w-lg mb-8 sm:mb-12 font-light"
               >
                 Stop guessing what went wrong. CodeScope translates raw exceptions into plain English, explaining exactly <strong className="text-white font-medium">why your code failed</strong> and <strong className="text-white font-medium">how to fix it</strong>.
               </motion.p>
@@ -91,7 +91,7 @@ export default function DiagnosticEngineShowcase() {
             </div>
 
             {/* Diagnostic Experience (Right) */}
-            <div className="lg:col-span-7 order-2 relative lg:ml-4 lg:translate-x-[10%]">
+            <div className="lg:col-span-7 order-2 relative lg:ml-4 lg:translate-x-[10%] mt-8 lg:mt-0">
               <div className="relative w-full flex flex-col md:flex-row items-stretch gap-4 md:gap-6">
 
                 {/* Raw Exception Panel (Starts chaotic/blurred, snaps to clear) */}
@@ -100,7 +100,7 @@ export default function DiagnosticEngineShowcase() {
                   whileInView={{ opacity: 1, x: 0, filter: "blur(0px)" }}
                   viewport={{ once: true, margin: "-100px" }}
                   transition={{ duration: 0.9, ease: "easeOut" }}
-                  className="w-full md:w-[40%] rounded-2xl bg-background border border-white/5 p-5 flex flex-col mt-0 md:mt-8 mb-0 md:mb-8 relative overflow-hidden opacity-60 mix-blend-luminosity"
+                  className="w-full md:w-[40%] rounded-2xl bg-background border border-white/5 p-4 sm:p-5 flex flex-col mt-0 md:mt-8 mb-0 md:mb-8 relative overflow-hidden opacity-60 mix-blend-luminosity"
                 >
                   <div className="absolute top-0 left-0 w-full h-px bg-linear-to-r from-red-500/0 via-red-500/10 to-red-500/0" />
 
@@ -132,7 +132,7 @@ export default function DiagnosticEngineShowcase() {
                     <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/2 h-px bg-linear-to-r from-transparent via-emerald-400/40 to-transparent" />
                     <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[200px] bg-emerald-400/5 blur-[80px] pointer-events-none" />
 
-                    <div className="p-6 md:p-8 flex flex-col h-full relative z-10">
+                    <div className="p-5 sm:p-6 md:p-8 flex flex-col h-full relative z-10">
 
                       {/* Header */}
                       <div className="flex justify-between items-start mb-6">

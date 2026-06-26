@@ -7,10 +7,10 @@ export default function CTASection() {
   return (
     <section
       id="cta"
-      className="bg-background px-4 py-16"
+      className="bg-background px-2 sm:px-4 py-10 sm:py-16"
     >
       {/* Increased padding and added min-h to adjust height proportions */}
-      <div className="relative w-full mx-auto max-w-screen overflow-hidden rounded-[40px] border border-(--border-color) bg-(--bg-surface) px-10 py-32 lg:py-40 min-h-[60vh] flex flex-col justify-center shadow-[0_60px_120px_-40px_rgba(0,0,0,0.9)]">
+      <div className="relative w-full mx-auto max-w-screen overflow-hidden rounded-[24px] sm:rounded-[40px] border border-(--border-color) bg-(--bg-surface) px-5 sm:px-10 py-20 sm:py-32 lg:py-40 min-h-[50vh] sm:min-h-[60vh] flex flex-col justify-center shadow-[0_60px_120px_-40px_rgba(0,0,0,0.9)]">
         
         {/* warm amber inner glow at top */}
         <div
@@ -28,8 +28,8 @@ export default function CTASection() {
           }}
         />
 
-        <div className="relative grid grid-cols-12 gap-10">
-          <div className="col-span-12 lg:col-span-7">
+        <div className="relative grid grid-cols-1 lg:grid-cols-12 gap-8 sm:gap-10">
+          <div className="lg:col-span-7">
             <h2 
               className="text-[clamp(56px,9vw,140px)] leading-[0.92] tracking-[-0.02em] text-foreground"
               style={{ fontFamily: 'var(--font-display)' }}
@@ -42,16 +42,16 @@ export default function CTASection() {
             </h2>
           </div>
 
-          <div className="col-span-12 flex flex-col justify-end lg:col-span-5">
+          <div className="flex flex-col justify-end lg:col-span-5">
             <div className="mb-6 flex items-center justify-between border-t border-(--border-color) pt-5 font-mono text-[10px] tracking-[0.22em]">
               <span className="text-(--accent-primary)">▪ SYS.READY</span>
               <span className="text-(--text-muted)">2026</span>
             </div>
-            <p className="text-right text-[14.5px] leading-relaxed text-(--text-secondary)">
+            <p className="text-left lg:text-right text-[13px] sm:text-[14.5px] leading-relaxed text-(--text-secondary)">
               Step into a visual, interactive runtime environment designed for
               complete code clarity. Mastery isn't inherited—it's built.
             </p>
-            <div className="mt-8 flex flex-wrap items-center justify-end gap-3">
+            <div className="mt-6 sm:mt-8 flex flex-wrap items-center justify-start lg:justify-end gap-3">
               <Button
                 variant="secondary"
                 href="/docs"

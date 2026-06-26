@@ -104,10 +104,10 @@ export default function FAQSection() {
   const [openId, setOpenId] = useState("01"); // First one open by default
 
   return (
-    <section className="relative py-24 md:py-40 bg-background overflow-hidden">
+    <section className="relative py-16 sm:py-24 md:py-40 bg-background overflow-hidden">
       <div className="max-w-[1400px] mx-auto px-6 md:px-12 relative z-10">
         
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 lg:gap-20">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 sm:gap-16 lg:gap-20">
           
           {/* Left Column (5/12) */}
           <div className="lg:col-span-5 relative">
@@ -150,7 +150,7 @@ export default function FAQSection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.7, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-              className="bg-(--bg-surface) border border-(--border-color) rounded-xl p-6 md:p-8 relative overflow-hidden"
+              className="bg-(--bg-surface) border border-(--border-color) rounded-xl p-4 sm:p-6 md:p-8 relative overflow-hidden"
             >
               {/* Terminal Header */}
               <div className="flex items-center justify-between mb-8 pb-6 border-b border-(--border-color)/60">

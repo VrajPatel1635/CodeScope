@@ -13,7 +13,7 @@ const MarqueeRow = ({ items, direction = "left", speed = 40, className = "" }) =
         {[...items, ...items, ...items, ...items].map((item, i) => (
           <span
             key={i}
-            className={`text-lg md:text-3xl font-ui font-medium uppercase tracking-[0.2em] text-transparent bg-clip-text bg-linear-to-b from-white/50 via-white/20 to-white/5 select-none ${item === "✦" ? "px-6 md:px-12 opacity-40 font-light text-white/30 text-sm md:text-xl" : ""
+            className={`text-base sm:text-lg md:text-3xl font-ui font-medium uppercase tracking-[0.15em] sm:tracking-[0.2em] text-transparent bg-clip-text bg-linear-to-b from-white/50 via-white/20 to-white/5 select-none ${item === "✦" ? "px-4 sm:px-6 md:px-12 opacity-40 font-light text-white/30 text-xs sm:text-sm md:text-xl" : ""
               }`}
           >
             {item}

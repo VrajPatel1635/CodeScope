@@ -5,6 +5,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import Button from "@/app/components/landing/ui/Button";
 
+import { useRouter } from "next/navigation";
+import { useLoader } from "@/app/components/shared/LoaderContext";
+
 const NotchLeftCorner = () => (
   <svg className="absolute top-0 left-[-20px] w-[20px] h-[20px] text-(--accent-highlight)" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
     <path d="M20 0H0C11.0457 0 20 8.95431 20 20V0Z" fill="currentColor" />
@@ -18,8 +21,21 @@ const NotchRightCorner = () => (
 );
 
 const NavHoverLink = ({ href, external, children }) => {
+  const router = useRouter();
+  const { triggerLoader } = useLoader();
+
+  const handleClick = (e) => {
+    if (external || href.startsWith("#")) return;
+    
+    e.preventDefault();
+    triggerLoader();
+    setTimeout(() => {
+      router.push(href);
+    }, 800);
+  };
+
   return (
-    <Link href={href} target={external ? "_blank" : undefined} rel={external ? "noopener noreferrer" : undefined} className="group relative w-auto inline-flex items-center justify-center cursor-pointer overflow-hidden rounded-[14px] transition-all duration-300 ease-out outline-none active:scale-[0.98] font-ui font-medium tracking-wide px-2 lg:px-4 py-2.5 text-[12px] lg:text-[13px]">
+    <a href={href} onClick={handleClick} target={external ? "_blank" : undefined} rel={external ? "noopener noreferrer" : undefined} className="group relative w-auto inline-flex items-center justify-center cursor-pointer overflow-hidden rounded-[14px] transition-all duration-300 ease-out outline-none active:scale-[0.98] font-ui font-medium tracking-wide px-2 lg:px-4 py-2.5 text-[12px] lg:text-[13px]">
       {/* Default State */}
       <div className="flex items-center gap-2.5 relative z-10 text-(--bg-primary)/70 transition-colors group-hover:text-background">
         <div className="h-1.5 w-1.5 shrink-0 rounded-[4px] bg-(--bg-primary)/50 transition-all duration-500 ease-out group-hover:scale-[150] group-hover:bg-background"></div>
@@ -36,7 +52,7 @@ const NavHoverLink = ({ href, external, children }) => {
           <path strokeLinecap="round" strokeLinejoin="round" d="M13 6l6 6-6 6"></path>
         </svg>
       </div>
-    </Link>
+    </a>
   );
 };
 
@@ -54,7 +70,7 @@ export default function Navbar() {
   return (
     <>
       <header className="fixed top-0 inset-x-0 z-50 pointer-events-none flex justify-center">
-        <div className="relative flex items-center justify-between w-[95%] max-w-[1000px] h-[60px] md:h-[68px] px-2.5 md:px-3 bg-(--accent-highlight) rounded-b-[24px] md:rounded-b-[28px] pointer-events-auto shadow-[0_20px_50px_-10px_rgba(0,0,0,0.8)]">
+        <div className="relative flex items-center justify-between w-max md:w-[95%] max-w-[1000px] gap-8 sm:gap-16 md:gap-0 h-[60px] md:h-[68px] px-3 md:px-3 bg-(--accent-highlight) rounded-b-[24px] md:rounded-b-[28px] pointer-events-auto shadow-[0_20px_50px_-10px_rgba(0,0,0,0.8)]">
           <NotchLeftCorner />
           <NotchRightCorner />
           
@@ -149,7 +165,16 @@ export default function Navbar() {
                       target={item.external ? "_blank" : undefined}
                       rel={item.external ? "noopener noreferrer" : undefined}
                       className="cursor-pointer flex items-center justify-between px-5 py-4 rounded-[20px] text-[13px] uppercase tracking-[0.2em] font-medium text-(--text-secondary) hover:text-foreground hover:bg-(--bg-elevated) border border-transparent hover:border-(--border-color) transition-all duration-300 group"
-                      onClick={() => setIsMobileMenuOpen(false)}
+                      onClick={(e) => {
+                        if (!item.external && !item.href.startsWith("#")) {
+                          e.preventDefault();
+                          setIsMobileMenuOpen(false);
+                          triggerLoader();
+                          setTimeout(() => router.push(item.href), 800);
+                        } else {
+                          setIsMobileMenuOpen(false);
+                        }
+                      }}
                     >
                       <span>{item.label}</span>
                       <svg className="w-4 h-4 text-(--text-secondary)/50 group-hover:text-(--accent-primary) group-hover:translate-x-1 transition-all duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">

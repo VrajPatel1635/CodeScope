@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { DOCS_NAVIGATION } from "@/app/lib/docs-data";
 import { useState, useEffect, useMemo } from "react";
+import { useLoader } from "@/app/components/shared/LoaderContext";
 
 const EASE = [0.16, 1, 0.3, 1];
 
@@ -28,8 +29,17 @@ function hexTag(category, slug, index) {
 
 export default function DocsSidebar() {
   const pathname = usePathname();
+  const router = useRouter();
+  const { triggerLoader } = useLoader();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [isDesktopOpen, setIsDesktopOpen] = useState(true);
+
+  const handleRootNavigation = (e) => {
+    e.preventDefault();
+    triggerLoader();
+    setIsMobileOpen(false);
+    setTimeout(() => router.push("/"), 800);
+  };
 
   const [expandedSections, setExpandedSections] = useState(() => {
     const initialState = {};
@@ -81,6 +91,7 @@ export default function DocsSidebar() {
       <motion.div custom={0} variants={itemVariants} initial="hidden" animate="visible" className="mb-12">
         <Link
           href="/docs"
+          prefetch={false}
           className="group relative flex items-center justify-between py-4 px-6 border-y border-transparent hover:border-(--border-color) transition-colors duration-500"
         >
           <span className={`text-sm tracking-wide font-ui ${pathname === "/docs" ? "text-foreground" : "text-(--text-secondary) group-hover:text-foreground"} transition-colors duration-300`}>
@@ -136,6 +147,7 @@ export default function DocsSidebar() {
                       <Link
                         key={item.slug}
                         href={href}
+                        prefetch={false}
                         className="group relative flex items-center justify-between py-3 px-6 overflow-hidden outline-none"
                       >
                         {/* Hover Architecture */}
@@ -194,7 +206,19 @@ export default function DocsSidebar() {
       {/* Mobile Toggle */}
       <div className="lg:hidden fixed top-4 right-4 z-50">
         <button
-          onClick={() => setIsMobileOpen(!isMobileOpen)}
+          onClick={(e) => {
+            e.stopPropagation();
+            if (e.nativeEvent && e.nativeEvent.stopImmediatePropagation) {
+              e.nativeEvent.stopImmediatePropagation();
+            }
+            setIsMobileOpen(!isMobileOpen);
+          }}
+          onPointerDown={(e) => {
+            e.stopPropagation();
+            if (e.nativeEvent && e.nativeEvent.stopImmediatePropagation) {
+              e.nativeEvent.stopImmediatePropagation();
+            }
+          }}
           className="px-4 py-2 bg-background border border-(--border-color) text-(--text-secondary) hover:text-foreground transition-colors cursor-pointer"
         >
           <span className="font-mono text-[10px] tracking-widest uppercase">
@@ -221,12 +245,12 @@ export default function DocsSidebar() {
                 transition={{ duration: 0.2 }}
                 className="flex items-center justify-between w-full"
               >
-                <Link href="/" className="flex items-center gap-4 group outline-none">
+                <a href="/" onClick={handleRootNavigation} className="flex items-center gap-4 group outline-none cursor-pointer">
                   <img src="/codescopelogo.png" alt="Logo" className="w-7 h-7 object-contain invert opacity-90 group-hover:opacity-100 group-hover:scale-110 transition-all duration-500" />
                   <span className="font-mono text-[11px] uppercase tracking-[0.25em] text-foreground group-hover:text-(--accent-primary) transition-colors duration-300">
                     CodeScope
                   </span>
-                </Link>
+                </a>
                 <button
                   onClick={() => setIsDesktopOpen(false)}
                   className="group relative w-8 h-8 flex items-center justify-center border border-transparent hover:border-(--accent-primary)/30 bg-transparent hover:bg-(--bg-elevated) transition-all duration-500 cursor-pointer overflow-hidden"
@@ -336,7 +360,25 @@ export default function DocsSidebar() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 bg-background/90 backdrop-blur-md z-40 lg:hidden"
-            onClick={() => setIsMobileOpen(false)}
+            onPointerDown={(e) => {
+              e.stopPropagation();
+              if (e.nativeEvent && e.nativeEvent.stopImmediatePropagation) {
+                e.nativeEvent.stopImmediatePropagation();
+              }
+            }}
+            onMouseDown={(e) => {
+              e.stopPropagation();
+              if (e.nativeEvent && e.nativeEvent.stopImmediatePropagation) {
+                e.nativeEvent.stopImmediatePropagation();
+              }
+            }}
+            onClick={(e) => {
+              e.stopPropagation();
+              if (e.nativeEvent && e.nativeEvent.stopImmediatePropagation) {
+                e.nativeEvent.stopImmediatePropagation();
+              }
+              setIsMobileOpen(false);
+            }}
           >
             <motion.aside
               initial={{ x: "-100%" }}
@@ -347,12 +389,12 @@ export default function DocsSidebar() {
               onClick={(e) => e.stopPropagation()}
             >
               <div className="p-6 border-b border-(--border-color) mb-8">
-                <Link href="/" className="flex items-center gap-3 group outline-none w-max" onClick={() => setIsMobileOpen(false)}>
+                <a href="/" className="flex items-center gap-3 group outline-none w-max cursor-pointer" onClick={handleRootNavigation}>
                   <img src="/codescopelogo.png" alt="Logo" className="w-6 h-6 object-contain invert opacity-90 group-hover:opacity-100 group-hover:scale-110 transition-all duration-500" />
                   <span className="font-mono text-[11px] uppercase tracking-[0.25em] text-foreground group-hover:text-(--accent-primary) transition-colors duration-300">
                     CodeScope Directory
                   </span>
-                </Link>
+                </a>
               </div>
               {SidebarContent}
             </motion.aside>

@@ -1,8 +1,19 @@
 import Link from "next/link";
 import Button from "@/app/components/landing/ui/Button";
 import { motion } from "framer-motion";
+import { useRouter } from "next/navigation";
+import { useLoader } from "@/app/components/shared/LoaderContext";
 
 export default function VisualizerNavbar({ children }) {
+  const router = useRouter();
+  const { triggerLoader } = useLoader();
+
+  const handleRootNavigation = (e) => {
+    e.preventDefault();
+    triggerLoader();
+    setTimeout(() => router.push("/"), 800);
+  };
+
   return (
     <motion.nav 
       initial={{ opacity: 0, y: -20 }}
@@ -16,7 +27,7 @@ export default function VisualizerNavbar({ children }) {
     >
       {/* Brand / Logo */}
       <div className="flex items-center gap-3 shrink-0">
-        <Link href="/" className="flex items-center gap-2 md:gap-3 group">
+        <a href="/" onClick={handleRootNavigation} className="flex items-center gap-2 md:gap-3 group cursor-pointer">
           <img
             src="/codescopelogo.png"
             alt="CodeScope"
@@ -25,7 +36,7 @@ export default function VisualizerNavbar({ children }) {
           <span className="font-ui font-semibold text-[15px] md:text-[17px] text-foreground tracking-tight group-hover:text-(--accent-primary) transition-colors hidden sm:block">
             CodeScope
           </span>
-        </Link>
+        </a>
       </div>
 
       {/* Center Content (Controls) */}

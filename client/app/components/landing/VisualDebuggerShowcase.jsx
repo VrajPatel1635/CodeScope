@@ -70,7 +70,7 @@ export default function VisualDebuggerShowcase() {
   };
 
   return (
-    <section id="features" className="relative py-24 lg:py-48 bg-background">
+    <section id="features" className="relative py-16 sm:py-24 lg:py-48 bg-background">
       {/* Background ambience */}
       <div className="absolute top-10 right-[5%] w-[800px] h-[800px] bg-(--accent-secondary) blur-[200px] opacity-[0.02] rounded-full pointer-events-none" />
       <div className="absolute bottom-[10%] left-[-10%] w-[600px] h-[600px] bg-(--exec-return) blur-[180px] opacity-[0.02] rounded-full pointer-events-none" />
@@ -84,10 +84,10 @@ export default function VisualDebuggerShowcase() {
 
             {/* Headline */}
             <h2 className="mb-8 flex flex-col gap-1">
-              <span className="text-[clamp(3.5rem,6vw,5.5rem)] font-display font-medium leading-[0.95] tracking-tighter text-white">
+              <span className="text-[clamp(2.5rem,6vw,5.5rem)] font-display font-medium leading-[0.95] tracking-tighter text-white">
                 See every step.
               </span>
-              <span className="text-[clamp(3.5rem,6vw,5.5rem)] font-serif italic font-light leading-none tracking-tight text-(--accent-secondary)">
+              <span className="text-[clamp(2.5rem,6vw,5.5rem)] font-serif italic font-light leading-none tracking-tight text-(--accent-secondary)">
                 Understand every change.
               </span>
             </h2>
@@ -111,12 +111,12 @@ export default function VisualDebuggerShowcase() {
                     onMouseEnter={() => setActiveFeature(cap.targetPanel)}
                     className={`group flex items-start gap-5 cursor-pointer p-3 rounded-2xl transition-all duration-500 relative z-10 ${isActive ? 'bg-white/3' : 'hover:bg-white/1'}`}
                   >
-                    <div className={`shrink-0 w-14 h-14 rounded-xl flex items-center justify-center transition-all duration-500 relative ${isActive ? 'bg-(--accent-secondary)/10 border border-(--accent-secondary)/30 text-(--accent-secondary) shadow-[0_0_20px_var(--accent-secondary)]' : 'bg-(--bg-surface) border border-white/5 text-white/30'}`}>
-                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d={cap.icon} /></svg>
+                    <div className={`shrink-0 w-10 h-10 sm:w-14 sm:h-14 rounded-lg sm:rounded-xl flex items-center justify-center transition-all duration-500 relative ${isActive ? 'bg-(--accent-secondary)/10 border border-(--accent-secondary)/30 text-(--accent-secondary) shadow-[0_0_20px_var(--accent-secondary)]' : 'bg-(--bg-surface) border border-white/5 text-white/30'}`}>
+                       <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d={cap.icon} /></svg>
                     </div>
                     <div className="flex flex-col pt-1.5">
-                      <span className={`text-[17px] font-medium tracking-wide transition-colors duration-500 ${isActive ? 'text-white' : 'text-white/60 group-hover:text-white/90'}`}>{cap.label}</span>
-                      <span className={`text-[14px] mt-1 leading-relaxed transition-colors duration-500 font-light ${isActive ? 'text-white/60' : 'text-white/30'}`}>{cap.detail}</span>
+                      <span className={`text-[15px] sm:text-[17px] font-medium tracking-wide transition-colors duration-500 ${isActive ? 'text-white' : 'text-white/60 group-hover:text-white/90'}`}>{cap.label}</span>
+                      <span className={`text-[12px] sm:text-[14px] mt-1 leading-relaxed transition-colors duration-500 font-light ${isActive ? 'text-white/60' : 'text-white/30'}`}>{cap.detail}</span>
                     </div>
                   </div>
                 );
@@ -126,7 +126,7 @@ export default function VisualDebuggerShowcase() {
 
           {/* Product Preview Bento Box (Right) */}
           <div className="col-span-1 lg:col-span-7 relative h-full w-full">
-            <div className="lg:sticky lg:top-24 w-full lg:w-[105%] lg:ml-[-2.5%] transition-all duration-700 z-10">
+            <div className="lg:sticky lg:top-24 w-full lg:w-[105%] lg:ml-[-2.5%] transition-all duration-700 z-10 hidden sm:block">
               <div className="relative w-full rounded-[2.5rem] border border-white/5 bg-(--bg-surface)/90 shadow-[0_40px_100px_-20px_rgba(79,140,255,0.08)] overflow-hidden backdrop-blur-3xl">
 
                 {/* Window Chrome */}
@@ -143,11 +143,11 @@ export default function VisualDebuggerShowcase() {
                 </div>
 
                 {/* Bento Grid */}
-                <div className="p-4 sm:p-5 bg-(--bg-primary)/80">
+                <div className="p-4 sm:p-5 bg-background/80">
                   <div className="grid grid-cols-12 gap-4">
                     
                     {/* Source Code Panel */}
-                    <Panel index={4} className="col-span-12 lg:col-span-5 h-[260px] lg:h-[320px] flex flex-col p-5">
+                    <Panel index={4} className="col-span-12 lg:col-span-5 h-[200px] sm:h-[260px] lg:h-[320px] flex flex-col p-4 sm:p-5">
                       <div className="text-[10px] text-white/30 uppercase tracking-[0.2em] font-sans font-medium mb-4 shrink-0">Source Code</div>
                       <pre className="font-mono text-[11px] leading-[2.2] text-white/40 overflow-x-auto flex-1">
                         <code className="block"><span className="text-(--exec-return)">public void</span> <span className="text-white/80">quickSort</span>(...) {"{"}</code>
@@ -165,7 +165,7 @@ export default function VisualDebuggerShowcase() {
                     </Panel>
 
                     {/* Workspace Panel */}
-                    <Panel index={3} className="col-span-12 lg:col-span-7 h-[260px] lg:h-[320px] flex flex-col p-6 items-center justify-center">
+                    <Panel index={3} className="col-span-12 lg:col-span-7 h-[200px] sm:h-[260px] lg:h-[320px] flex flex-col p-4 sm:p-6 items-center justify-center">
                       <div className="absolute top-5 left-5 text-[10px] text-white/30 uppercase tracking-[0.2em] font-sans font-medium">Memory Workspace</div>
                       
                       <div className="flex gap-3 sm:gap-4 mt-6">
@@ -181,7 +181,7 @@ export default function VisualDebuggerShowcase() {
                     </Panel>
 
                     {/* Variables Panel */}
-                    <Panel index={1} className="col-span-12 lg:col-span-5 h-[160px] lg:h-[180px] flex flex-col p-5">
+                    <Panel index={1} className="col-span-12 lg:col-span-5 h-[140px] sm:h-[160px] lg:h-[180px] flex flex-col p-4 sm:p-5">
                       <div className="text-[10px] text-white/30 uppercase tracking-[0.2em] font-sans font-medium mb-4">Registers</div>
                       <div className="flex flex-col gap-3 font-mono text-[12px]">
                          <div className="flex justify-between items-center"><span className="text-(--exec-node-active) font-medium">left</span><span className="bg-white/5 border border-white/5 px-2.5 py-0.5 rounded-md text-white/80">0</span></div>
@@ -191,7 +191,7 @@ export default function VisualDebuggerShowcase() {
                     </Panel>
 
                     {/* Call Stack Panel */}
-                    <Panel index={2} className="col-span-12 lg:col-span-7 h-[160px] lg:h-[180px] flex flex-col p-5">
+                    <Panel index={2} className="col-span-12 lg:col-span-7 h-[140px] sm:h-[160px] lg:h-[180px] flex flex-col p-4 sm:p-5">
                       <div className="text-[10px] text-white/30 uppercase tracking-[0.2em] font-sans font-medium mb-4 flex justify-between items-center">
                         Call Stack 
                         <span className="bg-white/10 px-1.5 py-0.5 rounded text-[9px] text-white/60">3</span>

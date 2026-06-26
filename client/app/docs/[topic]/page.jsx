@@ -86,7 +86,7 @@ export default function DocsDetail({ params }) {
   };
 
   return (
-    <div className="min-h-screen pb-32 pt-24 px-6 lg:px-12 xl:px-20 font-ui relative overflow-x-hidden selection:bg-(--accent-primary) selection:text-background">
+    <div className="min-h-screen pb-20 md:pb-32 pt-20 md:pt-24 px-5 md:px-6 lg:px-12 xl:px-20 font-ui relative overflow-x-hidden selection:bg-(--accent-primary) selection:text-background">
       {/* Background glow for aesthetic */}
       <div className="fixed top-[-20%] right-[-10%] w-[800px] h-[800px] bg-(--accent-primary) opacity-[0.02] blur-[150px] pointer-events-none rounded-full" />
 
@@ -95,18 +95,18 @@ export default function DocsDetail({ params }) {
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 1.4, ease: [0.16, 1, 0.3, 1] }}
-        className="mb-40 md:ml-16 max-w-5xl relative"
+        className="mb-24 md:mb-40 md:ml-16 max-w-5xl relative"
       >
         {/* Subtle grid accent behind title */}
         <div className="absolute -left-12 top-4 w-6 h-6 border-t border-l border-(--border-color) opacity-50 hidden md:block" />
         <div className="absolute -left-12 bottom-4 w-6 h-6 border-b border-l border-(--border-color) opacity-50 hidden md:block" />
         
-        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-12">
+        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-10 md:gap-12">
           <div>
-            <h1 className="text-6xl md:text-8xl lg:text-[140px] font-display text-foreground leading-[0.85] tracking-tighter mb-8 -ml-1 md:-ml-2">
+            <h1 className="text-5xl sm:text-6xl md:text-8xl lg:text-[140px] font-display text-foreground leading-[0.85] tracking-tighter mb-6 md:mb-8 ml-0 md:-ml-2">
               {topicData.name}
             </h1>
-            <p className="text-xl md:text-2xl text-(--text-secondary) max-w-2xl font-light leading-relaxed pl-1 md:pl-2 md:border-l border-(--accent-primary)/30">
+            <p className="text-xl md:text-2xl text-(--text-secondary) max-w-2xl font-light leading-relaxed pl-2 md:border-l border-(--accent-primary)/30">
               {topicData.description}
             </p>
           </div>
@@ -116,6 +116,7 @@ export default function DocsDetail({ params }) {
               href="/visualizer" 
               variant="primary" 
               accent="primary"
+              triggerLoader={true}
             >
               Launch Environment
             </Button>
@@ -129,15 +130,15 @@ export default function DocsDetail({ params }) {
         whileInView={{ opacity: 1 }}
         viewport={{ once: true, margin: "-100px" }}
         transition={{ duration: 1.2 }}
-        className="mb-40 grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-20"
+        className="mb-24 md:mb-40 grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-20"
       >
         {/* Left Column (Spans 5) */}
         <div className="lg:col-span-5 relative">
           <div className="sticky top-32">
-            <h2 className="text-4xl md:text-5xl font-display text-foreground leading-tight tracking-tight mb-6">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-display text-foreground leading-tight tracking-tight mb-6">
               Protocol Interfaces
             </h2>
-            <p className="text-lg text-(--text-secondary) font-light leading-relaxed mb-12">
+            <p className="text-lg text-(--text-secondary) font-light leading-relaxed mb-8 md:mb-12">
               Strictly defined method signatures and supported structures required by the internal compilation engine for successful memory allocation.
             </p>
             
@@ -205,11 +206,11 @@ export default function DocsDetail({ params }) {
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, margin: "-100px" }}
         transition={{ duration: 1.2 }}
-        className="mb-40"
+        className="mb-24 md:mb-40"
       >
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-12">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 md:gap-8 mb-8 md:mb-12">
           <div>
-            <h2 className="text-4xl md:text-5xl font-display text-foreground leading-tight tracking-tight mb-4">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-display text-foreground leading-tight tracking-tight mb-4">
               Architectural Test Cases
             </h2>
             <p className="text-(--text-secondary) font-light">Recommended initialization sequences for compiler validation.</p>
@@ -311,10 +312,10 @@ export default function DocsDetail({ params }) {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-100px" }}
           transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
-          className="mb-40 relative max-w-6xl mx-auto"
+          className="mb-24 md:mb-40 relative max-w-6xl mx-auto"
         >
           <div className="flex items-center gap-4 mb-6 px-4">
-            <h2 className="text-(--accent-primary) font-mono text-xs uppercase tracking-widest">
+            <h2 className="text-(--accent-primary) font-mono text-[10px] md:text-xs uppercase tracking-widest">
               Runtime Visualization
             </h2>
             <div className="flex-1 h-px bg-linear-to-r from-(--accent-primary)/20 to-transparent" />
@@ -380,9 +381,9 @@ export default function DocsDetail({ params }) {
         whileInView={{ opacity: 1 }}
         viewport={{ once: true, margin: "-100px" }}
         transition={{ duration: 1.2 }}
-        className="mb-40"
+        className="mb-24 md:mb-40"
       >
-        <h2 className="text-4xl md:text-5xl font-display text-foreground leading-tight tracking-tight mb-16 text-center">
+        <h2 className="text-3xl sm:text-4xl md:text-5xl font-display text-foreground leading-tight tracking-tight mb-12 md:mb-16 text-center">
           Diagnostic Signatures
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 max-w-7xl mx-auto">
@@ -404,49 +405,49 @@ export default function DocsDetail({ params }) {
       </motion.section>
 
       {/* SECTION 6: Pagination (Luxurious Split Navigation) */}
-      <section className="-mx-6 lg:-mx-12 xl:-mx-20 border-t border-(--border-color) mt-24 overflow-hidden">
+      <section className="-mx-5 md:-mx-6 lg:-mx-12 xl:-mx-20 border-t border-(--border-color) mt-16 md:mt-24 overflow-hidden">
         <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-(--border-color)">
           
           {/* Previous Topic */}
           {prevTopic ? (
-            <Link href={`/docs/${prevTopic.slug}`} className="group relative py-20 px-8 md:px-16 lg:px-24 flex flex-col items-start justify-center hover:bg-(--bg-elevated) transition-colors duration-700 overflow-hidden">
+            <Link href={`/docs/${prevTopic.slug}`} className="group relative py-10 md:py-20 px-6 md:px-16 lg:px-24 flex flex-col items-start justify-center hover:bg-(--bg-elevated) transition-colors duration-700 overflow-hidden">
               <div className="absolute inset-0 bg-linear-to-r from-(--accent-primary)/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
               
-              <div className="flex items-center gap-6 mb-6 text-(--text-muted) group-hover:text-(--accent-primary) transition-colors duration-500">
+              <div className="flex items-center gap-4 md:gap-6 mb-4 md:mb-6 text-(--text-muted) group-hover:text-(--accent-primary) transition-colors duration-500">
                 <svg width="48" height="12" viewBox="0 0 48 12" fill="none" className="transform group-hover:-translate-x-3 transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]">
                   <path d="M6 1L1 6L6 11M1 6H48" stroke="currentColor" strokeWidth="1.5" strokeLinecap="square" />
                 </svg>
                 <span className="font-mono text-[10px] uppercase tracking-[0.25em]">Previous Structure</span>
               </div>
               
-              <span className="text-5xl md:text-6xl lg:text-7xl font-display text-foreground tracking-tighter group-hover:text-(--accent-primary) transition-colors duration-500 relative z-10">
+              <span className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-display text-foreground tracking-tighter group-hover:text-(--accent-primary) transition-colors duration-500 relative z-10">
                 {prevTopic.name}
               </span>
             </Link>
           ) : (
-            <div className="py-20 px-8 md:px-16 lg:px-24 flex items-center justify-start bg-(--bg-surface)/30">
+            <div className="py-10 md:py-20 px-6 md:px-16 lg:px-24 flex items-center justify-start bg-(--bg-surface)/30">
               <span className="text-(--text-muted) font-mono text-[10px] uppercase tracking-widest opacity-30">Origin Module</span>
             </div>
           )}
           
           {/* Next Topic */}
           {nextTopic ? (
-            <Link href={`/docs/${nextTopic.slug}`} className="group relative py-20 px-8 md:px-16 lg:px-24 flex flex-col items-end justify-center hover:bg-(--bg-elevated) transition-colors duration-700 overflow-hidden text-right">
+            <Link href={`/docs/${nextTopic.slug}`} className="group relative py-10 md:py-20 px-6 md:px-16 lg:px-24 flex flex-col items-end justify-center hover:bg-(--bg-elevated) transition-colors duration-700 overflow-hidden text-right">
               <div className="absolute inset-0 bg-linear-to-l from-(--accent-primary)/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
               
-              <div className="flex items-center gap-6 mb-6 text-(--text-muted) group-hover:text-(--accent-primary) transition-colors duration-500">
+              <div className="flex items-center gap-4 md:gap-6 mb-4 md:mb-6 text-(--text-muted) group-hover:text-(--accent-primary) transition-colors duration-500">
                 <span className="font-mono text-[10px] uppercase tracking-[0.25em]">Next Structure</span>
                 <svg width="48" height="12" viewBox="0 0 48 12" fill="none" className="transform group-hover:translate-x-3 transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]">
                   <path d="M42 1L47 6L42 11M47 6H0" stroke="currentColor" strokeWidth="1.5" strokeLinecap="square" />
                 </svg>
               </div>
               
-              <span className="text-5xl md:text-6xl lg:text-7xl font-display text-foreground tracking-tighter group-hover:text-(--accent-primary) transition-colors duration-500 relative z-10">
+              <span className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-display text-foreground tracking-tighter group-hover:text-(--accent-primary) transition-colors duration-500 relative z-10">
                 {nextTopic.name}
               </span>
             </Link>
           ) : (
-            <div className="py-20 px-8 md:px-16 lg:px-24 flex items-center justify-end bg-(--bg-surface)/30 text-right">
+            <div className="py-10 md:py-20 px-6 md:px-16 lg:px-24 flex items-center justify-end bg-(--bg-surface)/30 text-right">
               <span className="text-(--text-muted) font-mono text-[10px] uppercase tracking-widest opacity-30">Terminal Module</span>
             </div>
           )}
@@ -455,7 +456,7 @@ export default function DocsDetail({ params }) {
       </section>
 
       {/* SECTION 7: Bottom Visualizer Navigator */}
-      <section className="mt-24 mb-12 flex justify-end">
+      <section className="mt-16 md:mt-24 mb-8 md:mb-12 flex justify-end">
         <Button 
           href="/visualizer" 
           variant="secondary" 

@@ -243,14 +243,14 @@ export default function DocsHome() {
   };
 
   return (
-    <div className="min-h-screen pb-32 pt-12 px-6 lg:px-12 xl:px-20 font-ui">
+    <div className="min-h-screen pb-20 md:pb-32 pt-20 md:pt-12 px-5 md:px-6 lg:px-12 xl:px-20 font-ui">
       {/* Hero Section */}
-      <div className="relative min-h-[40vh] flex flex-col justify-end pb-24 border-b border-(--border-color) mb-24">
+      <div className="relative min-h-[30vh] md:min-h-[40vh] flex flex-col justify-end pb-12 md:pb-24 border-b border-(--border-color) mb-12 md:mb-24">
         {/* Abstract background for hero */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
-           <div className="absolute right-0 top-0 w-[500px] h-[500px] bg-[radial-gradient(circle_at_center,rgba(232,164,74,0.03)_0%,transparent_70%)]" />
-           <div className="absolute right-12 top-12 w-[300px] h-[300px] border border-(--border-color) rounded-full opacity-10" />
-           <div className="absolute right-24 top-24 w-[200px] h-[200px] border border-(--border-color) rounded-full opacity-10" />
+           <div className="absolute right-0 top-0 w-[300px] md:w-[500px] h-[300px] md:h-[500px] bg-[radial-gradient(circle_at_center,rgba(232,164,74,0.03)_0%,transparent_70%)]" />
+           <div className="absolute right-6 md:right-12 top-6 md:top-12 w-[200px] md:w-[300px] h-[200px] md:h-[300px] border border-(--border-color) rounded-full opacity-10" />
+           <div className="absolute right-12 md:right-24 top-12 md:top-24 w-[120px] md:w-[200px] h-[120px] md:h-[200px] border border-(--border-color) rounded-full opacity-10" />
         </div>
 
         <motion.div
@@ -259,13 +259,13 @@ export default function DocsHome() {
           transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
           className="max-w-5xl relative z-10"
         >
-          <div className="flex items-center gap-3 mb-8">
+          <div className="flex items-center gap-3 mb-6 md:mb-8">
             <span className="w-2 h-2 bg-(--accent-primary) shadow-[0_0_10px_rgba(232,164,74,0.5)]" />
-            <span className="text-(--accent-primary) font-mono text-xs tracking-[0.2em] uppercase">
+            <span className="text-(--accent-primary) font-mono text-[10px] md:text-xs tracking-[0.2em] uppercase">
               System Architecture
             </span>
           </div>
-          <h1 className="text-5xl md:text-7xl lg:text-8xl font-display text-foreground leading-none tracking-tight mb-8">
+          <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-display text-foreground leading-none tracking-tight mb-6 md:mb-8">
             Execution. <br />
             <span className="text-(--text-muted)">Visualized.</span>
           </h1>
@@ -277,14 +277,14 @@ export default function DocsHome() {
         variants={containerVariants}
         initial="hidden"
         animate="visible"
-        className="space-y-40"
+        className="space-y-24 md:space-y-40"
       >
         {DOCS_NAVIGATION.map((category, categoryIdx) => (
           <div key={categoryIdx} className="relative">
             {/* Massive Category Header */}
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-16">
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 md:gap-6 mb-10 md:mb-16">
               <div>
-                 <span className="block text-(--text-muted) font-mono text-xs mb-4 tracking-[0.2em] uppercase">
+                 <span className="block text-(--text-muted) font-mono text-[10px] md:text-xs mb-3 md:mb-4 tracking-[0.2em] uppercase">
                    INDEX // {(categoryIdx + 1).toString().padStart(2, "0")}
                  </span>
                  <h2 className="text-3xl md:text-5xl font-display tracking-tight text-foreground">

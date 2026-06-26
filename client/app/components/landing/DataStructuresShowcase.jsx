@@ -283,35 +283,35 @@ export default function DataStructuresShowcase() {
 
   return (
     <section id="data-structures" ref={containerRef} className="relative bg-background h-[1000vh]">
-      <div className="sticky top-0 w-full h-screen overflow-hidden flex flex-col py-16 md:py-20 lg:py-24">
+      <div className="sticky top-0 w-full h-screen overflow-hidden flex flex-col py-12 sm:py-16 md:py-20 lg:py-24">
         {/* Background glow */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1000px] h-[600px] bg-(--accent-secondary) blur-[200px] opacity-[0.03] rounded-full pointer-events-none" />
 
         {/* Section Header */}
-        <div className="px-6 md:px-12 shrink-0 mb-10 md:mb-16 lg:mb-20 relative z-10 pointer-events-none">
+        <div className="px-4 sm:px-6 md:px-12 shrink-0 mb-6 sm:mb-10 md:mb-16 lg:mb-20 relative z-10 pointer-events-none">
           <div className="flex flex-col lg:flex-row items-start lg:items-end justify-between gap-6 lg:gap-10">
             <div className="max-w-2xl">
               <SectionEyebrow title="Data Structures" phase="SYS.TOPOLOGY" accentClass="text-(--accent-secondary)" />
               
-              <h2 className="text-[clamp(2.5rem,6vw,6.5rem)] font-display font-medium leading-[0.95] tracking-tighter text-white">
+              <h2 className="text-[clamp(2rem,6vw,6.5rem)] font-display font-medium leading-[0.95] tracking-tighter text-white">
                 Every structure.<br />
                 <span className="font-serif italic font-light text-(--accent-secondary) tracking-normal pr-4">Visible.</span>
               </h2>
             </div>
-            <p className="text-white/40 text-base md:text-lg lg:text-xl leading-[1.7] max-w-md font-light tracking-wide lg:pb-4 font-ui">
+            <p className="text-white/40 text-sm sm:text-base md:text-lg lg:text-xl leading-[1.7] max-w-md font-light tracking-wide lg:pb-4 font-ui">
               Built for how algorithms actually work. The platform natively understands and visualizes <span className="text-white/80">standard data structures</span> and <span className="text-white/80">complex topologies</span> in real-time.
             </p>
           </div>
         </div>
 
         {/* Horizontal Gallery */}
-        <div className="flex-1 w-full relative z-10 flex items-center min-h-0 mt-16">
-          <motion.div style={{ x }} className="flex gap-4 md:gap-8 px-6 md:px-[10vw] pb-8 md:pb-12 w-max items-center h-full max-h-full">
+        <div className="flex-1 w-full relative z-10 flex items-center min-h-0 mt-8 sm:mt-16">
+          <motion.div style={{ x }} className="flex gap-3 sm:gap-4 md:gap-8 px-4 sm:px-6 md:px-[10vw] pb-6 sm:pb-8 md:pb-12 w-max items-center h-full max-h-full">
             {STRUCTURES.map((struct, idx) => (
               <motion.div 
                 key={struct.id}
                 style={{ skewX }}
-                className="shrink-0 w-[80vw] sm:w-[45vw] lg:w-[32vw] xl:w-[24vw] h-[320px] md:h-[380px] lg:h-[400px] group relative rounded-[28px] bg-background border border-white/5 overflow-hidden flex flex-col transition-colors duration-700 hover:bg-(--bg-surface) cursor-pointer"
+                className="shrink-0 w-[75vw] sm:w-[45vw] lg:w-[32vw] xl:w-[24vw] h-[280px] sm:h-[320px] md:h-[380px] lg:h-[400px] group relative rounded-[20px] sm:rounded-[28px] bg-background border border-white/5 overflow-hidden flex flex-col transition-colors duration-700 hover:bg-(--bg-surface) cursor-pointer"
               >
                 {/* Hover gradient overlay */}
                 <div className="absolute inset-0 bg-linear-to-br from-white/0 via-white/2 to-white/0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none z-20" />
@@ -322,13 +322,13 @@ export default function DataStructuresShowcase() {
                 </div>
                 
                 {/* Card Header */}
-                <div className="p-6 md:p-8 pr-24 md:pr-32 z-30 relative pointer-events-none border-b border-white/5 bg-white/2">
-                  <h3 className="text-white/90 text-xl md:text-2xl font-medium tracking-wide mb-2 font-ui">{struct.title}</h3>
+                <div className="p-4 sm:p-6 md:p-8 pr-16 sm:pr-24 md:pr-32 z-30 relative pointer-events-none border-b border-white/5 bg-white/2">
+                  <h3 className="text-white/90 text-lg sm:text-xl md:text-2xl font-medium tracking-wide mb-1 sm:mb-2 font-ui">{struct.title}</h3>
                   <p className="text-white/40 text-xs md:text-sm font-light leading-relaxed font-ui">{struct.desc}</p>
                 </div>
                 
                 {/* Live Micro-Visualization */}
-                <div className="flex-1 w-full h-full relative z-10 flex items-center justify-center p-6 overflow-hidden">
+                <div className="flex-1 w-full h-full relative z-10 flex items-center justify-center p-3 sm:p-6 overflow-hidden">
                    <struct.Component />
                 </div>
               </motion.div>

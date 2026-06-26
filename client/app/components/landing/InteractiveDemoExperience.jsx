@@ -28,7 +28,7 @@ const BinarySearchDemo = ({ step }) => {
           
           return (
             <div key={i} className="flex flex-col items-center">
-              <div className={`w-10 h-10 md:w-12 md:h-12 flex items-center justify-center rounded-xl border font-mono text-sm md:text-base transition-all duration-500 ${isM ? 'bg-(--accent-secondary)/20 border-(--accent-secondary) text-(--accent-secondary) shadow-[0_0_20px_rgba(79,140,255,0.3)] scale-110 z-10' : isOutOfRange ? 'bg-white/2 border-white/5 text-white/20' : 'bg-(--bg-surface) border-white/10 text-white/80 shadow-inner'}`}>
+              <div className={`w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 flex items-center justify-center rounded-lg sm:rounded-xl border font-mono text-xs sm:text-sm md:text-base transition-all duration-500 ${isM ? 'bg-(--accent-secondary)/20 border-(--accent-secondary) text-(--accent-secondary) shadow-[0_0_20px_rgba(79,140,255,0.3)] scale-110 z-10' : isOutOfRange ? 'bg-white/2 border-white/5 text-white/20' : 'bg-(--bg-surface) border-white/10 text-white/80 shadow-inner'}`}>
                 {val}
               </div>
               <div className="h-8 mt-3 relative w-full flex justify-center">
@@ -61,7 +61,7 @@ const ReverseListDemo = ({ step }) => {
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="w-full h-full flex flex-col items-center justify-center relative p-8">
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-(--accent-highlight) blur-[120px] opacity-[0.05] rounded-full pointer-events-none" />
-      <div className="flex items-center gap-10 md:gap-16 z-10">
+      <div className="flex items-center gap-6 sm:gap-10 md:gap-16 z-10">
         {[12, 99, 37, 42].map((val, i) => {
           const isPrev = i === s.prev;
           const isCurr = i === s.curr;
@@ -70,7 +70,7 @@ const ReverseListDemo = ({ step }) => {
 
           return (
             <div key={i} className="relative flex flex-col items-center">
-              <div className={`w-12 h-12 md:w-14 md:h-14 flex items-center justify-center rounded-2xl border font-mono text-sm md:text-base transition-all duration-500 z-10 ${isCurr ? 'bg-(--accent-secondary)/20 border-(--accent-secondary) text-(--accent-secondary) shadow-[0_0_20px_rgba(79,140,255,0.3)] scale-110' : isPrev ? 'bg-(--accent-highlight)/15 border-(--accent-highlight)/50 text-(--accent-highlight)' : 'bg-(--bg-surface) border-white/10 text-white/80 shadow-inner'}`}>
+              <div className={`w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 flex items-center justify-center rounded-xl sm:rounded-2xl border font-mono text-xs sm:text-sm md:text-base transition-all duration-500 z-10 ${isCurr ? 'bg-(--accent-secondary)/20 border-(--accent-secondary) text-(--accent-secondary) shadow-[0_0_20px_rgba(79,140,255,0.3)] scale-110' : isPrev ? 'bg-(--accent-highlight)/15 border-(--accent-highlight)/50 text-(--accent-highlight)' : 'bg-(--bg-surface) border-white/10 text-white/80 shadow-inner'}`}>
                 {val}
               </div>
               <div className="h-6 mt-3 relative w-full flex justify-center">
@@ -81,7 +81,7 @@ const ReverseListDemo = ({ step }) => {
               
               {/* Edge */}
               {i < 3 && (
-                <div className="absolute left-full top-[40%] md:top-[45%] -translate-y-1/2 w-10 md:w-16 h-[2px] transition-all duration-500 z-0">
+                <div className="absolute left-full top-[40%] md:top-[45%] -translate-y-1/2 w-6 sm:w-10 md:w-16 h-[2px] transition-all duration-500 z-0">
                   {isReversed ? (
                     <div className="w-full h-full bg-(--accent-highlight) relative opacity-80">
                         <div className="absolute left-0 top-1/2 -translate-y-1/2 w-0 h-0 border-y-[5px] border-y-transparent border-r-[7px] border-r-(--accent-highlight)" />
@@ -121,7 +121,7 @@ const SlidingWindowDemo = ({ step }) => {
          {chars.map((char, i) => {
             const inWindow = i >= s.L && i <= s.R;
             return (
-              <div key={i} className={`w-8 h-12 md:w-10 md:h-14 flex items-center justify-center font-mono text-base md:text-lg border-b-2 transition-colors duration-500 ${inWindow ? 'border-(--accent-highlight) text-(--accent-highlight)' : 'border-white/10 text-white/40'}`}>
+              <div key={i} className={`w-8 h-10 sm:w-8 sm:h-12 md:w-10 md:h-14 flex items-center justify-center font-mono text-sm sm:text-base md:text-lg border-b-2 transition-colors duration-500 ${inWindow ? 'border-(--accent-highlight) text-(--accent-highlight)' : 'border-white/10 text-white/40'}`}>
                 {char}
               </div>
             )
@@ -183,7 +183,7 @@ const DFSTraversalDemo = ({ step }) => {
             const isCurr = s.curr === node.id;
             const isVisited = s.visited.includes(node.id);
             return (
-              <div key={node.id} className={`absolute -translate-x-1/2 -translate-y-1/2 w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center font-mono text-sm transition-all duration-500 z-10 ${isCurr ? 'bg-(--accent-secondary) text-white shadow-[0_0_25px_rgba(157,78,221,0.5)] scale-110 border-2 border-white' : isVisited ? 'bg-(--accent-secondary)/20 border border-(--accent-secondary)/50 text-(--accent-secondary)' : 'bg-(--bg-surface) border border-white/20 text-white/50 shadow-inner'}`} style={{ top: node.y, left: node.x }}>
+              <div key={node.id} className={`absolute -translate-x-1/2 -translate-y-1/2 w-9 h-9 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center font-mono text-xs sm:text-sm transition-all duration-500 z-10 ${isCurr ? 'bg-(--accent-secondary) text-white shadow-[0_0_25px_rgba(157,78,221,0.5)] scale-110 border-2 border-white' : isVisited ? 'bg-(--accent-secondary)/20 border border-(--accent-secondary)/50 text-(--accent-secondary)' : 'bg-(--bg-surface) border border-white/20 text-white/50 shadow-inner'}`} style={{ top: node.y, left: node.x }}>
                 {node.id}
               </div>
             )
@@ -275,7 +275,7 @@ export default function InteractiveDemoExperience() {
   };
 
   return (
-    <div className="relative px-2 md:px-4 py-24 md:py-32 flex justify-center items-center overflow-hidden" style={{ perspective: '2000px' }}>
+    <div className="relative px-2 md:px-4 py-16 sm:py-24 md:py-32 flex justify-center items-center overflow-hidden" style={{ perspective: '2000px' }}>
       
       {/* 1. Base Void */}
       <div className="absolute inset-0 bg-background z-0" />
@@ -307,7 +307,7 @@ export default function InteractiveDemoExperience() {
       <div className="absolute bottom-0 left-0 w-full h-48 bg-linear-to-t from-background via-background/80 to-transparent z-10 pointer-events-none" />
 
       {/* 7. The Floating Island */}
-      <section id="interactive-demo" className="relative w-full py-32 md:py-40 bg-(--bg-surface)/40 backdrop-blur-2xl rounded-[3rem] md:rounded-[4rem] border border-white/10 shadow-[0_50px_150px_-20px_rgba(0,0,0,1),inset_0_1px_1px_rgba(255,255,255,0.1)] z-20 overflow-hidden transform-gpu">
+      <section id="interactive-demo" className="relative w-full py-20 sm:py-32 md:py-40 bg-(--bg-surface)/40 backdrop-blur-2xl rounded-4xl sm:rounded-[3rem] md:rounded-[4rem] border border-white/10 shadow-[0_50px_150px_-20px_rgba(0,0,0,1),inset_0_1px_1px_rgba(255,255,255,0.1)] z-20 overflow-hidden transform-gpu">
         
         {/* Island Inner Rim Light - Dual Tone */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[80%] h-[2px] bg-linear-to-r from-transparent via-(--accent-highlight)/40 to-transparent mix-blend-screen" />
@@ -324,7 +324,7 @@ export default function InteractiveDemoExperience() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.1 }}
-            className="text-5xl sm:text-6xl md:text-7xl lg:text-[5.5rem] font-display font-medium leading-[1.05] tracking-tight mb-8 text-white"
+            className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-[5.5rem] font-display font-medium leading-[1.05] tracking-tight mb-6 sm:mb-8 text-white"
           >
             Pick an <span className="font-mono font-medium text-[0.85em] tracking-tight text-white/80 align-baseline">algorithm</span>.<br />
             <span className="text-white/60">Watch it unfold.</span>
@@ -335,7 +335,7 @@ export default function InteractiveDemoExperience() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.2 }}
-            className="text-white/40 text-lg md:text-xl leading-relaxed font-light max-w-xl mx-auto"
+            className="text-white/40 text-base sm:text-lg md:text-xl leading-relaxed font-light max-w-xl mx-auto"
           >
             Don't imagine it. Watch it. Experience how the platform makes <span className="font-mono text-[0.9em] text-white/60 uppercase tracking-widest">complex transitions</span> immediately obvious.
           </motion.p>
@@ -384,7 +384,7 @@ export default function InteractiveDemoExperience() {
                 </div>
 
                 {/* Main View Area */}
-                <div className="h-[350px] md:h-[450px] relative bg-background overflow-hidden">
+                <div className="h-[280px] sm:h-[350px] md:h-[450px] relative bg-background overflow-hidden">
                    {/* Blueprint Grid Background */}
                    <div className="absolute inset-0 bg-[linear-gradient(to_right,color-mix(in_srgb,var(--text-primary)_3%,transparent)_1px,transparent_1px),linear-gradient(to_bottom,color-mix(in_srgb,var(--text-primary)_3%,transparent)_1px,transparent_1px)] bg-size-[32px_32px]" />
                    
