@@ -146,7 +146,11 @@ export default function VisualizerLayout() {
   const loopContext = currentState?.loopContext ?? {};
 
   const derivedIntelligence = useMemo(() => {
-    return result?.intelligence || deriveIntelligence(states);
+    const fallback = deriveIntelligence(states);
+    if (result?.intelligence) {
+      return { ...fallback, ...result.intelligence };
+    }
+    return fallback;
   }, [states, result?.intelligence]);
 
   // Extract call stack data

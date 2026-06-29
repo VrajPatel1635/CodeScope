@@ -17,6 +17,9 @@ const { normalizeLoopFlows } = require("../execution/normalizers/javaLoopFlowNor
 const { normalizeConditions } = require("../execution/normalizers/javaConditionNormalizer");
 const { deriveSourceSteps } = require("../sourceSteps/deriveSourceSteps");
 const { resolveSourceStepStates } = require("../sourceSteps/resolveSourceStepStates");
+const { injectRegistryTraces } = require("../execution/instrumentation/registryInjector");
+const IntelligenceDeriver = require("../intelligence/IntelligenceDeriver");
+const registry = require("../registry");
 const logger = require("../utils/logger");
 
 const EXECUTIONS_DIR = path.join(__dirname, "../../executions");
@@ -62,20 +65,58 @@ function wrapJavaCode(userCode, input, methodName = "solve", methodParams = [], 
   const outputSerializer = `
 class OutputSerializer {
     public static String serialize(Object obj) {
-        if (obj == null) return "[]"; // or "null"? The spec asks for [] for Empty list
-        if (obj instanceof int[]) {
-            return java.util.Arrays.toString((int[]) obj);
+        if (obj == null) return "null";
+        Class<?> c = obj.getClass();
+        if (c.isArray()) {
+            if (obj instanceof Object[]) return serializeObjectArray((Object[]) obj);
+            if (c == int[].class) return java.util.Arrays.toString((int[]) obj);
+            if (c == boolean[].class) return java.util.Arrays.toString((boolean[]) obj);
+            if (c == double[].class) return java.util.Arrays.toString((double[]) obj);
+            if (c == char[].class) return java.util.Arrays.toString((char[]) obj);
+            if (c == long[].class) return java.util.Arrays.toString((long[]) obj);
+            return "[...]";
         }
-        if (obj instanceof int[][]) {
-            return java.util.Arrays.deepToString((int[][]) obj);
+        if (obj instanceof java.util.Map) {
+            return serializeMap((java.util.Map<?, ?>) obj);
         }
-        if (obj.getClass().getSimpleName().equals("ListNode")) {
+        if (obj instanceof java.util.Collection) {
+            return serializeCollection((java.util.Collection<?>) obj);
+        }
+        if (obj.getClass().getName().equals("ListNode")) {
             return serializeLinkedList(obj);
         }
-        if (obj.getClass().getSimpleName().equals("TreeNode")) {
+        if (obj.getClass().getName().equals("TreeNode")) {
             return serializeTree(obj);
         }
+        if (obj instanceof String) {
+            return "\\"" + obj.toString().replace("\\"", "\\\\\\"") + "\\"";
+        }
         return String.valueOf(obj);
+    }
+
+    private static String serializeObjectArray(Object[] arr) {
+        java.util.List<String> elements = new java.util.ArrayList<>();
+        for (Object e : arr) {
+            elements.add(serialize(e));
+        }
+        return "[" + String.join(",", elements) + "]";
+    }
+
+    private static String serializeCollection(java.util.Collection<?> coll) {
+        java.util.List<String> elements = new java.util.ArrayList<>();
+        for (Object e : coll) {
+            elements.add(serialize(e));
+        }
+        return "[" + String.join(",", elements) + "]";
+    }
+
+    private static String serializeMap(java.util.Map<?, ?> map) {
+        java.util.List<String> entries = new java.util.ArrayList<>();
+        for (java.util.Map.Entry<?, ?> entry : map.entrySet()) {
+            String keyStr = entry.getKey() instanceof String ? "\\"" + entry.getKey().toString().replace("\\"", "\\\\\\"") + "\\"" : "\\"" + String.valueOf(entry.getKey()) + "\\"";
+            entries.add(keyStr + ":" + serialize(entry.getValue()));
+        }
+        return "{" + String.join(",", entries) + "}";
     }
 
     private static String serializeLinkedList(Object headObj) {
@@ -413,6 +454,9 @@ async function executeJavaCode(userCode, input) {
       }
     });
 
+    // ── Execution Intelligence v2.0 Layer ────────────
+    const intelligence = IntelligenceDeriver.derive(states, registry, patterns);
+
     return {
       success: runResult.code === 0,
       states,
@@ -424,6 +468,7 @@ async function executeJavaCode(userCode, input) {
       treeMutationSemanticFrames,
       graphSemanticFrames,
       patterns,
+      intelligence,
       output,
       error: runResult.code === 0 ? null : runResult.stderr,
     };
@@ -577,6 +622,11 @@ function parseExecutionOutput(rawOutput) {
       const op = parts[3];
       const rhs = parts.slice(4).join("|") || "";
       trace.push({ type: "ASSIGN", name, op, rhs });
+    } else if (type === "STATE_OP") {
+      const targetName = parts[2].split("=")[1];
+      const operation = parts[3].split("=")[1];
+      const serializedState = parts.slice(4).join("|").substring(16);
+      trace.push({ type: "STATE_OP", targetName, operation, serializedState });
     }
   }
 
@@ -1198,12 +1248,6 @@ function injectTraceIntoBody(mappedLines, methodName = "solve", methodParams = [
       tracedBody += `System.out.println("TRACE|COLLECTION_TYPE|${varName}|${type}");\n`;
     }
 
-    // COLLECTION MUTATION TRACE
-    const collectionMutationMatch = line.match(/\b([a-zA-Z_]\w*)\.(add|remove|set|push|pop|offer|poll|put|putIfAbsent|replace|clear|pollFirst|pollLast|removeFirst|removeLast|addFirst|addLast|offerFirst|offerLast)\s*\(/);
-    if (collectionMutationMatch) {
-      const varName = collectionMutationMatch[1];
-      tracedBody += `System.out.println("TRACE|COLLECTION_MUT|${varName}|" + ${formatter}(${varName}));\n`;
-    }
 
     // STRINGBUILDER / STRINGBUFFER MUTATION TRACE
     const stringBuilderMatch = line.match(/\b([a-zA-Z_]\w*)\.(append|insert|delete|deleteCharAt|replace|reverse|setCharAt)\s*\(/);
@@ -1214,19 +1258,11 @@ function injectTraceIntoBody(mappedLines, methodName = "solve", methodParams = [
       }
     }
 
-    // ARRAYS UTILITY TRACE
-    const arraysUtilMatch = line.match(/\bArrays\.(sort|fill|copyOf|copyOfRange)\s*\(\s*([a-zA-Z_]\w*)/);
-    if (arraysUtilMatch) {
-      const varName = arraysUtilMatch[2];
-      tracedBody += `System.out.println("TRACE|VAR|${varName}|" + ${formatter}(${varName}));\n`;
+    const registryOut = injectRegistryTraces(line, formatter);
+    if (registryOut) {
+      tracedBody += registryOut;
     }
 
-    // COLLECTIONS UTILITY TRACE
-    const collectionsUtilMatch = line.match(/\bCollections\.(sort|reverse|shuffle|rotate)\s*\(\s*([a-zA-Z_]\w*)/);
-    if (collectionsUtilMatch) {
-      const varName = collectionsUtilMatch[2];
-      tracedBody += `System.out.println("TRACE|COLLECTION_MUT|${varName}|" + ${formatter}(${varName}));\n`;
-    }
 
     // Keep braceDepth in sync for all other lines (e.g., `if (...) {`).
     // This prevents accidentally treating an inner-block '}' as the end of a loop.

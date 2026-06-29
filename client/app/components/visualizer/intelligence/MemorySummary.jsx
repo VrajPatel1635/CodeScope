@@ -19,6 +19,13 @@ export default function MemorySummary({ memory }) {
           <span className="font-mono font-semibold" style={{ color: "var(--text-primary)" }}>{peakStackDepth}</span>
         </div>
         
+        {memory.auxiliarySpace && (
+          <div className="flex justify-between items-center text-xs mt-1">
+            <span style={{ color: "var(--text-secondary)" }}>Auxiliary Space</span>
+            <span className="font-mono font-semibold" style={{ color: "var(--accent-primary)" }}>{memory.auxiliarySpace}</span>
+          </div>
+        )}
+        
         <div className="flex justify-between items-center text-xs">
           <span style={{ color: "var(--text-secondary)" }}>Characteristic</span>
           <span 

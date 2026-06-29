@@ -1,3 +1,5 @@
+const JavaKnowledgeRegistry = require("../registry/index");
+
 module.exports = function resolveCompilationDiagnostic(rawMessage) {
   if (rawMessage.includes("Exactly one public method is required inside Solution class.")) {
     return {
@@ -25,34 +27,11 @@ module.exports = function resolveCompilationDiagnostic(rawMessage) {
   if (rawMessage.includes("cannot find symbol") && classSymbolMatch) {
     const className = classSymbolMatch[1];
     
-    // Map common DSA classes to their exact import paths
-    const commonImports = {
-      "List": "java.util.List",
-      "ArrayList": "java.util.ArrayList",
-      "LinkedList": "java.util.LinkedList",
-      "Map": "java.util.Map",
-      "HashMap": "java.util.HashMap",
-      "TreeMap": "java.util.TreeMap",
-      "Set": "java.util.Set",
-      "HashSet": "java.util.HashSet",
-      "TreeSet": "java.util.TreeSet",
-      "Queue": "java.util.Queue",
-      "PriorityQueue": "java.util.PriorityQueue",
-      "Deque": "java.util.Deque",
-      "ArrayDeque": "java.util.ArrayDeque",
-      "Stack": "java.util.Stack",
-      "Arrays": "java.util.Arrays",
-      "Collections": "java.util.Collections",
-      "Scanner": "java.util.Scanner",
-      "Pattern": "java.util.regex.Pattern",
-      "Matcher": "java.util.regex.Matcher",
-      "File": "java.io.File",
-      "IOException": "java.io.IOException"
-    };
+    const registryEntry = JavaKnowledgeRegistry.lookupByClassName(className);
 
     let suggestedImport = `import java.util.${className}; (or appropriate package)`;
-    if (commonImports[className]) {
-      suggestedImport = `Add this to the top of your code:\nimport ${commonImports[className]};`;
+    if (registryEntry) {
+      suggestedImport = `Add this to the top of your code:\n${registryEntry.importStatement}`;
     } else if (className !== "a class") {
       suggestedImport = `Ensure you have imported the class, e.g., \nimport java.util.${className};`;
     }
@@ -71,6 +50,20 @@ module.exports = function resolveCompilationDiagnostic(rawMessage) {
     const symbolMatch = rawMessage.match(/symbol:\s+(variable|method)\s+(.*)/);
     const symType = symbolMatch ? symbolMatch[1] : "symbol";
     const symName = symbolMatch ? symbolMatch[2] : "a variable or method";
+
+    if (symType === "variable") {
+      const registryEntry = JavaKnowledgeRegistry.lookupByClassName(symName);
+      if (registryEntry) {
+        return {
+          severity: "error",
+          category: "compilation",
+          title: "Missing Import",
+          explanation: `The class '${symName}' is not recognized. You are likely missing an import statement.`,
+          suggestedFix: `Add this to the top of your code:\n${registryEntry.importStatement}`,
+          rawMessage
+        };
+      }
+    }
 
     return {
       severity: "error",

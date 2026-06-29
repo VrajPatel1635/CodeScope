@@ -106,27 +106,7 @@ function buildHelperCode({ userCode, wantsListNode, wantsTreeNode, wantsGraphLis
   // Always inject a universal formatValue helper to handle array serialization correctly
   dsaInputParts.push(
     "  static String formatValue(Object o) {\n" +
-    "    if (o == null) return \"null\";\n" +
-    "    Class<?> c = o.getClass();\n" +
-    "    if (c.isArray()) {\n" +
-    "      if (o instanceof Object[]) return java.util.Arrays.deepToString((Object[]) o);\n" +
-    "      if (c == int[].class) return java.util.Arrays.toString((int[]) o);\n" +
-    "      if (c == boolean[].class) return java.util.Arrays.toString((boolean[]) o);\n" +
-    "      if (c == double[].class) return java.util.Arrays.toString((double[]) o);\n" +
-    "      if (c == char[].class) return java.util.Arrays.toString((char[]) o);\n" +
-    "      if (c == long[].class) return java.util.Arrays.toString((long[]) o);\n" +
-    "      // fallback for other primitive arrays\n" +
-    "      return \"[...]\" ;\n" +
-    "    }"
-  );
-  if (wantsListNode) {
-    dsaInputParts.push("    if (c.getName().equals(\"ListNode\")) return getNodeId((ListNode)o);");
-  }
-  if (wantsTreeNode) {
-    dsaInputParts.push("    if (c.getName().equals(\"TreeNode\")) return getTreeNodeId((TreeNode)o);");
-  }
-  dsaInputParts.push(
-    "    return String.valueOf(o);\n" +
+    "    return OutputSerializer.serialize(o);\n" +
     "  }"
   );
 

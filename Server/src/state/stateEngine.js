@@ -2,7 +2,8 @@ const { handleArrayTrace, applyArrayMutation, attachArrayState } = require("../s
 const { handleLinkedListTrace, applyLinkedListMutation, attachLinkedListState } = require("../structures/linkedlist/linkedListStateHandler");
 const { handleTreeTrace, applyTreeMutation, attachTreeState } = require("../structures/tree/treeStateHandler");
 const { handleGraphTrace, applyGraphMutation, attachGraphState } = require("../structures/graph/graphStateHandler");
-const { handleCollectionTrace, applyCollectionMutation, attachCollectionState } = require("../structures/collections/collectionStateHandler");
+const { handleCollectionTrace, attachCollectionState } = require("../structures/collections/collectionStateHandler");
+const { handleStateOpTrace, applyStateOpMutation } = require("./handlers/stateOpHandler");
 const { generateStringContracts } = require("../structures/strings/stringContractBuilder");
 
 function parseValue(value) {
@@ -210,7 +211,8 @@ function buildState(traceEvents, initialArray) {
                 loopEvent: { loopId: event.loopId },
             });
         } else {
-            currentStep = handleArrayTrace(event, ctx) ||
+            currentStep = handleStateOpTrace(event, ctx) ||
+            handleArrayTrace(event, ctx) ||
             handleLinkedListTrace(event, ctx) ||
             handleTreeTrace(event, ctx) ||
             handleGraphTrace(event, ctx) ||
@@ -218,11 +220,11 @@ function buildState(traceEvents, initialArray) {
         }
 
         if (currentStep) {
+            applyStateOpMutation(currentStep, ctx);
             applyArrayMutation(currentStep, ctx);
             applyLinkedListMutation(currentStep, ctx);
             applyTreeMutation(currentStep, ctx);
             applyGraphMutation(currentStep, ctx);
-            applyCollectionMutation(currentStep, ctx);
 
             attachArrayState(currentStep, ctx);
             attachLinkedListState(currentStep, ctx);

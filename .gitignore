@@ -12,6 +12,7 @@ Execution-Intelligence-Design.md
 /.agent/
 DOCUMENTATION_ARCHITECTURE.md
 /DemoVideos
+/server/src/docs
 
 # Environment files
 .env
