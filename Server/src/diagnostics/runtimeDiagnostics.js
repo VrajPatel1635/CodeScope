@@ -31,8 +31,8 @@ module.exports = function resolveRuntimeDiagnostic(rawMessage, states, code) {
     if (!failingVariable && variableSnapshot && failingLineText) {
       // Look for null variables on the failing line
       const nullVars = Object.entries(variableSnapshot)
-        .filter(([k, v]) => v === null || v === "null")
-        .map(([k, v]) => k);
+        .filter(([k, descriptor]) => descriptor && (descriptor.value === null || descriptor.value === "null"))
+        .map(([k, descriptor]) => k);
       for (const v of nullVars) {
         if (failingLineText.includes(v)) {
           failingVariable = v;
@@ -158,7 +158,8 @@ module.exports = function resolveRuntimeDiagnostic(rawMessage, states, code) {
         const opMatch = failingLineText.match(/(\w+)\s*[\/%]/);
         if (opMatch) {
           const varName = opMatch[1];
-          dividend = variableSnapshot[varName] !== undefined ? variableSnapshot[varName] : varName;
+          const descriptor = variableSnapshot[varName];
+          dividend = descriptor !== undefined ? (descriptor.value !== undefined ? descriptor.value : descriptor) : varName;
         }
       }
     }

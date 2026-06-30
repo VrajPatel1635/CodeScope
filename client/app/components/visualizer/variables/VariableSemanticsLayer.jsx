@@ -14,7 +14,13 @@ export default function VariableSemanticsLayer({ stateVars = [], accumulators = 
     <div className={styles.variablesContainer}>
       <AnimatePresence>
         {stateVars.map((v) => (
-          <StateVariableCard key={`state-${v.name}`} name={v.name} value={v.value} />
+          <StateVariableCard 
+            key={`state-${v.name}`} 
+            name={v.name} 
+            value={v.value} 
+            runtimeType={v.runtimeType} 
+            category={v.category} 
+          />
         ))}
         {accumulators.map((v) => (
           <AccumulatorCard key={`acc-${v.name}`} name={v.name} value={v.value} prevValue={v.prevValue} />

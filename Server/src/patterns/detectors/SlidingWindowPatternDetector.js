@@ -51,10 +51,12 @@ function detectSlidingWindow(states, semantics) {
                 
                 for (const state of states) {
                     const vars = state.currentFrameVariables;
-                    if (vars && typeof vars[v1] === 'number' && typeof vars[v2] === 'number') {
+                    if (vars && 
+                        vars[v1]?.category === 'scalar' && typeof vars[v1].value === 'number' && 
+                        vars[v2]?.category === 'scalar' && typeof vars[v2].value === 'number') {
                         overlapCount++;
-                        if (vars[v1] < vars[v2]) v1AlwaysGreaterEqual = false;
-                        if (vars[v2] < vars[v1]) v2AlwaysGreaterEqual = false;
+                        if (vars[v1].value < vars[v2].value) v1AlwaysGreaterEqual = false;
+                        if (vars[v2].value < vars[v1].value) v2AlwaysGreaterEqual = false;
                     }
                 }
                 

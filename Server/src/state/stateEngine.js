@@ -5,6 +5,7 @@ const { handleGraphTrace, applyGraphMutation, attachGraphState } = require("../s
 const { handleCollectionTrace, attachCollectionState } = require("../structures/collections/collectionStateHandler");
 const { handleStateOpTrace, applyStateOpMutation } = require("./handlers/stateOpHandler");
 const { generateStringContracts } = require("../structures/strings/stringContractBuilder");
+const { buildDescriptor } = require("./builders/variableDescriptorBuilder");
 
 function parseValue(value) {
     if (typeof value === "number") return value;
@@ -120,7 +121,10 @@ function buildState(traceEvents, initialArray) {
         } else if (event.type === "VAR") {
             if (event.name === "__return__") continue;
             const parsedVal = parseValue(event.value);
-            ctx.stack[ctx.stack.length - 1].variables[event.name] = parsedVal;
+            const targetClass = ctx.declaredCollectionTypes[event.name];
+            const scope = ctx.stack.length === 1 ? "global" : "local";
+            const descriptor = buildDescriptor(event.name, parsedVal, targetClass, scope);
+            ctx.stack[ctx.stack.length - 1].variables[event.name] = descriptor;
 
             currentStep = ctx.createStep(event.type, { name: event.name, value: parsedVal });
             if (ctx.pendingAssign && ctx.pendingAssign.name === event.name) {

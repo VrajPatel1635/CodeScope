@@ -1,9 +1,12 @@
 const registry = require("../../registry/index");
+const { buildDescriptor } = require("../builders/variableDescriptorBuilder");
 
 function dispatchState(ctx, targetName, targetClass, parsedState) {
     // 1. Unified Variable Snapshot
     if (ctx.stack && ctx.stack.length > 0) {
-        ctx.stack[ctx.stack.length - 1].variables[targetName] = parsedState;
+        const scope = ctx.stack.length === 1 ? "global" : "local";
+        const descriptor = buildDescriptor(targetName, parsedState, targetClass, scope);
+        ctx.stack[ctx.stack.length - 1].variables[targetName] = descriptor;
     }
 
     // 2. Metadata-Driven Runtime Type Resolution

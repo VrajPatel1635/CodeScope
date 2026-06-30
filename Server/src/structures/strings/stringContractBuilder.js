@@ -16,13 +16,15 @@ function generateStringContracts(ctx, currentStep) {
     
     // Find all valid pointers
     const allPointers = [];
-    for (const [name, value] of Object.entries(vars)) {
+    for (const [name, descriptor] of Object.entries(vars)) {
+        const value = descriptor.value;
         if (typeof value === "number" && STRING_POINTER_NAMES.includes(name)) {
             allPointers.push({ name, value });
         }
     }
 
-    for (const [name, value] of Object.entries(vars)) {
+    for (const [name, descriptor] of Object.entries(vars)) {
+        const value = descriptor.value;
         if (typeof value === "string") {
             // Ignore node ids
             if (value.startsWith("node_") || value.startsWith("treeNode_") || value.startsWith("graphNode_")) continue;
@@ -69,8 +71,8 @@ function generateStringContracts(ctx, currentStep) {
                     const rightPtr = match[5];
 
                     if (leftStr === name && rightStr === name) {
-                        const lIdx = vars[leftPtr];
-                        const rIdx = vars[rightPtr];
+                        const lIdx = vars[leftPtr]?.value;
+                        const rIdx = vars[rightPtr]?.value;
                         
                         if (typeof lIdx === "number" && typeof rIdx === "number" && lIdx >= 0 && lIdx < value.length && rIdx >= 0 && rIdx < value.length) {
                             comparisonObj = {
@@ -121,11 +123,11 @@ function generateStringContracts(ctx, currentStep) {
                     let endIdx = value.length;
                     
                     if (args.length >= 1) {
-                        const startVal = Number.isNaN(Number(args[0])) ? vars[args[0]] : Number(args[0]);
+                        const startVal = Number.isNaN(Number(args[0])) ? vars[args[0]]?.value : Number(args[0]);
                         if (typeof startVal === 'number') startIdx = startVal;
                     }
                     if (args.length === 2) {
-                        const endVal = Number.isNaN(Number(args[1])) ? vars[args[1]] : Number(args[1]);
+                        const endVal = Number.isNaN(Number(args[1])) ? vars[args[1]]?.value : Number(args[1]);
                         if (typeof endVal === 'number') endIdx = endVal;
                     }
                     

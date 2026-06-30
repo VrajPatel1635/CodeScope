@@ -73,9 +73,9 @@ function analyzeGraphTraversal(states) {
           if (frame.function === "global" || frame.function === "solve") continue;
           
           let foundNode = null;
-          for (const key of ["node", "curr", "u", "v"]) {
-             if (frame.variables[key] !== undefined) {
-                 foundNode = `graphNode_${frame.variables[key]}`;
+          for (const [key, descriptor] of Object.entries(frame.variables)) {
+             if (descriptor && descriptor.category === "pointer") {
+                 foundNode = `graphNode_${descriptor.value}`;
                  break;
              }
           }
@@ -129,9 +129,10 @@ function analyzeGraphTraversal(states) {
     
         // 4. Cycle prevention / visited skip detection
         if (state.type === "VAR" && state.name) {
-          const isNeighborVar = ["neighbor", "next", "v", "u"].includes(state.name);
-          if (isNeighborVar) {
-            const neighborId = `graphNode_${state.value}`;
+          const currentFrame = currentStack[currentStack.length - 1];
+          const descriptor = currentFrame?.variables[state.name];
+          if (descriptor && descriptor.category === "pointer") {
+            const neighborId = `graphNode_${descriptor.value}`;
             const isVisited = graph.visitedState[neighborId];
             
             if (isVisited) {
@@ -180,9 +181,12 @@ function analyzeGraphTraversal(states) {
             semantics.push({ type: "BFS_WAVE_ADVANCE", level: state.bfsLevelStartEvent.level });
         }
         
-        if (state.type === "VAR" && ["neighbor", "next", "v", "u"].includes(state.name)) {
-            const neighborId = `graphNode_${state.value}`;
-            const isVisited = graph.visitedState[neighborId];
+        if (state.type === "VAR" && state.name) {
+            const currentFrame = currentStack[currentStack.length - 1];
+            const descriptor = currentFrame?.variables[state.name];
+            if (descriptor && descriptor.category === "pointer") {
+                const neighborId = `graphNode_${descriptor.value}`;
+                const isVisited = graph.visitedState[neighborId];
             const inFrontier = graph.frontier.includes(neighborId);
             
             if (isVisited || inFrontier) {
@@ -191,6 +195,7 @@ function analyzeGraphTraversal(states) {
                     semantics.push({ type: "CYCLE_PREVENTED", nodeId: neighborId });
                 }
             }
+          }
         }
         
         if (state.type === "LOOP_END" && graph.queue.length === 0 && isComponentActive) {

@@ -6,9 +6,10 @@ function extractIntegerVariableHistories(states) {
     for (const state of states) {
         if (!state.currentFrameVariables) continue;
         
-        for (const [varName, value] of Object.entries(state.currentFrameVariables)) {
+        for (const [varName, descriptor] of Object.entries(state.currentFrameVariables)) {
             // Only track primitive integer variables
-            if (typeof value === 'number' && Number.isInteger(value)) {
+            if (descriptor && descriptor.category === 'scalar' && typeof descriptor.value === 'number' && Number.isInteger(descriptor.value)) {
+                const value = descriptor.value;
                 if (!history[varName]) {
                     history[varName] = [];
                 }

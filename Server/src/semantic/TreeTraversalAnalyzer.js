@@ -10,8 +10,9 @@
 function getActiveTreeNode(frameVars) {
   if (!frameVars) return null;
   for (const key in frameVars) {
-    if (typeof frameVars[key] === 'string' && (frameVars[key].startsWith('treeNode_') || frameVars[key].startsWith('node_'))) {
-      return frameVars[key];
+    const descriptor = frameVars[key];
+    if (descriptor && descriptor.category === 'pointer') {
+      return descriptor.value;
     }
   }
   return null;

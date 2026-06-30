@@ -21,9 +21,9 @@
 function getNodePointers(state) {
   const vars = state?.currentFrameVariables || {};
   const result = {};
-  for (const [k, v] of Object.entries(vars)) {
-    if (typeof v === "string" && v.startsWith("node_")) {
-      result[k] = v;
+  for (const [k, descriptor] of Object.entries(vars)) {
+    if (descriptor && descriptor.category === "pointer") {
+      result[k] = descriptor.value;
     }
   }
   return result;

@@ -25,72 +25,6 @@ import SemanticChipOverlay from "@/app/components/visualizer/overlays/SemanticCh
 import OperationPanel from "@/app/components/visualizer/operations/OperationPanel";
 
 /**
- * Array index pointer name whitelist.
- * Only integer variables with these names are treated as array index pointers.
- */
-const ARRAY_POINTER_NAMES = [
-  "i", "j", "k",
-  "left", "right",
-  "start", "end",
-  "low", "high",
-  "mid",
-  "lo", "hi",
-  "l", "r",
-  "row", "col",
-  "top", "bottom",
-  "r1", "c1", "r2", "c2",
-  "row1", "col1", "row2", "col2"
-];
-
-/**
- * Linked list ownership pointer name whitelist.
- * Variables with these names whose values are "node_*" strings are treated
- * as linked list ownership pointers.
- */
-const LL_POINTER_NAMES = [
-  "head", "tail",
-  "curr", "prev", "next",
-  "slow", "fast",
-  "temp", "newhead",
-  "runner", "walker",
-];
-
-/**
- * Tree ownership pointer name whitelist.
- * Variables with these names whose values are "treeNode_*" strings are treated
- * as tree node ownership pointers.
- */
-const TREE_POINTER_NAMES = [
-  "root", "node", "current",
-  "left", "right", "parent",
-  "p", "q",
-];
-
-/**
- * Graph ownership pointer name whitelist.
- * Variables with these names whose values are "graphNode_*" strings are treated
- * as graph node ownership pointers.
- */
-const GRAPH_POINTER_NAMES = [
-  "current", "node", "neighbor",
-  "start", "src", "dest",
-  "u", "v", "w",
-];
-
-const ACC_NAMES = ["sum", "product", "score", "total"];
-const TEMP_NAMES = ["temp", "swap", "nextvalue", "tmp"];
-
-/**
- * Combined set of all pointer names (for variable classification exclusion)
- */
-const ALL_POINTER_NAMES = new Set([
-  ...ARRAY_POINTER_NAMES,
-  ...LL_POINTER_NAMES,
-  ...TREE_POINTER_NAMES,
-  ...GRAPH_POINTER_NAMES,
-]);
-
-/**
  * Resolve an index expression (from a COND expr like arr[j+1]) to a number.
  * Handles: literal numbers, variable names, simple var±N arithmetic.
  */
@@ -103,12 +37,12 @@ function resolveIndex(indexExpr, variables) {
   if (!isNaN(num) && String(num) === trimmed) return num;
 
   // Simple variable lookup
-  if (typeof variables[trimmed] === "number") return variables[trimmed];
+  const baseVar = variables[trimmed]?.value;
+  if (typeof baseVar === "number") return baseVar;
 
-  // Simple arithmetic: var+N or var-N
   const arithMatch = trimmed.match(/^(\w+)\s*([+-])\s*(\d+)$/);
   if (arithMatch) {
-    const base = variables[arithMatch[1]];
+    const base = variables[arithMatch[1]]?.value;
     if (typeof base === "number") {
       const offset = parseInt(arithMatch[3], 10);
       return arithMatch[2] === "+" ? base + offset : base - offset;
@@ -243,8 +177,9 @@ function InnerWorkspace({ currentState, result, activeSourceStep }) {
   const arrayPointers = useMemo(() => {
     const ptrs = [];
     if (!variables || !isArray) return ptrs;
-    for (const [key, value] of Object.entries(variables)) {
-      if (typeof value === "number" && value >= 0 && ARRAY_POINTER_NAMES.includes(key.toLowerCase())) {
+    for (const [key, descriptor] of Object.entries(variables)) {
+      const value = descriptor.value;
+      if (descriptor.category === "scalar" && typeof value === "number" && value >= 0) {
         ptrs.push({ name: key, index: value });
       }
     }
@@ -312,8 +247,9 @@ function InnerWorkspace({ currentState, result, activeSourceStep }) {
     }
 
     const candidates = [];
-    for (const [key, value] of Object.entries(variables)) {
-      if (typeof value === "number" && value >= 0 && ARRAY_POINTER_NAMES.includes(key.toLowerCase())) {
+    for (const [key, descriptor] of Object.entries(variables)) {
+      const value = descriptor.value;
+      if (descriptor.category === "scalar" && typeof value === "number" && value >= 0) {
         candidates.push({ name: key, value });
       }
     }
@@ -453,8 +389,9 @@ function InnerWorkspace({ currentState, result, activeSourceStep }) {
     const ptrs = [];
     if (!variables || !isLinkedList) return ptrs;
 
-    for (const [key, value] of Object.entries(variables)) {
-      if (typeof value === "string" && value.startsWith("node_")) {
+    for (const [key, descriptor] of Object.entries(variables)) {
+      const value = descriptor.value;
+      if (descriptor.category === "pointer") {
         ptrs.push({ name: key, target: value, isMoving: false });
       }
     }
@@ -601,8 +538,9 @@ function InnerWorkspace({ currentState, result, activeSourceStep }) {
     const ptrs = [];
     if (!variables || !isTree) return ptrs;
 
-    for (const [key, value] of Object.entries(variables)) {
-      if (typeof value === "string" && value.startsWith("treeNode_")) {
+    for (const [key, descriptor] of Object.entries(variables)) {
+      const value = descriptor.value;
+      if (descriptor.category === "pointer") {
         ptrs.push({ name: key, target: value, isMoving: false });
       }
     }
@@ -729,8 +667,9 @@ function InnerWorkspace({ currentState, result, activeSourceStep }) {
     const ptrs = [];
     if (!variables || !isGraph) return ptrs;
 
-    for (const [key, value] of Object.entries(variables)) {
-      if (typeof value === "string" && value.startsWith("graphNode_")) {
+    for (const [key, descriptor] of Object.entries(variables)) {
+      const value = descriptor.value;
+      if (descriptor.category === "pointer") {
         ptrs.push({ name: key, target: value, isMoving: false });
       }
     }
@@ -787,76 +726,21 @@ function InnerWorkspace({ currentState, result, activeSourceStep }) {
         if (step.type === "VAR") mutatedVarsInSource.add(step.name);
       });
 
-      for (const [key, value] of Object.entries(variables)) {
-        if (value === null || value === undefined) continue;
-        if (typeof value !== "number" && typeof value !== "string" && typeof value !== "boolean") continue;
+      for (const [key, descriptor] of Object.entries(variables)) {
+        if (!descriptor || typeof descriptor.value === "undefined" || descriptor.value === null) continue;
 
-        let resolvedValue = value;
-        const lowerKey = key.toLowerCase();
-
-        // ══════════════════════════════════════════════════════════════
-        // STRUCTURAL VARIABLE SYNC
-        // ══════════════════════════════════════════════════════════════
-        if (currentState) {
-          try {
-            if (currentState.graph && typeof value === "string" && value.startsWith("[")) {
-              if (lowerKey === "visited" && currentState.graph.visitedState) {
-                const parsed = JSON.parse(value);
-                for (let i = 0; i < parsed.length; i++) {
-                  const n = `graphNode_${i}`;
-                  if (currentState.graph.visitedState[n] !== undefined) parsed[i] = currentState.graph.visitedState[n];
-                }
-                resolvedValue = `[${parsed.join(", ")}]`;
-              } else if (lowerKey === "distance" && currentState.graph.distanceState) {
-                const parsed = JSON.parse(value);
-                for (let i = 0; i < parsed.length; i++) {
-                  const n = `graphNode_${i}`;
-                  if (currentState.graph.distanceState[n] !== undefined) parsed[i] = currentState.graph.distanceState[n];
-                }
-                resolvedValue = `[${parsed.join(", ")}]`;
-              } else if (lowerKey === "parent" && currentState.graph.parentState) {
-                const parsed = JSON.parse(value);
-                for (let i = 0; i < parsed.length; i++) {
-                  const n = `graphNode_${i}`;
-                  if (currentState.graph.parentState[n] !== undefined) parsed[i] = currentState.graph.parentState[n];
-                }
-                resolvedValue = `[${parsed.join(", ")}]`;
-              }
-            } else if (currentState.collections && currentState.collections[key]) {
-              resolvedValue = typeof currentState.collections[key] === "string"
-                ? currentState.collections[key]
-                : JSON.stringify(currentState.collections[key]);
-            }
-          } catch (e) {
-            // Silently fallback to the original string snapshot if parsing fails
-          }
-        }
-
-        // Skip ownership pointers (handled by PointerOverlay)
-        if (ALL_POINTER_NAMES.has(lowerKey)) {
-          const isArrayPointer = ARRAY_POINTER_NAMES.includes(lowerKey);
-          // If it's a matrix, array pointers don't get a PointerOverlay, so keep them in variables section!
-          if (isMatrix && isArrayPointer) {
-             // Keep it!
-          } else {
-             continue;
-          }
-        }
-
-        // Skip linked list / tree / graph node references (handled by PointerOverlay)
-        if (typeof value === "string" && (value.startsWith("node_") || value.startsWith("treeNode_") || value.startsWith("graphNode_"))) continue;
-
-        const prevValue = prevVariables ? prevVariables[key] : undefined;
+        const value = descriptor.value;
+        const prevValue = prevVariables ? prevVariables[key]?.value : undefined;
         const isMutating = mutatedVarsInSource.has(key);
 
-        if (ACC_NAMES.some(n => lowerKey.includes(n))) {
-          accs.push({ name: key, value: resolvedValue, prevValue, isMutating });
-        } else if (TEMP_NAMES.some(n => lowerKey.includes(n))) {
-          temps.push({ name: key, value: resolvedValue, isActive: isMutating });
-        } else {
-          // Default to State variable
-          sVars.push({ name: key, value: resolvedValue });
-        }
+        sVars.push({ 
+          name: key, 
+          value, 
+          prevValue, 
+          isMutating,
+          category: descriptor.category,
+          runtimeType: descriptor.runtimeType
+        });
       }
     }
     return { stateVars: sVars, accumulators: accs, tempVars: temps };

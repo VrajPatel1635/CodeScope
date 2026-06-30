@@ -1,3 +1,5 @@
+const { buildDescriptor } = require("../../state/builders/variableDescriptorBuilder");
+
 function handleLinkedListTrace(event, ctx) {
     if (event.type === "NODE_LINK") {
         return ctx.createStep(event.type, {
@@ -19,7 +21,9 @@ function handleLinkedListTrace(event, ctx) {
         }
         ctx.states.push(announceStep);
 
-        ctx.stack[ctx.stack.length - 1].variables[event.variable] = nodeId;
+        const scope = ctx.stack.length === 1 ? "global" : "local";
+        const descriptor = buildDescriptor(event.variable, nodeId, "ListNode", scope);
+        ctx.stack[ctx.stack.length - 1].variables[event.variable] = descriptor;
 
         return ctx.createStep(event.type + "_APPLIED");
     } else if (event.type === "NODE_MUTATE") {
