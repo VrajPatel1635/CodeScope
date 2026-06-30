@@ -24,17 +24,11 @@ function handleArrayTrace(event, ctx) {
 
 function applyArrayMutation(currentStep, ctx) {
     if (currentStep.arrayEvent && ctx.currentArrayState) {
-        if (ctx.primaryArrayName && currentStep.arrayEvent.name !== ctx.primaryArrayName) {
-            return;
-        }
         const index = parseInt(currentStep.arrayEvent.index);
         const value = parseTraceValue(currentStep.arrayEvent.value);
         ctx.currentArrayState[index] = value;
     }
     if (currentStep.array2dEvent && ctx.currentMatrixState) {
-        if (ctx.primaryMatrixName && currentStep.array2dEvent.name !== ctx.primaryMatrixName) {
-            return;
-        }
         const row = parseInt(currentStep.array2dEvent.row);
         const col = parseInt(currentStep.array2dEvent.col);
         const value = parseTraceValue(currentStep.array2dEvent.value);

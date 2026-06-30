@@ -4,6 +4,7 @@ module.exports = {
     namespace: "java.util",
     className: "Map",
     isInterface: true,
+    structuralType: "Collection",
     methods: {
         put: { mutatesTarget: true, returnsValue: true, operation: OPERATIONS.ADD, complexity: "O(1)", auxiliarySpace: "O(1)", semanticCategory: "Insertion", executionPhase: "State Update", characteristics: ["Average O(1)", "Hash Table"], hotspotWeight: 5 },
         putIfAbsent: { mutatesTarget: true, returnsValue: true, operation: OPERATIONS.ADD, complexity: "O(1)", auxiliarySpace: "O(1)", semanticCategory: "Insertion", executionPhase: "State Update", characteristics: ["Average O(1)", "Hash Table"], hotspotWeight: 5 },

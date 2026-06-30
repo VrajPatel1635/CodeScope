@@ -24,11 +24,15 @@ const IOException = require('./java/io/IOException');
 
 const MathClass = require('./java/lang/Math');
 
+const ArrayStructure = require('./structures/Array');
+const MatrixStructure = require('./structures/Matrix');
+
 const allModules = [
     Arrays, Collections, List, Queue, Deque, Stack, 
     MapMod, HashMap, TreeMap, SetMod, HashSet, TreeSet, PriorityQueue, LinkedList, ArrayList, ArrayDeque, Scanner,
     Pattern, Matcher, File, IOException,
-    MathClass
+    MathClass,
+    ArrayStructure, MatrixStructure
 ];
 
 class JavaKnowledgeRegistry {
@@ -55,7 +59,8 @@ class JavaKnowledgeRegistry {
             if (seenFqns.has(mod.fqn)) {
                 throw new Error(`Registry Validation Error: Duplicate FQN detected: ${mod.fqn}`);
             }
-            if (seenClassNames.has(mod.className)) {
+            // Optional components like Array don't conflict, but real classes might
+            if (mod.namespace !== "structure" && seenClassNames.has(mod.className)) {
                 throw new Error(`Registry Validation Error: Duplicate ClassName detected: ${mod.className}`);
             }
             
@@ -80,8 +85,10 @@ class JavaKnowledgeRegistry {
             const fqn = `${mod.namespace}.${mod.className}`;
             mod.fqn = fqn;
             
-            // Generate full import statement
-            mod.importStatement = `import ${fqn};`;
+            // Generate full import statement if it's a real java class
+            if (mod.namespace !== "structure") {
+                mod.importStatement = `import ${fqn};`;
+            }
             
             // Normalize properties
             if (!mod.methods) mod.methods = {};
@@ -127,6 +134,44 @@ class JavaKnowledgeRegistry {
     }
 
     /**
+     * Resolves the runtime type to its structural category (e.g. Array, Collection, Matrix).
+     */
+    getStructuralCategory(runtimeType) {
+        if (!runtimeType) return "UNKNOWN";
+
+        // Strip generics e.g., "java.util.List<Integer>" -> "java.util.List"
+        let strippedType = runtimeType;
+        const genericIdx = strippedType.indexOf('<');
+        if (genericIdx !== -1) {
+            strippedType = strippedType.substring(0, genericIdx).trim();
+        }
+
+        for (const mod of this.modules) {
+            // Check dynamic matchers first (like arrays)
+            if (mod.matches && mod.matches(strippedType)) {
+                return mod.structureType || "UNKNOWN";
+            }
+            // Check direct FQN or ClassName matching
+            if (mod.fqn === strippedType || mod.className === strippedType) {
+                // If the module explicitly defines a structural type
+                if (mod.structuralType) {
+                    return mod.structuralType;
+                }
+                // Fallback inheritance checks
+                if (mod.implements && (mod.implements.includes("List") || mod.implements.includes("Set") || mod.implements.includes("Map") || mod.implements.includes("Queue"))) {
+                    return "Collection";
+                }
+            }
+        }
+        
+        // Special legacy fallbacks just in case
+        if (strippedType === "ListNode") return "LinkedList";
+        if (strippedType === "TreeNode") return "Tree";
+        
+        return "UNKNOWN";
+    }
+
+    /**
      * Check if a class exists
      */
     hasClass(className) {
@@ -159,7 +204,7 @@ class JavaKnowledgeRegistry {
      * Get a list of all registered libraries (FQN)
      */
     listAllLibraries() {
-        return Array.from(this.byFqn.keys());
+        return Array.from(this.byFqn.keys()).filter(fqn => !fqn.startsWith("structure."));
     }
 }
 

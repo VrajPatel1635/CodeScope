@@ -4,6 +4,7 @@ module.exports = {
     namespace: "java.util",
     className: "Queue",
     isInterface: true,
+    structuralType: "Collection",
     methods: {
         add: { mutatesTarget: true, returnsValue: true, operation: OPERATIONS.ADD, complexity: "O(1)", auxiliarySpace: "O(1)", semanticCategory: "Queue Insert", executionPhase: "State Update", characteristics: ["Tail Insertion"], hotspotWeight: 4 },
         offer: { mutatesTarget: true, returnsValue: true, operation: OPERATIONS.OFFER, complexity: "O(1)", auxiliarySpace: "O(1)", semanticCategory: "Queue Insert", executionPhase: "State Update", characteristics: ["Tail Insertion"], hotspotWeight: 4 },

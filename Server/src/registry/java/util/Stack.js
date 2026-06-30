@@ -4,6 +4,7 @@ module.exports = {
     namespace: "java.util",
     className: "Stack",
     isInterface: false,
+    structuralType: "Collection",
     implements: ["List"],
     methods: {
         push: { mutatesTarget: true, returnsValue: true, operation: OPERATIONS.PUSH, complexity: "O(1)", auxiliarySpace: "O(1)", semanticCategory: "Stack Insert", executionPhase: "State Update", characteristics: ["LIFO", "Tail Insertion"], hotspotWeight: 5 },

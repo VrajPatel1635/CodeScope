@@ -4,6 +4,7 @@ module.exports = {
     namespace: "java.util",
     className: "List",
     isInterface: true,
+    structuralType: "Collection",
     methods: {
         add: { mutatesTarget: true, returnsValue: true, operation: OPERATIONS.ADD, complexity: "O(1)", auxiliarySpace: "O(1)", semanticCategory: "Insertion", executionPhase: "State Update", characteristics: ["Amortized O(1)", "Dynamic Sizing"], hotspotWeight: 4 },
         addFirst: { mutatesTarget: true, returnsValue: false, operation: OPERATIONS.ADD, complexity: "O(1)", auxiliarySpace: "O(1)", semanticCategory: "Insertion", executionPhase: "State Update", characteristics: ["Head Insertion", "Queue Operation"], hotspotWeight: 5 },

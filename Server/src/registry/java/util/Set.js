@@ -4,6 +4,7 @@ module.exports = {
     namespace: "java.util",
     className: "Set",
     isInterface: true,
+    structuralType: "Collection",
     methods: {
         add: { mutatesTarget: true, returnsValue: true, operation: OPERATIONS.ADD, complexity: "O(1)", auxiliarySpace: "O(1)", semanticCategory: "Insertion", executionPhase: "State Update", characteristics: ["Hash Set", "Uniqueness"], hotspotWeight: 4 },
         remove: { mutatesTarget: true, returnsValue: true, operation: OPERATIONS.REMOVE, complexity: "O(1)", auxiliarySpace: "O(1)", semanticCategory: "Removal", executionPhase: "State Update", characteristics: ["Hash Set"], hotspotWeight: 4 },

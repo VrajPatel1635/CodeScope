@@ -4,6 +4,7 @@ module.exports = {
     namespace: "java.util",
     className: "Deque",
     isInterface: true,
+    structuralType: "Collection",
     implements: ["Queue"],
     methods: {
         addFirst: { mutatesTarget: true, returnsValue: false, operation: OPERATIONS.ADD, complexity: "O(1)", auxiliarySpace: "O(1)", semanticCategory: "Deque Insert", executionPhase: "State Update", characteristics: ["Head Insertion"], hotspotWeight: 5 },
